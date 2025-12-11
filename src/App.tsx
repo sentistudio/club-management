@@ -25,8 +25,11 @@ import { Inbox } from "./routes/Inbox";
 import { MemberPortal } from "./routes/MemberPortal";
 
 function App() {
+  // Use basename for GitHub Pages deployment
+  const basename = import.meta.env.BASE_URL;
+  
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <Routes>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
