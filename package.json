@@ -11,7 +11,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
-  "homepage": "https://YOUR_USERNAME.github.io/club-management",
+  "homepage": "https://sentistudio.github.io/club-management",
   "dependencies": {
     "lucide-react": "^0.556.0",
     "react": "^19.2.0",
