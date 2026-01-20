@@ -32,8 +32,5 @@ export { Communications } from "./Communications";
 export { Inbox } from "./Inbox";
 export { Documents } from "./Documents";
 
-// Mitglieder-Portal (Mobile)
-export { MemberPortal } from "./MemberPortal";
-
 // System
 export { Settings } from "./Settings";

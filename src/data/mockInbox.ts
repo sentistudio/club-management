@@ -1,4 +1,5 @@
 import type { Ticket, TicketMessage, TicketForm } from "../types/inbox";
+import { LENA_SCHNEIDER, MAX_SCHNEIDER, DANIEL_KLEIN, PETRA_WEBER, NOAH_HOFFMANN } from "./mockDemoPersonas";
 
 // Current user (Patrick Steuble = p1)
 export const CURRENT_STAFF_ID = "p1";
@@ -7,6 +8,155 @@ export const CURRENT_STAFF_NAME = "Patrick Steuble";
 // ========= TICKETS =========
 
 export const mockTickets: Ticket[] = [
+  // ==========================================
+  // DEMO TICKETS FROM MEMBER PORTAL USERS
+  // These appear in both the club management and member portal
+  // ==========================================
+  {
+    id: "tkt_lena_1",
+    clubId: "club1",
+    requesterId: LENA_SCHNEIDER.id,
+    requesterMembershipId: "cm_lena",
+    requesterEmail: LENA_SCHNEIDER.email,
+    requesterName: `${LENA_SCHNEIDER.firstName} ${LENA_SCHNEIDER.lastName}`,
+    requesterDepartment: "Fitness, Fußball",
+    requesterRole: "active",
+    assignedToId: "p1",
+    assignedToName: "Patrick Steuble",
+    subject: "Frage zur Trainingszeit",
+    category: "general",
+    status: "pending",
+    priority: "normal",
+    ticketNumber: "TKT-2025-0101",
+    createdAt: "2025-01-28T14:30:00",
+    updatedAt: "2025-01-28T15:45:00",
+    previewText: "Hallo, ich wollte fragen ob es möglich ist, die Trainingszeit am Donnerstag von 18:00 auf 19:00 zu verschieben?",
+    unreadCount: 0,
+    messageCount: 2,
+    tags: ["training", "zeitänderung"],
+    departmentId: "dept_fitness"
+  },
+  {
+    id: "tkt_lena_for_max",
+    clubId: "club1",
+    requesterId: LENA_SCHNEIDER.id,
+    requesterMembershipId: "cm_lena",
+    requesterEmail: LENA_SCHNEIDER.email,
+    requesterName: `${LENA_SCHNEIDER.firstName} ${LENA_SCHNEIDER.lastName}`,
+    requesterDepartment: "Fußball",
+    requesterRole: "active",
+    assignedToId: "p1",
+    assignedToName: "Patrick Steuble",
+    subject: "Abmeldung Training nächste Woche",
+    category: "absence",
+    status: "open",
+    priority: "normal",
+    ticketNumber: "TKT-2025-0102",
+    createdAt: "2025-01-29T09:15:00",
+    updatedAt: "2025-01-29T09:15:00",
+    previewText: "Max kann leider nächste Woche Mittwoch und Freitag nicht zum Training kommen, da wir im Urlaub sind.",
+    unreadCount: 1,
+    messageCount: 1,
+    tags: ["abwesenheit", "training"],
+    departmentId: "dept_football",
+    // On behalf indicator
+    isOnBehalf: true,
+    onBehalfOfName: `${MAX_SCHNEIDER.firstName} ${MAX_SCHNEIDER.lastName}`,
+    onBehalfOfId: MAX_SCHNEIDER.id
+  },
+  {
+    id: "tkt_daniel_for_noah",
+    clubId: "club1",
+    requesterId: DANIEL_KLEIN.id,
+    requesterMembershipId: "cm_daniel",
+    requesterEmail: DANIEL_KLEIN.email,
+    requesterName: `${DANIEL_KLEIN.firstName} ${DANIEL_KLEIN.lastName}`,
+    requesterDepartment: "Fußball",
+    requesterRole: "passive",
+    assignedToId: "p1",
+    assignedToName: "Patrick Steuble",
+    subject: "Trikotgröße für Noah",
+    category: "equipment",
+    status: "resolved",
+    priority: "normal",
+    ticketNumber: "TKT-2025-0098",
+    createdAt: "2025-01-27T11:00:00",
+    updatedAt: "2025-01-27T14:20:00",
+    previewText: "Noah braucht ein neues Trikot. Könnten Sie mir bitte die verfügbaren Größen mitteilen?",
+    unreadCount: 0,
+    messageCount: 2,
+    tags: ["trikot", "ausrüstung"],
+    departmentId: "dept_football",
+    isOnBehalf: true,
+    onBehalfOfName: `${NOAH_HOFFMANN.firstName} ${NOAH_HOFFMANN.lastName}`,
+    onBehalfOfId: NOAH_HOFFMANN.id
+  },
+  {
+    id: "tkt_petra_carpool",
+    clubId: "club1",
+    requesterId: PETRA_WEBER.id,
+    requesterMembershipId: "cm_petra",
+    requesterEmail: PETRA_WEBER.email,
+    requesterName: `${PETRA_WEBER.firstName} ${PETRA_WEBER.lastName}`,
+    requesterDepartment: "Volleyball",
+    requesterRole: "passive",
+    assignedToId: "p1",
+    assignedToName: "Patrick Steuble",
+    subject: "Fahrgemeinschaft zum Turnier",
+    category: "organization",
+    status: "open",
+    priority: "normal",
+    ticketNumber: "TKT-2025-0095",
+    createdAt: "2025-01-26T16:45:00",
+    updatedAt: "2025-01-26T16:45:00",
+    previewText: "Ich würde gerne eine Fahrgemeinschaft zum Volleyball-Turnier am 15. Februar organisieren. Wer hätte Interesse?",
+    unreadCount: 1,
+    messageCount: 1,
+    tags: ["organisation", "turnier"],
+    departmentId: "dept_volleyball"
+  },
+  
+  // ==========================================
+  // DEMO: REPORTED MESSAGE TICKET
+  // This ticket was created when Lena reported a message in the chat
+  // ==========================================
+  {
+    id: "tkt_report_1",
+    clubId: "club1",
+    requesterId: LENA_SCHNEIDER.id,
+    requesterMembershipId: "cm_lena",
+    requesterEmail: LENA_SCHNEIDER.email,
+    requesterName: `${LENA_SCHNEIDER.firstName} ${LENA_SCHNEIDER.lastName}`,
+    requesterDepartment: "Volleyball",
+    requesterRole: "active",
+    assignedToId: "p1",
+    assignedToName: "Patrick Steuble",
+    subject: "🚨 Meldung: Mobbing im Team-Chat",
+    category: "report",
+    status: "open",
+    priority: "high",
+    ticketNumber: "TKT-2025-0103",
+    createdAt: "2026-01-14T10:30:00",
+    updatedAt: "2026-01-14T10:30:00",
+    previewText: "Ich möchte eine Nachricht im Team-Chat 'Volleyball U16 Mädchen' melden. Kategorie: Mobbing. Eine Spielerin hat meine Tochter Flurina beleidigt.",
+    unreadCount: 1,
+    messageCount: 1,
+    tags: ["meldung", "mobbing", "chat"],
+    departmentId: "dept_volleyball",
+    isOnBehalf: true,
+    onBehalfOfName: "Flurina Schneider",
+    onBehalfOfId: "p12",
+    // Report-specific fields
+    isReport: true,
+    reportedChatId: "team_vb_u16",
+    reportedChatName: "Volleyball U16 Mädchen",
+    reportedMessageId: "vb_u16_demo_report",
+    reportCategory: "bullying"
+  },
+
+  // ==========================================
+  // EXISTING SAMPLE TICKETS
+  // ==========================================
   {
     id: "tkt_1",
     clubId: "club1",
@@ -221,12 +371,184 @@ export const mockTickets: Ticket[] = [
     messageCount: 1,
     tags: ["trikot"],
     departmentId: "dept_football"
+  },
+  // Bulk Message (Rundschreiben)
+  {
+    id: "tkt_bulk_1",
+    clubId: "club1",
+    requesterId: "p1", // Sent by staff
+    requesterEmail: "verein@example.com",
+    requesterName: "Vereinsleitung",
+    subject: "Wichtig: Neue Trainingszeiten ab April",
+    category: "general",
+    status: "resolved",
+    priority: "normal",
+    ticketNumber: "RND-2024-0001",
+    createdAt: "2024-03-10T09:00:00",
+    updatedAt: "2024-03-10T09:00:00",
+    resolvedAt: "2024-03-10T09:00:00",
+    previewText: "Liebe Mitglieder, ab dem 1. April 2024 gelten neue Trainingszeiten für alle Abteilungen...",
+    unreadCount: 0,
+    messageCount: 1,
+    tags: ["rundschreiben", "training", "zeiten"],
+    isBulkMessage: true,
+    bulkRecipientCount: 156,
+    bulkFilter: "Alle Mitglieder",
+    bulkSentBy: "Patrick Steuble"
+  },
+  {
+    id: "tkt_bulk_2",
+    clubId: "club1",
+    requesterId: "p1",
+    requesterEmail: "verein@example.com",
+    requesterName: "Vereinsleitung",
+    subject: "Einladung zur Jahreshauptversammlung 2024",
+    category: "general",
+    status: "resolved",
+    priority: "high",
+    ticketNumber: "RND-2024-0002",
+    createdAt: "2024-03-01T10:00:00",
+    updatedAt: "2024-03-01T10:00:00",
+    resolvedAt: "2024-03-01T10:00:00",
+    previewText: "Sehr geehrte Mitglieder, hiermit laden wir Sie herzlich zur Jahreshauptversammlung am 25. März 2024 ein...",
+    unreadCount: 0,
+    messageCount: 1,
+    tags: ["rundschreiben", "jhv", "einladung"],
+    isBulkMessage: true,
+    bulkRecipientCount: 156,
+    bulkFilter: "Alle Mitglieder",
+    bulkSentBy: "Patrick Steuble"
+  },
+  {
+    id: "tkt_bulk_3",
+    clubId: "club1",
+    requesterId: "p1",
+    requesterEmail: "fussball@example.com",
+    requesterName: "Abteilung Fußball",
+    subject: "Fußball: Saisonabschlussfeier - Save the Date!",
+    category: "general",
+    status: "resolved",
+    priority: "normal",
+    ticketNumber: "RND-2024-0003",
+    createdAt: "2024-03-12T14:00:00",
+    updatedAt: "2024-03-12T14:00:00",
+    resolvedAt: "2024-03-12T14:00:00",
+    previewText: "Liebe Fußballer, merkt euch den 15. Juni vor! An diesem Tag feiern wir unsere Saisonabschlussfeier...",
+    unreadCount: 0,
+    messageCount: 1,
+    tags: ["rundschreiben", "fußball", "feier"],
+    isBulkMessage: true,
+    bulkRecipientCount: 48,
+    bulkFilter: "Abteilung: Fußball",
+    bulkSentBy: "Patrick Steuble"
   }
 ];
 
 // ========= TICKET MESSAGES =========
 
 export const mockTicketMessages: TicketMessage[] = [
+  // ==========================================
+  // DEMO TICKET MESSAGES (from member portal users)
+  // ==========================================
+  
+  // Lena's training time question
+  {
+    id: "msg_lena_1_1",
+    ticketId: "tkt_lena_1",
+    senderId: LENA_SCHNEIDER.id,
+    senderName: `${LENA_SCHNEIDER.firstName} ${LENA_SCHNEIDER.lastName}`,
+    senderType: "member",
+    senderAvatar: LENA_SCHNEIDER.avatar,
+    content: "Hallo,\n\nich wollte fragen ob es möglich ist, die Trainingszeit am Donnerstag von 18:00 auf 19:00 zu verschieben? Ich habe einen Termin der sich leider nicht verschieben lässt.\n\nVielen Dank!",
+    createdAt: "2025-01-28T14:30:00",
+    isRead: true,
+    isInternal: false
+  },
+  {
+    id: "msg_lena_1_2",
+    ticketId: "tkt_lena_1",
+    senderId: "p1",
+    senderName: "Patrick Steuble",
+    senderType: "staff",
+    content: "Hallo Frau Schneider,\n\nvielen Dank für Ihre Nachricht. Ich werde das mit der Trainerin Sandra besprechen und melde mich bei Ihnen.\n\nMit freundlichen Grüßen,\nPatrick Steuble",
+    createdAt: "2025-01-28T15:45:00",
+    isRead: true,
+    isInternal: false
+  },
+  
+  // Lena for Max - training absence
+  {
+    id: "msg_lena_max_1",
+    ticketId: "tkt_lena_for_max",
+    senderId: LENA_SCHNEIDER.id,
+    senderName: `${LENA_SCHNEIDER.firstName} ${LENA_SCHNEIDER.lastName}`,
+    senderType: "member",
+    senderAvatar: LENA_SCHNEIDER.avatar,
+    content: "Hallo Trainer Marco,\n\nMax kann leider nächste Woche Mittwoch und Freitag nicht zum Training kommen, da wir im Urlaub sind. Bitte entschuldigen Sie sein Fehlen.\n\nViele Grüße,\nLena Schneider (Mutter von Max)",
+    createdAt: "2025-01-29T09:15:00",
+    isRead: false,
+    isInternal: false
+  },
+  
+  // Daniel for Noah - jersey size
+  {
+    id: "msg_daniel_noah_1",
+    ticketId: "tkt_daniel_for_noah",
+    senderId: DANIEL_KLEIN.id,
+    senderName: `${DANIEL_KLEIN.firstName} ${DANIEL_KLEIN.lastName}`,
+    senderType: "member",
+    senderAvatar: DANIEL_KLEIN.avatar,
+    content: "Guten Tag,\n\nNoah braucht ein neues Trikot. Könnten Sie mir bitte die verfügbaren Größen mitteilen?\n\nMit freundlichen Grüßen,\nDaniel Klein (für Noah)",
+    createdAt: "2025-01-27T11:00:00",
+    isRead: true,
+    isInternal: false
+  },
+  {
+    id: "msg_daniel_noah_2",
+    ticketId: "tkt_daniel_for_noah",
+    senderId: "p1",
+    senderName: "Patrick Steuble",
+    senderType: "staff",
+    content: "Hallo Herr Klein,\n\nwir haben Trikots in den Größen 128, 140, 152 und 164 auf Lager. Noah trägt vermutlich 140 oder 152. Kommen Sie gerne zu den Öffnungszeiten vorbei!\n\nBeste Grüße,\nPatrick Steuble",
+    createdAt: "2025-01-27T14:20:00",
+    isRead: true,
+    isInternal: false
+  },
+  
+  // Petra - carpool
+  {
+    id: "msg_petra_1",
+    ticketId: "tkt_petra_carpool",
+    senderId: PETRA_WEBER.id,
+    senderName: `${PETRA_WEBER.firstName} ${PETRA_WEBER.lastName}`,
+    senderType: "member",
+    senderAvatar: PETRA_WEBER.avatar,
+    content: "Hallo,\n\nich würde gerne eine Fahrgemeinschaft zum Volleyball-Turnier am 15. Februar organisieren. Wer hätte Interesse?\n\nIch kann 3 Kinder mitnehmen.\n\nGrüße, Petra",
+    createdAt: "2025-01-26T16:45:00",
+    isRead: false,
+    isInternal: false
+  },
+  
+  // ==========================================
+  // DEMO: REPORTED MESSAGE TICKET MESSAGE
+  // ==========================================
+  {
+    id: "msg_report_1_1",
+    ticketId: "tkt_report_1",
+    senderId: LENA_SCHNEIDER.id,
+    senderName: `${LENA_SCHNEIDER.firstName} ${LENA_SCHNEIDER.lastName}`,
+    senderType: "member",
+    senderAvatar: LENA_SCHNEIDER.avatar,
+    content: `**🚨 Meldung einer Chat-Nachricht**\n\n**Chat:** Volleyball U16 Mädchen\n**Kategorie:** Mobbing\n**Betroffene Person:** Flurina Schneider\n\n**Gemeldete Nachricht:**\n> "Du bist ja eh die Schlechteste im Team..."\n\n**Meine Beschreibung:**\nEine Spielerin hat meine Tochter Flurina im Team-Chat beleidigt. Das ist nicht das erste Mal. Ich bitte um eine Überprüfung und entsprechende Maßnahmen.\n\nMit freundlichen Grüßen,\nLena Schneider`,
+    createdAt: "2026-01-14T10:30:00",
+    isRead: false,
+    isInternal: false
+  },
+
+  // ==========================================
+  // EXISTING SAMPLE MESSAGES
+  // ==========================================
+  
   // Ticket 1 messages
   {
     id: "msg_1_1",
@@ -364,6 +686,45 @@ export const mockTicketMessages: TicketMessage[] = [
     content: "Hallo,\n\nich würde gerne meine Trikotnummer von 14 auf 7 ändern. Die Nummer 7 ist bei uns in der Mannschaft nicht vergeben.\n\nIst das möglich und wie viel würde ein neues Trikot kosten?\n\nDanke!",
     createdAt: "2024-03-15T16:00:00",
     isRead: false,
+    isInternal: false
+  },
+
+  // Bulk Message 1 content
+  {
+    id: "msg_bulk_1_1",
+    ticketId: "tkt_bulk_1",
+    senderId: "p1",
+    senderName: "Patrick Steuble",
+    senderType: "staff",
+    content: "**Liebe Mitglieder,**\n\nab dem **1. April 2024** gelten neue Trainingszeiten für alle Abteilungen. Die Änderungen waren notwendig, um die Hallenbelegung zu optimieren.\n\n**Wichtige Änderungen:**\n\n- Fußball Herren: Dienstag & Donnerstag, 19:00 - 21:00 Uhr\n- Fußball Jugend: Montag & Mittwoch, 17:00 - 18:30 Uhr\n- Tennis: Samstag, 10:00 - 14:00 Uhr\n- Schwimmen: Freitag, 18:00 - 20:00 Uhr\n\nDie detaillierten Pläne finden Sie in Kürze im Mitgliederportal.\n\nBei Fragen wenden Sie sich bitte an die jeweilige Abteilungsleitung.\n\nMit sportlichen Grüßen,\n**Ihr Vereinsteam**",
+    createdAt: "2024-03-10T09:00:00",
+    isRead: true,
+    isInternal: false
+  },
+
+  // Bulk Message 2 content
+  {
+    id: "msg_bulk_2_1",
+    ticketId: "tkt_bulk_2",
+    senderId: "p1",
+    senderName: "Patrick Steuble",
+    senderType: "staff",
+    content: "**Einladung zur Jahreshauptversammlung 2024**\n\nSehr geehrte Mitglieder,\n\nhiermit laden wir Sie herzlich zur ordentlichen Jahreshauptversammlung ein:\n\n📅 **Datum:** Montag, 25. März 2024\n🕖 **Uhrzeit:** 19:00 Uhr\n📍 **Ort:** Vereinsheim, Großer Saal\n\n**Tagesordnung:**\n\n1. Begrüßung und Feststellung der Beschlussfähigkeit\n2. Genehmigung des Protokolls der letzten JHV\n3. Jahresbericht des Vorstands\n4. Kassenbericht und Bericht der Kassenprüfer\n5. Entlastung des Vorstands\n6. Neuwahlen\n7. Verschiedenes\n\nAnträge zur Tagesordnung können bis zum 18. März 2024 schriftlich eingereicht werden.\n\nWir freuen uns auf Ihr zahlreiches Erscheinen!\n\nMit freundlichen Grüßen,\n**Der Vorstand**",
+    createdAt: "2024-03-01T10:00:00",
+    isRead: true,
+    isInternal: false
+  },
+
+  // Bulk Message 3 content
+  {
+    id: "msg_bulk_3_1",
+    ticketId: "tkt_bulk_3",
+    senderId: "p1",
+    senderName: "Patrick Steuble",
+    senderType: "staff",
+    content: "**🎉 Saisonabschlussfeier 2024 - Save the Date! ⚽**\n\nLiebe Fußballerinnen und Fußballer,\n\nmerkt euch den **15. Juni 2024** vor!\n\nAn diesem Tag feiern wir gemeinsam unsere Saisonabschlussfeier mit:\n\n- 🏆 Ehrungen der besten Spieler\n- 🍔 Grillen und Getränke\n- 🎵 Musik und gute Stimmung\n- 👨‍👩‍👧‍👦 Familien sind herzlich willkommen\n\n**Details:**\n- **Wann:** Samstag, 15. Juni 2024, ab 14:00 Uhr\n- **Wo:** Sportplatz am Waldweg\n- **Kosten:** Erwachsene 10€, Kinder frei\n\nBitte meldet euch bis zum **1. Juni** an, damit wir besser planen können.\n\nWir freuen uns auf euch!\n\n**Eure Abteilungsleitung Fußball**",
+    createdAt: "2024-03-12T14:00:00",
+    isRead: true,
     isInternal: false
   }
 ];
@@ -615,6 +976,22 @@ export const mockTicketForms: TicketForm[] = [
       { id: "f1", name: "platform", label: "Plattform", type: "select", required: true, options: ["App (iOS)", "App (Android)", "Website", "Sonstiges"] },
       { id: "f2", name: "problem", label: "Problem beschreiben", type: "textarea", required: true, placeholder: "Was funktioniert nicht?" },
       { id: "f3", name: "screenshot", label: "Screenshot (optional)", type: "file", required: false }
+    ]
+  },
+  {
+    id: "form_7",
+    clubId: "club1",
+    name: "Nachricht melden",
+    description: "Eine Nachricht oder Verhalten im Chat melden",
+    category: "report",
+    isActive: true,
+    icon: "🚨",
+    fields: [
+      { id: "f1", name: "report_category", label: "Art der Meldung", type: "select", required: true, options: ["Unangemessene Inhalte", "Belästigung", "Mobbing", "Spam", "Sicherheitsbedenken", "Sonstiges"] },
+      { id: "f2", name: "chat_name", label: "Chat-Name", type: "text", required: true, placeholder: "z.B. Volleyball U16 Team" },
+      { id: "f3", name: "reported_message", label: "Gemeldete Nachricht", type: "textarea", required: false, placeholder: "Kopieren Sie die Nachricht hier..." },
+      { id: "f4", name: "description", label: "Beschreibung", type: "textarea", required: true, placeholder: "Beschreiben Sie den Vorfall..." },
+      { id: "f5", name: "affected_person", label: "Betroffene Person (optional)", type: "text", required: false, placeholder: "Wer ist betroffen?" }
     ]
   }
 ];

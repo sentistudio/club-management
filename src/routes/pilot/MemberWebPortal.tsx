@@ -1,0 +1,1482 @@
+import { useState, useMemo } from "react";
+import { 
+  Home,
+  Calendar,
+  MessageSquare,
+  Newspaper,
+  User,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Search,
+  Bell,
+  Clock,
+  MapPin,
+  Plus,
+  Send,
+  Paperclip,
+  ArrowLeft,
+  X,
+  File,
+  CreditCard,
+  Globe,
+  QrCode,
+  Eye,
+  Heart,
+  Check,
+  Shield
+} from "lucide-react";
+import { mockTicketForms } from "../../data/mockInbox";
+import { 
+  getChatMessages, 
+  mockChats
+} from "../../data/mockChats";
+import type { Chat } from "../../data/mockChats";
+
+// ==========================================
+// TYPES
+// ==========================================
+interface MemberProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar: string;
+  clubId: string;
+  clubName: string;
+  memberships: {
+    departmentId: string;
+    departmentName: string;
+    role: "active" | "passive" | "guardian";
+    teamName?: string;
+    icon: string;
+    coachName?: string;
+    coachAvatar?: string;
+  }[];
+  stats: {
+    termine: number;
+    nachrichten: number;
+    rechnungen: number;
+  };
+  events: {
+    id: string;
+    title: string;
+    date: string;
+    time: string;
+    location?: string;
+    type: "training" | "match" | "event" | "course";
+    teamIcon?: string;
+    status?: "confirmed" | "unconfirmed" | "booked" | "free_spots";
+    attendees?: number;
+    maxAttendees?: number;
+  }[];
+  children?: MemberProfile[];
+  isChild?: boolean;
+  age?: number;
+  parentId?: string;
+}
+
+interface EnhancedEvent {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  startTime: string;
+  endTime?: string;
+  location?: string;
+  type: "training" | "match" | "event" | "course" | "meeting" | "tournament";
+  teamIcon?: string;
+  scope: "team" | "department" | "club";
+  department?: string;
+  team?: string;
+  rsvp?: {
+    status: "confirmed" | "declined" | "pending" | "maybe";
+    deadline?: string;
+    required: boolean;
+    confirmed: number;
+    declined: number;
+    pending: number;
+    total: number;
+  };
+  organizer?: {
+    name: string;
+    avatar?: string;
+    role?: string;
+  };
+  isRecurring?: boolean;
+  recurringPattern?: string;
+  attachments?: { name: string; type: string; size: string }[];
+  notes?: string;
+  visibleTo?: ("all" | "players" | "parents" | "coaches" | "board")[];
+  createdBy?: string;
+  createdAt?: string;
+}
+
+type ViewState = "home" | "calendar" | "chats" | "news" | "profile" | "settings" | "chat-detail" | "request-detail" | "new-request" | "event-detail";
+
+// ==========================================
+// LENA'S PROFILE (MEMBER DATA)
+// ==========================================
+const LENA_PROFILE: MemberProfile = {
+  id: "p11",
+  firstName: "Lena",
+  lastName: "Schneider",
+  email: "lena.schneider@example.com",
+  avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face",
+  clubId: "sfb",
+  clubName: "Sportfreunde Burkhardsfelden",
+  memberships: [
+    { 
+      departmentId: "dept_fitness", 
+      departmentName: "Fitness", 
+      role: "active" as const, 
+      teamName: "Fitness – Morgengruppe", 
+      icon: "💪",
+      coachName: "Trainerin Sandra",
+      coachAvatar: "https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=50&h=50&fit=crop&crop=face"
+    },
+    { 
+      departmentId: "dept_football", 
+      departmentName: "Fußball", 
+      role: "active" as const, 
+      teamName: "Frauen Ü40", 
+      icon: "⚽",
+      coachName: "Trainer Bernd",
+      coachAvatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=50&h=50&fit=crop&crop=face"
+    }
+  ],
+  stats: {
+    termine: 4,
+    nachrichten: 8,
+    rechnungen: 0,
+  },
+  events: [
+    {
+      id: "evt_lena_1",
+      title: "Fitness Training",
+      date: "2026-01-22",
+      time: "07:00 - 08:00",
+      location: "Fitness-Raum",
+      type: "training",
+      teamIcon: "💪",
+      status: "confirmed"
+    },
+    {
+      id: "evt_lena_2",
+      title: "Frauen Ü40 Training",
+      date: "2026-01-24",
+      time: "19:00 - 20:30",
+      location: "Platz 2",
+      type: "training",
+      teamIcon: "⚽",
+      status: "unconfirmed"
+    },
+    {
+      id: "evt_lena_3",
+      title: "Freundschaftsspiel vs. TuS Mainberg",
+      date: "2026-01-26",
+      time: "15:00",
+      location: "Sportplatz Burkhardsfelden",
+      type: "match",
+      teamIcon: "⚽",
+      status: "confirmed"
+    }
+  ],
+  children: []
+};
+
+// Mock Enhanced Events for Lena
+const MOCK_LENA_EVENTS: EnhancedEvent[] = [
+  {
+    id: "evt_lena_1",
+    title: "Fitness Training - Morgengruppe",
+    description: "Reguläres Fitnesstraining mit Fokus auf Cardio und Kräftigung.",
+    date: "2026-01-22",
+    startTime: "07:00",
+    endTime: "08:00",
+    location: "Fitness-Raum",
+    type: "training",
+    teamIcon: "💪",
+    scope: "team",
+    department: "Fitness",
+    team: "Fitness – Morgengruppe",
+    rsvp: {
+      status: "confirmed",
+      required: true,
+      confirmed: 12,
+      declined: 2,
+      pending: 1,
+      total: 15
+    },
+    organizer: {
+      name: "Sandra Müller",
+      avatar: "https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=50&h=50&fit=crop&crop=face",
+      role: "Trainerin"
+    }
+  },
+  {
+    id: "evt_lena_2",
+    title: "Frauen Ü40 Training",
+    description: "Wöchentliches Mannschaftstraining mit Taktik- und Spielübungen.",
+    date: "2026-01-24",
+    startTime: "19:00",
+    endTime: "20:30",
+    location: "Platz 2",
+    type: "training",
+    teamIcon: "⚽",
+    scope: "team",
+    department: "Fußball",
+    team: "Frauen Ü40",
+    rsvp: {
+      status: "pending",
+      deadline: "2026-01-23",
+      required: true,
+      confirmed: 8,
+      declined: 3,
+      pending: 5,
+      total: 16
+    },
+    organizer: {
+      name: "Bernd Weber",
+      avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=50&h=50&fit=crop&crop=face",
+      role: "Trainer"
+    }
+  },
+  {
+    id: "evt_lena_3",
+    title: "Freundschaftsspiel vs. TuS Mainberg",
+    description: "Auswärtsspiel gegen TuS Mainberg. Treffpunkt 30 Minuten vor Spielbeginn.",
+    date: "2026-01-26",
+    startTime: "15:00",
+    endTime: "17:00",
+    location: "Sportplatz Mainberg",
+    type: "match",
+    teamIcon: "⚽",
+    scope: "team",
+    department: "Fußball",
+    team: "Frauen Ü40",
+    rsvp: {
+      status: "confirmed",
+      required: true,
+      confirmed: 14,
+      declined: 1,
+      pending: 1,
+      total: 16
+    },
+    organizer: {
+      name: "Bernd Weber",
+      avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=50&h=50&fit=crop&crop=face",
+      role: "Trainer"
+    }
+  },
+  {
+    id: "evt_lena_4",
+    title: "Vereinsversammlung",
+    description: "Jährliche Mitgliederversammlung mit Berichten des Vorstands und Wahlen.",
+    date: "2026-02-15",
+    startTime: "18:00",
+    endTime: "20:00",
+    location: "Vereinsheim",
+    type: "meeting",
+    scope: "club",
+    rsvp: {
+      status: "pending",
+      deadline: "2026-02-10",
+      required: false,
+      confirmed: 45,
+      declined: 12,
+      pending: 88,
+      total: 145
+    },
+    organizer: {
+      name: "Vorstand",
+      role: "Vereinsleitung"
+    }
+  }
+];
+
+// Mock Club News for Lena
+const MOCK_CLUB_NEWS = [
+  {
+    id: "news_1",
+    title: "Neuer Fitnessraum ab Februar",
+    excerpt: "Der renovierte Fitnessraum wird ab 1. Februar wieder verfügbar sein mit neuen Geräten.",
+    date: "2026-01-18",
+    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=200&fit=crop",
+    department: "Fitness",
+    views: 234,
+    likes: 45
+  },
+  {
+    id: "news_2",
+    title: "Frauen Ü40: Erfolgreicher Saisonstart",
+    excerpt: "Mit 3 Siegen in 4 Spielen startet das Team erfolgreich in die Rückrunde.",
+    date: "2026-01-15",
+    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=200&fit=crop",
+    department: "Fußball",
+    views: 189,
+    likes: 67
+  },
+  {
+    id: "news_3",
+    title: "Mitgliederversammlung 2026",
+    excerpt: "Einladung zur jährlichen Mitgliederversammlung am 15. Februar um 18:00 Uhr.",
+    date: "2026-01-10",
+    image: null,
+    department: "Verein",
+    views: 456,
+    likes: 12
+  }
+];
+
+// Filter chats for Lena
+const getLenaChats = () => {
+  return mockChats.filter(chat => {
+    // Check if Lena is a participant or can see this chat
+    return chat.visibleToProfiles?.includes("lena") || 
+           chat.participants.some(p => p.id === LENA_PROFILE.id);
+  });
+};
+
+// ==========================================
+// MEMBER SIDEBAR COMPONENT
+// ==========================================
+// Helper to get chat avatar
+const getChatAvatar = (chat: Chat): string | undefined => {
+  // For DMs, get the other participant's avatar
+  if (chat.type === "direct" && chat.participants.length > 0) {
+    const otherParticipant = chat.participants.find(p => p.id !== LENA_PROFILE.id);
+    return otherParticipant?.avatar;
+  }
+  // For group chats, return first participant's avatar or undefined
+  return chat.participants[0]?.avatar;
+};
+
+// Helper to format time from ISO string
+const formatMessageTime = (isoString: string): string => {
+  const date = new Date(isoString);
+  return date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+};
+
+interface MemberSidebarProps {
+  activeView: ViewState;
+  onNavigate: (view: ViewState) => void;
+  profile: MemberProfile;
+  unreadMessages: number;
+}
+
+function MemberSidebar({ activeView, onNavigate, profile, unreadMessages }: MemberSidebarProps) {
+  const navItems = [
+    { id: "home" as ViewState, icon: Home, label: "Übersicht" },
+    { id: "calendar" as ViewState, icon: Calendar, label: "Kalender" },
+    { id: "chats" as ViewState, icon: MessageSquare, label: "Nachrichten", badge: unreadMessages },
+    { id: "news" as ViewState, icon: Newspaper, label: "Club News" },
+    { id: "profile" as ViewState, icon: User, label: "Mein Profil" },
+  ];
+
+  return (
+    <aside className="w-64 h-screen flex flex-col bg-white border-r border-neutral-200 sticky top-0">
+      {/* Logo */}
+      <div className="flex items-center gap-3 h-16 px-4 border-b border-neutral-200">
+        <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center">
+          <span className="text-white font-bold text-lg">cb</span>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-neutral-900">Mitglieder-Portal</p>
+          <p className="text-xs text-neutral-500">Sportfreunde Burkhardsfelden</p>
+        </div>
+      </div>
+
+      {/* Club Logo */}
+      <div className="px-4 py-5 border-b border-neutral-200">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
+            <span className="text-white font-bold text-xl">SfB</span>
+          </div>
+          <div>
+            <p className="font-semibold text-neutral-900">{profile.clubName}</p>
+            <p className="text-xs text-neutral-500">Mitglied</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        <div className="space-y-1">
+          {navItems.map((item) => {
+            const isActive = activeView === item.id || 
+              (item.id === "chats" && (activeView === "chat-detail" || activeView === "request-detail" || activeView === "new-request")) ||
+              (item.id === "calendar" && activeView === "event-detail");
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                className={`
+                  w-full flex items-center justify-between px-3 py-2.5 rounded-lg
+                  text-sm font-medium transition-all duration-150
+                  ${isActive 
+                    ? "bg-teal-50 text-teal-600" 
+                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                  }
+                `}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge && item.badge > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center">
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Settings */}
+        <div className="mt-6 pt-4 border-t border-neutral-200">
+          <button
+            onClick={() => onNavigate("settings")}
+            className={`
+              w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
+              text-sm font-medium transition-all duration-150
+              ${activeView === "settings" 
+                ? "bg-teal-50 text-teal-600" 
+                : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+              }
+            `}
+          >
+            <Settings className="w-5 h-5" />
+            <span>Einstellungen</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* User Profile */}
+      <div className="p-4 border-t border-neutral-200">
+        <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-neutral-100 cursor-pointer transition-colors">
+          <img 
+            src={profile.avatar} 
+            alt={profile.firstName}
+            className="w-9 h-9 rounded-full object-cover"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-neutral-900 truncate">
+              {profile.firstName} {profile.lastName}
+            </p>
+            <p className="text-xs text-neutral-500">Mitglied</p>
+          </div>
+          <LogOut className="w-4 h-4 text-neutral-400" />
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+// ==========================================
+// MAIN COMPONENT
+// ==========================================
+export function MemberWebPortal() {
+  const [view, setView] = useState<ViewState>("home");
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const [selectedForm, setSelectedForm] = useState<typeof mockTicketForms[0] | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EnhancedEvent | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [chatTab, setChatTab] = useState<"announcements" | "team" | "direct" | "requests">("announcements");
+  
+  const profile = LENA_PROFILE;
+
+  // Calculate unread messages
+  const unreadMessages = useMemo(() => {
+    const chats = getLenaChats();
+    return chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
+  }, []);
+
+  // Filter chats based on tab
+  const filteredChats = useMemo(() => {
+    const chats = getLenaChats();
+    const filtered = chats.filter(chat => {
+      switch (chatTab) {
+        case "announcements":
+          return chat.type === "announcement";
+        case "team":
+          return chat.type === "team_group";
+        case "direct":
+          return chat.type === "direct";
+        case "requests":
+          return false; // Requests are handled separately
+        default:
+          return true;
+      }
+    });
+    
+    if (searchTerm) {
+      return filtered.filter(chat => 
+        chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        chat.lastMessage?.content.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    return filtered;
+  }, [chatTab, searchTerm]);
+
+  // Event helpers
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return "Heute";
+    }
+    if (date.toDateString() === tomorrow.toDateString()) {
+      return "Morgen";
+    }
+    return date.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+  };
+
+  const getEventTypeColor = (type: string) => {
+    switch (type) {
+      case "training": return "bg-teal-100 text-teal-700";
+      case "match": return "bg-orange-100 text-orange-700";
+      case "event": return "bg-violet-100 text-violet-700";
+      case "meeting": return "bg-blue-100 text-blue-700";
+      case "course": return "bg-amber-100 text-amber-700";
+      default: return "bg-neutral-100 text-neutral-700";
+    }
+  };
+
+  const getEventTypeLabel = (type: string) => {
+    switch (type) {
+      case "training": return "Training";
+      case "match": return "Spiel";
+      case "event": return "Event";
+      case "meeting": return "Versammlung";
+      case "course": return "Kurs";
+      default: return type;
+    }
+  };
+
+  // ==========================================
+  // RENDER: HOME VIEW
+  // ==========================================
+  const renderHome = () => (
+    <div className="p-6 space-y-6">
+      {/* Welcome Header */}
+      <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-2xl p-6 text-white">
+        <div className="flex items-center gap-4">
+          <img 
+            src={profile.avatar} 
+            alt={profile.firstName}
+            className="w-16 h-16 rounded-full border-2 border-white/30"
+          />
+          <div>
+            <h1 className="text-2xl font-bold">Hallo, {profile.firstName}!</h1>
+            <p className="text-teal-100">Willkommen bei {profile.clubName}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl p-4 border border-neutral-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-teal-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-neutral-900">{profile.stats.termine}</p>
+              <p className="text-sm text-neutral-500">Termine</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-neutral-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-neutral-900">{profile.stats.nachrichten}</p>
+              <p className="text-sm text-neutral-500">Nachrichten</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-neutral-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-neutral-900">{profile.stats.rechnungen}</p>
+              <p className="text-sm text-neutral-500">Offene Rechnungen</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Memberships */}
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="p-4 border-b border-neutral-200">
+          <h2 className="font-semibold text-neutral-900">Meine Mitgliedschaften</h2>
+        </div>
+        <div className="divide-y divide-neutral-100">
+          {profile.memberships.map((membership, idx) => (
+            <div key={idx} className="p-4 flex items-center gap-4">
+              <span className="text-2xl">{membership.icon}</span>
+              <div className="flex-1">
+                <p className="font-medium text-neutral-900">{membership.teamName || membership.departmentName}</p>
+                <p className="text-sm text-neutral-500">{membership.departmentName}</p>
+              </div>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                membership.role === "active" ? "bg-teal-100 text-teal-700" : "bg-neutral-100 text-neutral-600"
+              }`}>
+                {membership.role === "active" ? "Aktiv" : "Passiv"}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Upcoming Events */}
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="p-4 border-b border-neutral-200 flex items-center justify-between">
+          <h2 className="font-semibold text-neutral-900">Nächste Termine</h2>
+          <button 
+            onClick={() => setView("calendar")}
+            className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+          >
+            Alle anzeigen
+          </button>
+        </div>
+        <div className="divide-y divide-neutral-100">
+          {MOCK_LENA_EVENTS.slice(0, 3).map((event) => (
+            <button
+              key={event.id}
+              onClick={() => {
+                setSelectedEvent(event);
+                setView("event-detail");
+              }}
+              className="w-full p-4 flex items-center gap-4 hover:bg-neutral-50 transition-colors text-left"
+            >
+              <div className="w-12 h-12 rounded-xl bg-neutral-100 flex flex-col items-center justify-center">
+                <span className="text-xs text-neutral-500">{formatDate(event.date)}</span>
+                <span className="text-lg">{event.teamIcon || "📅"}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-neutral-900 truncate">{event.title}</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-sm text-neutral-500 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    {event.startTime}
+                  </span>
+                  {event.location && (
+                    <span className="text-sm text-neutral-500 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" />
+                      {event.location}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
+                {getEventTypeLabel(event.type)}
+              </span>
+              <ChevronRight className="w-5 h-5 text-neutral-400" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent News */}
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="p-4 border-b border-neutral-200 flex items-center justify-between">
+          <h2 className="font-semibold text-neutral-900">Aktuelle News</h2>
+          <button 
+            onClick={() => setView("news")}
+            className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+          >
+            Alle anzeigen
+          </button>
+        </div>
+        <div className="divide-y divide-neutral-100">
+          {MOCK_CLUB_NEWS.slice(0, 2).map((news) => (
+            <div key={news.id} className="p-4 flex gap-4">
+              {news.image && (
+                <img 
+                  src={news.image} 
+                  alt={news.title}
+                  className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-neutral-900">{news.title}</p>
+                <p className="text-sm text-neutral-500 mt-1 line-clamp-2">{news.excerpt}</p>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-xs text-neutral-400">{news.department}</span>
+                  <span className="text-xs text-neutral-400">•</span>
+                  <span className="text-xs text-neutral-400">{news.views} Aufrufe</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ==========================================
+  // RENDER: CALENDAR VIEW
+  // ==========================================
+  const renderCalendar = () => (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-neutral-900">Kalender</h1>
+      </div>
+
+      {/* Events List */}
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="p-4 border-b border-neutral-200">
+          <h2 className="font-semibold text-neutral-900">Meine Termine</h2>
+        </div>
+        <div className="divide-y divide-neutral-100">
+          {MOCK_LENA_EVENTS.map((event) => (
+            <button
+              key={event.id}
+              onClick={() => {
+                setSelectedEvent(event);
+                setView("event-detail");
+              }}
+              className="w-full p-4 flex items-center gap-4 hover:bg-neutral-50 transition-colors text-left"
+            >
+              <div className="w-16 h-16 rounded-xl bg-neutral-100 flex flex-col items-center justify-center">
+                <span className="text-xs text-neutral-500">{formatDate(event.date)}</span>
+                <span className="text-2xl">{event.teamIcon || "📅"}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-neutral-900">{event.title}</p>
+                <p className="text-sm text-neutral-500 mt-0.5">{event.team || event.department}</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-sm text-neutral-500 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    {event.startTime} {event.endTime && `- ${event.endTime}`}
+                  </span>
+                  {event.location && (
+                    <span className="text-sm text-neutral-500 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" />
+                      {event.location}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
+                  {getEventTypeLabel(event.type)}
+                </span>
+                {event.rsvp && (
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    event.rsvp.status === "confirmed" ? "bg-green-100 text-green-700" :
+                    event.rsvp.status === "declined" ? "bg-red-100 text-red-700" :
+                    "bg-amber-100 text-amber-700"
+                  }`}>
+                    {event.rsvp.status === "confirmed" ? "Zugesagt" :
+                     event.rsvp.status === "declined" ? "Abgesagt" : "Ausstehend"}
+                  </span>
+                )}
+              </div>
+              <ChevronRight className="w-5 h-5 text-neutral-400" />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ==========================================
+  // RENDER: EVENT DETAIL
+  // ==========================================
+  const renderEventDetail = () => {
+    if (!selectedEvent) return null;
+    
+    return (
+      <div className="p-6 space-y-6">
+        <button 
+          onClick={() => setView("calendar")}
+          className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Zurück zum Kalender</span>
+        </button>
+
+        <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+          {/* Header */}
+          <div className="p-6 border-b border-neutral-200">
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 rounded-xl bg-neutral-100 flex items-center justify-center text-3xl">
+                {selectedEvent.teamIcon || "📅"}
+              </div>
+              <div className="flex-1">
+                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getEventTypeColor(selectedEvent.type)}`}>
+                  {getEventTypeLabel(selectedEvent.type)}
+                </span>
+                <h1 className="text-2xl font-bold text-neutral-900">{selectedEvent.title}</h1>
+                <p className="text-neutral-500 mt-1">{selectedEvent.team || selectedEvent.department}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Details */}
+          <div className="p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-neutral-400" />
+              <div>
+                <p className="font-medium text-neutral-900">
+                  {new Date(selectedEvent.date).toLocaleDateString("de-DE", { 
+                    weekday: "long", 
+                    day: "numeric", 
+                    month: "long", 
+                    year: "numeric" 
+                  })}
+                </p>
+                <p className="text-sm text-neutral-500">
+                  {selectedEvent.startTime} {selectedEvent.endTime && `- ${selectedEvent.endTime}`}
+                </p>
+              </div>
+            </div>
+
+            {selectedEvent.location && (
+              <div className="flex items-center gap-3">
+                <MapPin className="w-5 h-5 text-neutral-400" />
+                <p className="font-medium text-neutral-900">{selectedEvent.location}</p>
+              </div>
+            )}
+
+            {selectedEvent.organizer && (
+              <div className="flex items-center gap-3">
+                <User className="w-5 h-5 text-neutral-400" />
+                <div className="flex items-center gap-2">
+                  {selectedEvent.organizer.avatar && (
+                    <img 
+                      src={selectedEvent.organizer.avatar} 
+                      alt={selectedEvent.organizer.name}
+                      className="w-6 h-6 rounded-full"
+                    />
+                  )}
+                  <div>
+                    <p className="font-medium text-neutral-900">{selectedEvent.organizer.name}</p>
+                    {selectedEvent.organizer.role && (
+                      <p className="text-xs text-neutral-500">{selectedEvent.organizer.role}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedEvent.description && (
+              <div className="pt-4 border-t border-neutral-200">
+                <h3 className="font-medium text-neutral-900 mb-2">Beschreibung</h3>
+                <p className="text-neutral-600">{selectedEvent.description}</p>
+              </div>
+            )}
+
+            {/* RSVP */}
+            {selectedEvent.rsvp && selectedEvent.rsvp.required && (
+              <div className="pt-4 border-t border-neutral-200">
+                <h3 className="font-medium text-neutral-900 mb-3">Teilnahme</h3>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex-1 bg-neutral-100 rounded-lg p-3 text-center">
+                    <p className="text-lg font-bold text-green-600">{selectedEvent.rsvp.confirmed}</p>
+                    <p className="text-xs text-neutral-500">Zugesagt</p>
+                  </div>
+                  <div className="flex-1 bg-neutral-100 rounded-lg p-3 text-center">
+                    <p className="text-lg font-bold text-red-600">{selectedEvent.rsvp.declined}</p>
+                    <p className="text-xs text-neutral-500">Abgesagt</p>
+                  </div>
+                  <div className="flex-1 bg-neutral-100 rounded-lg p-3 text-center">
+                    <p className="text-lg font-bold text-amber-600">{selectedEvent.rsvp.pending}</p>
+                    <p className="text-xs text-neutral-500">Ausstehend</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${
+                    selectedEvent.rsvp.status === "confirmed" 
+                      ? "bg-green-600 text-white" 
+                      : "bg-neutral-100 text-neutral-700 hover:bg-green-100"
+                  }`}>
+                    <Check className="w-4 h-4 inline mr-2" />
+                    Zusagen
+                  </button>
+                  <button className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${
+                    selectedEvent.rsvp.status === "declined" 
+                      ? "bg-red-600 text-white" 
+                      : "bg-neutral-100 text-neutral-700 hover:bg-red-100"
+                  }`}>
+                    <X className="w-4 h-4 inline mr-2" />
+                    Absagen
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ==========================================
+  // RENDER: CHATS VIEW
+  // ==========================================
+  const renderChats = () => (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-neutral-900">Nachrichten</h1>
+        <button 
+          onClick={() => setView("new-request")}
+          className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Neue Anfrage
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <input
+          type="text"
+          placeholder="Chats durchsuchen..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:border-teal-500"
+        />
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 p-1 bg-neutral-100 rounded-xl">
+        {[
+          { id: "announcements", label: "Ankündigungen" },
+          { id: "team", label: "Team-Chats" },
+          { id: "direct", label: "Direktnachrichten" },
+          { id: "requests", label: "Anfragen" }
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setChatTab(tab.id as typeof chatTab)}
+            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+              chatTab === tab.id 
+                ? "bg-white text-neutral-900 shadow-sm" 
+                : "text-neutral-600 hover:text-neutral-900"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Chat List */}
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        {chatTab === "requests" ? (
+          <div className="p-8 text-center">
+            <MessageSquare className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+            <p className="text-neutral-600 font-medium">Keine offenen Anfragen</p>
+            <p className="text-sm text-neutral-400 mt-1">Erstelle eine neue Anfrage an den Verein</p>
+            <button 
+              onClick={() => setView("new-request")}
+              className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm"
+            >
+              Neue Anfrage erstellen
+            </button>
+          </div>
+        ) : filteredChats.length === 0 ? (
+          <div className="p-8 text-center">
+            <MessageSquare className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+            <p className="text-neutral-600 font-medium">Keine Chats gefunden</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-neutral-100">
+            {filteredChats.map((chat) => (
+              <button
+                key={chat.id}
+                onClick={() => {
+                  setSelectedChat(chat);
+                  setView("chat-detail");
+                }}
+                className="w-full p-4 flex items-center gap-4 hover:bg-neutral-50 transition-colors text-left"
+              >
+                {getChatAvatar(chat) ? (
+                  <img 
+                    src={getChatAvatar(chat)} 
+                    alt={chat.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
+                    <span className="text-white text-lg">{chat.name[0]}</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-neutral-900 truncate">{chat.name}</p>
+                    {chat.lastMessage && (
+                      <span className="text-xs text-neutral-400">
+                        {formatMessageTime(chat.lastMessage.createdAt)}
+                      </span>
+                    )}
+                  </div>
+                  {chat.lastMessage && (
+                    <p className="text-sm text-neutral-500 truncate mt-0.5">
+                      {chat.lastMessage.content}
+                    </p>
+                  )}
+                </div>
+                {chat.unreadCount && chat.unreadCount > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center">
+                    {chat.unreadCount}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ==========================================
+  // RENDER: CHAT DETAIL
+  // ==========================================
+  const renderChatDetail = () => {
+    if (!selectedChat) return null;
+    
+    const messages = getChatMessages(selectedChat.id);
+    const isAnnouncement = selectedChat.type === "announcement";
+    
+    return (
+      <div className="h-[calc(100vh-2rem)] flex flex-col">
+        {/* Header */}
+        <div className="p-4 border-b border-neutral-200 bg-white flex items-center gap-4">
+          <button 
+            onClick={() => {
+              setSelectedChat(null);
+              setView("chats");
+            }}
+            className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-neutral-600" />
+          </button>
+          {getChatAvatar(selectedChat) ? (
+            <img 
+              src={getChatAvatar(selectedChat)} 
+              alt={selectedChat.name}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
+              <span className="text-white">{selectedChat.name[0]}</span>
+            </div>
+          )}
+          <div className="flex-1">
+            <p className="font-medium text-neutral-900">{selectedChat.name}</p>
+            <p className="text-sm text-neutral-500">
+              {selectedChat.participants.length} Teilnehmer
+            </p>
+          </div>
+          {isAnnouncement && (
+            <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+              Nur-Lese-Kanal
+            </span>
+          )}
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-neutral-50">
+          {messages.map((msg) => {
+            const isSent = msg.senderId === profile.id;
+            return (
+              <div key={msg.id} className={`flex ${isSent ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[70%] ${isSent ? "" : "flex gap-2"}`}>
+                  {!isSent && msg.senderAvatar && (
+                    <img 
+                      src={msg.senderAvatar} 
+                      alt={msg.senderName}
+                      className="w-8 h-8 rounded-full flex-shrink-0"
+                    />
+                  )}
+                  <div>
+                    {!isSent && (
+                      <p className="text-xs text-neutral-500 mb-1 ml-1">{msg.senderName}</p>
+                    )}
+                    <div className={`rounded-2xl px-4 py-2.5 ${
+                      isSent 
+                        ? "bg-teal-600 text-white rounded-br-md" 
+                        : "bg-white border border-neutral-200 rounded-bl-md"
+                    }`}>
+                      <p className={isSent ? "text-white" : "text-neutral-900"}>{msg.content}</p>
+                    </div>
+                    <p className={`text-xs text-neutral-400 mt-1 ${isSent ? "text-right" : "ml-1"}`}>
+                      {formatMessageTime(msg.createdAt)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Input */}
+        {!isAnnouncement && (
+          <div className="p-4 border-t border-neutral-200 bg-white">
+            <div className="flex items-center gap-3">
+              <button className="p-2 hover:bg-neutral-100 rounded-lg transition-colors">
+                <Paperclip className="w-5 h-5 text-neutral-500" />
+              </button>
+              <input
+                type="text"
+                placeholder="Nachricht schreiben..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                className="flex-1 px-4 py-2.5 bg-neutral-100 rounded-xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-teal-500"
+              />
+              <button 
+                className="p-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50"
+                disabled={!replyText.trim()}
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ==========================================
+  // RENDER: NEW REQUEST
+  // ==========================================
+  const renderNewRequest = () => {
+    // Filter forms available to members (not report)
+    const memberForms = mockTicketForms.filter(f => f.category !== "report");
+    
+    if (!selectedForm) {
+      return (
+        <div className="p-6 space-y-6">
+          <button 
+            onClick={() => setView("chats")}
+            className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Zurück</span>
+          </button>
+
+          <h1 className="text-2xl font-bold text-neutral-900">Neue Anfrage</h1>
+          <p className="text-neutral-500">Wähle eine Kategorie für deine Anfrage</p>
+
+          <div className="grid grid-cols-2 gap-4">
+            {memberForms.map((form) => (
+              <button
+                key={form.id}
+                onClick={() => setSelectedForm(form)}
+                className="bg-white rounded-xl border border-neutral-200 p-6 text-left hover:border-teal-300 hover:bg-teal-50/30 transition-colors"
+              >
+                <span className="text-3xl mb-3 block">{form.icon || "📝"}</span>
+                <p className="font-medium text-neutral-900">{form.name}</p>
+                <p className="text-sm text-neutral-500 mt-1">{form.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="p-6 space-y-6">
+        <button 
+          onClick={() => setSelectedForm(null)}
+          className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Zurück zur Auswahl</span>
+        </button>
+
+        <div>
+          <span className="text-3xl">{selectedForm.icon || "📝"}</span>
+          <h1 className="text-2xl font-bold text-neutral-900 mt-2">{selectedForm.name}</h1>
+          <p className="text-neutral-500">{selectedForm.description}</p>
+        </div>
+
+        <div className="bg-white rounded-xl border border-neutral-200 p-6 space-y-4">
+          {selectedForm.fields.map((field, idx) => (
+            <div key={idx}>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                {field.label} {field.required && <span className="text-red-500">*</span>}
+              </label>
+              {field.type === "textarea" ? (
+                <textarea
+                  placeholder={field.placeholder}
+                  className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:border-teal-500 resize-none"
+                  rows={4}
+                />
+              ) : field.type === "select" ? (
+                <select className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:border-teal-500 bg-white">
+                  <option value="">Bitte wählen...</option>
+                  {field.options?.map((opt, i) => (
+                    <option key={i} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type={field.type}
+                  placeholder={field.placeholder}
+                  className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:border-teal-500"
+                />
+              )}
+            </div>
+          ))}
+
+          <div className="pt-4">
+            <button className="w-full py-3 bg-teal-600 text-white rounded-xl font-medium hover:bg-teal-700 transition-colors">
+              Anfrage absenden
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ==========================================
+  // RENDER: NEWS VIEW
+  // ==========================================
+  const renderNews = () => (
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold text-neutral-900">Club News</h1>
+
+      <div className="space-y-4">
+        {MOCK_CLUB_NEWS.map((news) => (
+          <div key={news.id} className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+            {news.image && (
+              <img 
+                src={news.image} 
+                alt={news.title}
+                className="w-full h-48 object-cover"
+              />
+            )}
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2 py-1 bg-neutral-100 text-neutral-600 rounded-full text-xs font-medium">
+                  {news.department}
+                </span>
+                <span className="text-xs text-neutral-400">
+                  {new Date(news.date).toLocaleDateString("de-DE")}
+                </span>
+              </div>
+              <h2 className="text-xl font-bold text-neutral-900">{news.title}</h2>
+              <p className="text-neutral-600 mt-2">{news.excerpt}</p>
+              <div className="flex items-center gap-4 mt-4">
+                <span className="text-sm text-neutral-500 flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
+                  {news.views}
+                </span>
+                <span className="text-sm text-neutral-500 flex items-center gap-1">
+                  <Heart className="w-4 h-4" />
+                  {news.likes}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // ==========================================
+  // RENDER: PROFILE VIEW
+  // ==========================================
+  const renderProfile = () => (
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold text-neutral-900">Mein Profil</h1>
+
+      {/* Profile Header */}
+      <div className="bg-white rounded-xl border border-neutral-200 p-6">
+        <div className="flex items-center gap-6">
+          <img 
+            src={profile.avatar} 
+            alt={profile.firstName}
+            className="w-24 h-24 rounded-full object-cover"
+          />
+          <div>
+            <h2 className="text-2xl font-bold text-neutral-900">
+              {profile.firstName} {profile.lastName}
+            </h2>
+            <p className="text-neutral-500">{profile.email}</p>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
+                Aktives Mitglied
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Memberships */}
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="p-4 border-b border-neutral-200">
+          <h3 className="font-semibold text-neutral-900">Mitgliedschaften</h3>
+        </div>
+        <div className="divide-y divide-neutral-100">
+          {profile.memberships.map((membership, idx) => (
+            <div key={idx} className="p-4 flex items-center gap-4">
+              <span className="text-2xl">{membership.icon}</span>
+              <div className="flex-1">
+                <p className="font-medium text-neutral-900">{membership.teamName || membership.departmentName}</p>
+                <p className="text-sm text-neutral-500">{membership.departmentName}</p>
+                {membership.coachName && (
+                  <div className="flex items-center gap-2 mt-2">
+                    {membership.coachAvatar && (
+                      <img 
+                        src={membership.coachAvatar} 
+                        alt={membership.coachName}
+                        className="w-5 h-5 rounded-full"
+                      />
+                    )}
+                    <span className="text-xs text-neutral-400">{membership.coachName}</span>
+                  </div>
+                )}
+              </div>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                membership.role === "active" ? "bg-teal-100 text-teal-700" : "bg-neutral-100 text-neutral-600"
+              }`}>
+                {membership.role === "active" ? "Aktiv" : "Passiv"}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-4">
+        <button className="bg-white rounded-xl border border-neutral-200 p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
+          <CreditCard className="w-5 h-5 text-neutral-400" />
+          <span className="font-medium text-neutral-900">Zahlungen</span>
+        </button>
+        <button className="bg-white rounded-xl border border-neutral-200 p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
+          <File className="w-5 h-5 text-neutral-400" />
+          <span className="font-medium text-neutral-900">Dokumente</span>
+        </button>
+        <button className="bg-white rounded-xl border border-neutral-200 p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
+          <QrCode className="w-5 h-5 text-neutral-400" />
+          <span className="font-medium text-neutral-900">Mitgliedsausweis</span>
+        </button>
+        <button 
+          onClick={() => setView("settings")}
+          className="bg-white rounded-xl border border-neutral-200 p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
+        >
+          <Settings className="w-5 h-5 text-neutral-400" />
+          <span className="font-medium text-neutral-900">Einstellungen</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  // ==========================================
+  // RENDER: SETTINGS VIEW
+  // ==========================================
+  const renderSettings = () => (
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold text-neutral-900">Einstellungen</h1>
+
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="divide-y divide-neutral-100">
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Globe className="w-5 h-5 text-neutral-400" />
+              <div>
+                <p className="font-medium text-neutral-900">Sprache</p>
+                <p className="text-sm text-neutral-500">Deutsch</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-neutral-400" />
+          </div>
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5 text-neutral-400" />
+              <div>
+                <p className="font-medium text-neutral-900">Benachrichtigungen</p>
+                <p className="text-sm text-neutral-500">Push & E-Mail aktiviert</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-neutral-400" />
+          </div>
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Shield className="w-5 h-5 text-neutral-400" />
+              <div>
+                <p className="font-medium text-neutral-900">Datenschutz</p>
+                <p className="text-sm text-neutral-500">Privatsphäre-Einstellungen</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-neutral-400" />
+          </div>
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <User className="w-5 h-5 text-neutral-400" />
+              <div>
+                <p className="font-medium text-neutral-900">Profil bearbeiten</p>
+                <p className="text-sm text-neutral-500">Kontaktdaten ändern</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-neutral-400" />
+          </div>
+        </div>
+      </div>
+
+      <button className="w-full p-4 bg-red-50 text-red-600 rounded-xl font-medium hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
+        <LogOut className="w-5 h-5" />
+        Abmelden
+      </button>
+    </div>
+  );
+
+  // ==========================================
+  // MAIN RENDER
+  // ==========================================
+  const renderContent = () => {
+    switch (view) {
+      case "home":
+        return renderHome();
+      case "calendar":
+        return renderCalendar();
+      case "event-detail":
+        return renderEventDetail();
+      case "chats":
+        return renderChats();
+      case "chat-detail":
+        return renderChatDetail();
+      case "new-request":
+        return renderNewRequest();
+      case "news":
+        return renderNews();
+      case "profile":
+        return renderProfile();
+      case "settings":
+        return renderSettings();
+      default:
+        return renderHome();
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen bg-neutral-50">
+      <MemberSidebar 
+        activeView={view}
+        onNavigate={setView}
+        profile={profile}
+        unreadMessages={unreadMessages}
+      />
+      <main className="flex-1 overflow-y-auto">
+        {renderContent()}
+      </main>
+    </div>
+  );
+}

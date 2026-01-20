@@ -21,13 +21,18 @@ import {
   BookTemplate,
   Maximize2,
   Minimize2,
-  ArrowLeft
+  ArrowLeft,
+  Users,
+  Eye,
+  Search
 } from "lucide-react";
 import { Button, Badge, Select, Modal, Input } from "../components/ui";
 import { SearchInput } from "../components/ui/Input";
 import { mockTickets, getTicketMessages, CURRENT_STAFF_ID, CURRENT_STAFF_NAME } from "../data/mockInbox";
 import { mockPersons } from "../data/mockPersons";
 import { mockTemplates, type MessageTemplate } from "../data/mockTemplates";
+import { mockDepartments } from "../data/mockDepartments";
+import { mockTeams } from "../data/mockTeams";
 import type { TicketStatus, TicketCategory, Ticket, MemberRole } from "../types/inbox";
 import { renderMarkdown, formatButtons, insertMarkdown } from "../utils/markdown";
 
@@ -47,7 +52,11 @@ const categoryConfig: Record<TicketCategory, { label: string; emoji: string }> =
   technical: { label: "Technisch", emoji: "🔧" },
   general: { label: "Allgemein", emoji: "💬" },
   complaint: { label: "Beschwerde", emoji: "⚠️" },
-  suggestion: { label: "Vorschlag", emoji: "💡" }
+  suggestion: { label: "Vorschlag", emoji: "💡" },
+  absence: { label: "Abwesenheit", emoji: "🏖️" },
+  equipment: { label: "Ausrüstung", emoji: "👕" },
+  organization: { label: "Organisation", emoji: "📋" },
+  report: { label: "Meldung", emoji: "🚨" }
 };
 
 const roleConfig: Record<MemberRole, { label: string; color: string }> = {
@@ -93,14 +102,25 @@ export function Inbox() {
   const [editTemplateContent, setEditTemplateContent] = useState("");
   const [editTemplateCategory, setEditTemplateCategory] = useState<string>("general");
   
-  // New Message modal
+  // New Message modal (supports both single and bulk)
   const [showNewMessageModal, setShowNewMessageModal] = useState(false);
+  const [newMsgIsBulk, setNewMsgIsBulk] = useState(false);
   const [newMsgRecipient, setNewMsgRecipient] = useState("");
   const [newMsgSubject, setNewMsgSubject] = useState("");
   const [newMsgCategory, setNewMsgCategory] = useState<TicketCategory>("general");
   const [newMsgContent, setNewMsgContent] = useState("");
   const [newMsgSendEmail, setNewMsgSendEmail] = useState(true);
   const [newMsgTemplateDropdown, setNewMsgTemplateDropdown] = useState(false);
+  
+  // Bulk Message filters (within new message modal)
+  const [bulkFilterType, setBulkFilterType] = useState<"all" | "department" | "team" | "role" | "manual">("all");
+  const [bulkFilterDepartment, setBulkFilterDepartment] = useState("");
+  const [bulkFilterTeam, setBulkFilterTeam] = useState("");
+  const [bulkFilterRole, setBulkFilterRole] = useState("");
+  const [bulkSelectedMembers, setBulkSelectedMembers] = useState<string[]>([]);
+  const [bulkSelectionConfirmed, setBulkSelectionConfirmed] = useState(false);
+  const [bulkManualSearch, setBulkManualSearch] = useState("");
+  const [showNewMsgPreview, setShowNewMsgPreview] = useState(false);
   
   // Fullscreen/expanded mode
   const [isExpanded, setIsExpanded] = useState(false);
@@ -207,12 +227,55 @@ export function Inbox() {
     .map(p => ({ value: p.id, label: `${p.firstName} ${p.lastName}` }));
 
   const resetNewMessageForm = () => {
+    setNewMsgIsBulk(false);
     setNewMsgRecipient("");
     setNewMsgSubject("");
     setNewMsgCategory("general");
     setNewMsgContent("");
     setNewMsgSendEmail(true);
     setShowNewMessageModal(false);
+    // Also reset bulk fields
+    setBulkFilterType("all");
+    setBulkFilterDepartment("");
+    setBulkFilterTeam("");
+    setBulkFilterRole("");
+    setBulkSelectedMembers([]);
+    setBulkSelectionConfirmed(false);
+    setBulkManualSearch("");
+    setShowNewMsgPreview(false);
+  };
+
+  // Calculate bulk recipients based on filter
+  const bulkRecipients = useMemo(() => {
+    const members = mockPersons.filter(p => !["p1", "p2", "p3"].includes(p.id)); // Exclude staff
+    
+    switch (bulkFilterType) {
+      case "all":
+        return members;
+      case "department":
+        if (!bulkFilterDepartment) return [];
+        // In a real app, you'd filter by department membership
+        return members.filter((_, i) => i % 2 === 0); // Mock filter
+      case "team":
+        if (!bulkFilterTeam) return [];
+        return members.filter((_, i) => i % 3 === 0); // Mock filter
+      case "role":
+        if (!bulkFilterRole) return [];
+        return members.filter((_, i) => i % 2 === 1); // Mock filter
+      case "manual":
+        return members.filter(m => bulkSelectedMembers.includes(m.id));
+      default:
+        return [];
+    }
+  }, [bulkFilterType, bulkFilterDepartment, bulkFilterTeam, bulkFilterRole, bulkSelectedMembers]);
+
+  // Personalize message content
+  const personalizeMessage = (content: string, person: typeof mockPersons[0]) => {
+    return content
+      .replace(/\{\{firstName\}\}/g, person.firstName)
+      .replace(/\{\{lastName\}\}/g, person.lastName)
+      .replace(/\{\{fullName\}\}/g, `${person.firstName} ${person.lastName}`)
+      .replace(/\{\{email\}\}/g, person.email || "");
   };
 
   // Templates View
@@ -612,37 +675,62 @@ export function Inbox() {
                   onClick={() => setSelectedTicket(ticket)}
                   className={`w-full p-4 text-left border-b border-neutral-100 hover:bg-neutral-50 transition-colors ${
                     selectedTicket?.id === ticket.id ? "bg-teal-50" : ""
-                  } ${ticket.unreadCount > 0 ? "bg-blue-50/50" : ""}`}
+                  } ${ticket.unreadCount > 0 ? "bg-blue-50/50" : ""} ${ticket.isBulkMessage ? "bg-purple-50/30" : ""}`}
                 >
                   <div className="flex items-start gap-3">
-                    {/* Avatar - Clickable */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goToMemberProfile(ticket.requesterId);
-                      }}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white font-medium text-sm flex-shrink-0 hover:ring-2 hover:ring-teal-300 hover:ring-offset-2 transition-all"
-                      title="Profil ansehen"
-                    >
-                      {ticket.requesterName.split(" ").map(n => n[0]).join("")}
-                    </button>
+                    {/* Avatar/Icon */}
+                    {ticket.isBulkMessage ? (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white flex-shrink-0">
+                        <Users className="w-5 h-5" />
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          goToMemberProfile(ticket.requesterId);
+                        }}
+                        className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white font-medium text-sm flex-shrink-0 hover:ring-2 hover:ring-teal-300 hover:ring-offset-2 transition-all"
+                        title="Profil ansehen"
+                      >
+                        {ticket.requesterName.split(" ").map(n => n[0]).join("")}
+                      </button>
+                    )}
                     
                     <div className="flex-1 min-w-0">
                       {/* Header row */}
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="font-medium text-neutral-900 truncate">
-                            {ticket.requesterName}
-                          </span>
-                          {ticket.requesterDepartment && (
-                            <span className="text-xs text-neutral-500 truncate hidden sm:inline">
-                              {ticket.requesterDepartment}
-                            </span>
-                          )}
-                          {ticket.requesterRole && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${roleConfig[ticket.requesterRole].color} hidden sm:inline-flex`}>
-                              {roleConfig[ticket.requesterRole].label}
-                            </span>
+                          {ticket.isBulkMessage ? (
+                            <>
+                              <span className="text-xs px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                                Rundschreiben
+                              </span>
+                              <span className="text-xs text-neutral-500">
+                                {ticket.bulkRecipientCount} Empfänger
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-medium text-neutral-900 truncate">
+                                {ticket.requesterName}
+                              </span>
+                              {/* On behalf badge */}
+                              {ticket.isOnBehalf && ticket.onBehalfOfName && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium">
+                                  👥 für {ticket.onBehalfOfName}
+                                </span>
+                              )}
+                              {ticket.requesterDepartment && (
+                                <span className="text-xs text-neutral-500 truncate hidden sm:inline">
+                                  {ticket.requesterDepartment}
+                                </span>
+                              )}
+                              {ticket.requesterRole && (
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${roleConfig[ticket.requesterRole].color} hidden sm:inline-flex`}>
+                                  {roleConfig[ticket.requesterRole].label}
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                         <span className="text-xs text-neutral-500 flex-shrink-0">
@@ -664,26 +752,39 @@ export function Inbox() {
                       
                       {/* Meta */}
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${statusConfig[ticket.status].color}`}>
-                          {statusConfig[ticket.status].label}
-                        </span>
-                        <span className="text-xs text-neutral-400">
-                          {categoryConfig[ticket.category].emoji} {categoryConfig[ticket.category].label}
-                        </span>
-                        {ticket.assignedToId && assignmentFilter === "all" && (
-                          <span className="text-xs text-neutral-400 ml-auto">
-                            → {ticket.assignedToName?.split(" ")[0]}
-                          </span>
-                        )}
-                        {!ticket.assignedToId && (
-                          <span className="text-xs text-amber-500 ml-auto">
-                            Nicht zugewiesen
-                          </span>
-                        )}
-                        {ticket.unreadCount > 0 && (
-                          <span className={`${(assignmentFilter === "all" && ticket.assignedToId) || !ticket.assignedToId ? "" : "ml-auto"} w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center`}>
-                            {ticket.unreadCount}
-                          </span>
+                        {ticket.isBulkMessage ? (
+                          <>
+                            <span className="text-xs text-neutral-400">
+                              📤 {ticket.bulkFilter}
+                            </span>
+                            <span className="text-xs text-neutral-400 ml-auto">
+                              von {ticket.bulkSentBy}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${statusConfig[ticket.status].color}`}>
+                              {statusConfig[ticket.status].label}
+                            </span>
+                            <span className="text-xs text-neutral-400">
+                              {categoryConfig[ticket.category].emoji} {categoryConfig[ticket.category].label}
+                            </span>
+                            {ticket.assignedToId && assignmentFilter === "all" && (
+                              <span className="text-xs text-neutral-400 ml-auto">
+                                → {ticket.assignedToName?.split(" ")[0]}
+                              </span>
+                            )}
+                            {!ticket.assignedToId && (
+                              <span className="text-xs text-amber-500 ml-auto">
+                                Nicht zugewiesen
+                              </span>
+                            )}
+                            {ticket.unreadCount > 0 && (
+                              <span className={`${(assignmentFilter === "all" && ticket.assignedToId) || !ticket.assignedToId ? "" : "ml-auto"} w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center`}>
+                                {ticket.unreadCount}
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -698,11 +799,16 @@ export function Inbox() {
         {selectedTicket && !isExpanded && (
           <div className="flex-1 flex flex-col bg-white rounded-xl border border-neutral-200 overflow-hidden">
             {/* Compact Ticket Header */}
-            <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50">
+            <div className={`px-4 py-3 border-b border-neutral-200 ${selectedTicket.isBulkMessage ? "bg-purple-50" : "bg-neutral-50"}`}>
               {/* Row 1: Title + Actions */}
               <div className="flex items-center justify-between gap-3 mb-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <span className="text-xs text-neutral-400 font-mono flex-shrink-0">{selectedTicket.ticketNumber}</span>
+                  {selectedTicket.isBulkMessage && (
+                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 flex-shrink-0">
+                      Rundschreiben
+                    </span>
+                  )}
                   <h2 className="font-semibold text-neutral-900 truncate">{selectedTicket.subject}</h2>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
@@ -723,66 +829,97 @@ export function Inbox() {
                 </div>
               </div>
               
-              {/* Row 2: Requester + Meta + Actions */}
+              {/* Row 2: Bulk info OR Requester + Meta + Actions */}
               <div className="flex items-center gap-3 flex-wrap">
-                {/* Requester - compact */}
-                <button 
-                  onClick={() => goToMemberProfile(selectedTicket.requesterId)}
-                  className="flex items-center gap-2 hover:bg-neutral-200 rounded-lg px-2 py-1 -ml-2 transition-colors"
-                  title="Profil ansehen"
-                >
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
-                    {selectedTicket.requesterName.split(" ").map(n => n[0]).join("")}
-                  </div>
-                  <span className="text-sm font-medium text-neutral-700">{selectedTicket.requesterName}</span>
-                  {selectedTicket.requesterRole && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${roleConfig[selectedTicket.requesterRole].color}`}>
-                      {roleConfig[selectedTicket.requesterRole].label}
+                {selectedTicket.isBulkMessage ? (
+                  <>
+                    {/* Bulk Message Info */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white flex-shrink-0">
+                        <Users className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-sm font-medium text-neutral-700">{selectedTicket.bulkRecipientCount} Empfänger</span>
+                      <span className="text-xs text-neutral-400">• {selectedTicket.bulkFilter}</span>
+                    </div>
+                    
+                    <span className="text-neutral-300">|</span>
+                    
+                    <span className="text-xs text-neutral-500">
+                      Gesendet von {selectedTicket.bulkSentBy}
                     </span>
-                  )}
-                  {selectedTicket.requesterDepartment && (
-                    <span className="text-xs text-neutral-400">{selectedTicket.requesterDepartment}</span>
-                  )}
-                </button>
-                
-                <span className="text-neutral-300">|</span>
-                
-                {/* Status & Category badges */}
-                <span className={`text-xs px-2 py-0.5 rounded-full ${statusConfig[selectedTicket.status].color}`}>
-                  {statusConfig[selectedTicket.status].label}
-                </span>
-                <span className="text-xs text-neutral-500">
-                  {categoryConfig[selectedTicket.category].emoji} {categoryConfig[selectedTicket.category].label}
-                </span>
-                
-                {/* Spacer */}
-                <div className="flex-1" />
-                
-                {/* Compact Actions */}
-                <div className="flex items-center gap-2">
-                  <select
-                    value={selectedTicket.status}
-                    onChange={() => {}}
-                    className="text-xs border border-neutral-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-teal-400"
-                  >
-                    {statusOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={selectedTicket.assignedToId || ""}
-                    onChange={() => {}}
-                    className="text-xs border border-neutral-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-teal-400"
-                  >
-                    <option value="">Zuweisen...</option>
-                    {staffOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                  <button className="p-1 hover:bg-neutral-200 rounded">
-                    <MoreVertical className="w-4 h-4 text-neutral-400" />
-                  </button>
-                </div>
+                    
+                    <span className="text-xs text-neutral-400">
+                      • {formatFullDate(selectedTicket.createdAt)}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {/* Requester - compact */}
+                    <button 
+                      onClick={() => goToMemberProfile(selectedTicket.requesterId)}
+                      className="flex items-center gap-2 hover:bg-neutral-200 rounded-lg px-2 py-1 -ml-2 transition-colors"
+                      title="Profil ansehen"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                        {selectedTicket.requesterName.split(" ").map(n => n[0]).join("")}
+                      </div>
+                      <span className="text-sm font-medium text-neutral-700">{selectedTicket.requesterName}</span>
+                      {/* On behalf badge in header */}
+                      {selectedTicket.isOnBehalf && selectedTicket.onBehalfOfName && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium">
+                          👥 für {selectedTicket.onBehalfOfName}
+                        </span>
+                      )}
+                      {selectedTicket.requesterRole && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${roleConfig[selectedTicket.requesterRole].color}`}>
+                          {roleConfig[selectedTicket.requesterRole].label}
+                        </span>
+                      )}
+                      {selectedTicket.requesterDepartment && (
+                        <span className="text-xs text-neutral-400">{selectedTicket.requesterDepartment}</span>
+                      )}
+                    </button>
+                    
+                    <span className="text-neutral-300">|</span>
+                    
+                    {/* Status & Category badges */}
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${statusConfig[selectedTicket.status].color}`}>
+                      {statusConfig[selectedTicket.status].label}
+                    </span>
+                    <span className="text-xs text-neutral-500">
+                      {categoryConfig[selectedTicket.category].emoji} {categoryConfig[selectedTicket.category].label}
+                    </span>
+                    
+                    {/* Spacer */}
+                    <div className="flex-1" />
+                    
+                    {/* Compact Actions */}
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={selectedTicket.status}
+                        onChange={() => {}}
+                        className="text-xs border border-neutral-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-teal-400"
+                      >
+                        {statusOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={selectedTicket.assignedToId || ""}
+                        onChange={() => {}}
+                        className="text-xs border border-neutral-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-teal-400"
+                      >
+                        <option value="">Zuweisen...</option>
+                        {staffOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <button className="p-1 hover:bg-neutral-200 rounded">
+                        <MoreVertical className="w-4 h-4 text-neutral-400" />
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -851,7 +988,8 @@ export function Inbox() {
               ))}
             </div>
 
-            {/* Reply Box */}
+            {/* Reply Box - hidden for bulk messages */}
+            {!selectedTicket.isBulkMessage && (
             <div className="p-4 border-t border-neutral-200 bg-neutral-50">
               {/* Template selector */}
               <div className="relative mb-3">
@@ -1006,6 +1144,7 @@ export function Inbox() {
                 </div>
               </div>
             </div>
+            )}
           </div>
         )}
       </div>
@@ -1014,7 +1153,7 @@ export function Inbox() {
       {selectedTicket && isExpanded && (
         <div className="fixed inset-0 z-50 bg-white flex flex-col">
           {/* Fullscreen Header */}
-          <div className="px-6 py-4 border-b border-neutral-200 bg-white flex items-center gap-4">
+          <div className={`px-6 py-4 border-b border-neutral-200 flex items-center gap-4 ${selectedTicket.isBulkMessage ? "bg-purple-50" : "bg-white"}`}>
             <button 
               onClick={() => setIsExpanded(false)}
               className="p-2 hover:bg-neutral-100 rounded-lg"
@@ -1025,29 +1164,50 @@ export function Inbox() {
             
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <span className="text-sm text-neutral-400 font-mono">{selectedTicket.ticketNumber}</span>
+              {selectedTicket.isBulkMessage && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                  Rundschreiben
+                </span>
+              )}
               <h1 className="text-lg font-semibold text-neutral-900 truncate">{selectedTicket.subject}</h1>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${statusConfig[selectedTicket.status].color}`}>
-                {statusConfig[selectedTicket.status].label}
-              </span>
+              {!selectedTicket.isBulkMessage && (
+                <span className={`text-xs px-2 py-0.5 rounded-full ${statusConfig[selectedTicket.status].color}`}>
+                  {statusConfig[selectedTicket.status].label}
+                </span>
+              )}
             </div>
             
-            {/* Requester - compact */}
-            <button 
-              onClick={() => goToMemberProfile(selectedTicket.requesterId)}
-              className="flex items-center gap-2 hover:bg-neutral-100 rounded-lg px-3 py-2 transition-colors"
-              title="Profil ansehen"
-            >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-sm font-medium">
-                {selectedTicket.requesterName.split(" ").map(n => n[0]).join("")}
+            {/* Bulk Message Info OR Requester */}
+            {selectedTicket.isBulkMessage ? (
+              <div className="flex items-center gap-3 px-3 py-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium text-neutral-900">{selectedTicket.bulkRecipientCount} Empfänger</p>
+                  <p className="text-xs text-neutral-500">
+                    {selectedTicket.bulkFilter} · gesendet von {selectedTicket.bulkSentBy}
+                  </p>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="text-sm font-medium text-neutral-900">{selectedTicket.requesterName}</p>
-                <p className="text-xs text-neutral-500">
-                  {selectedTicket.requesterDepartment && `${selectedTicket.requesterDepartment} · `}
-                  {selectedTicket.requesterEmail}
-                </p>
-              </div>
-            </button>
+            ) : (
+              <button 
+                onClick={() => goToMemberProfile(selectedTicket.requesterId)}
+                className="flex items-center gap-2 hover:bg-neutral-100 rounded-lg px-3 py-2 transition-colors"
+                title="Profil ansehen"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-sm font-medium">
+                  {selectedTicket.requesterName.split(" ").map(n => n[0]).join("")}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium text-neutral-900">{selectedTicket.requesterName}</p>
+                  <p className="text-xs text-neutral-500">
+                    {selectedTicket.requesterDepartment && `${selectedTicket.requesterDepartment} · `}
+                    {selectedTicket.requesterEmail}
+                  </p>
+                </div>
+              </button>
+            )}
 
             <div className="h-8 w-px bg-neutral-200" />
             
@@ -1161,7 +1321,8 @@ export function Inbox() {
             </div>
           </div>
 
-          {/* Reply Box - Fullscreen */}
+          {/* Reply Box - Fullscreen - hidden for bulk messages */}
+          {!selectedTicket.isBulkMessage && (
           <div className="border-t border-neutral-200 bg-white p-4">
             <div className="max-w-4xl mx-auto">
               {/* Template selector */}
@@ -1295,6 +1456,7 @@ export function Inbox() {
               </div>
             </div>
           </div>
+          )}
         </div>
       )}
 
@@ -1550,18 +1712,235 @@ export function Inbox() {
         size="lg"
       >
         <div className="space-y-4">
-          {/* Recipient */}
+          {/* Empfänger */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1">
-              Empfänger <span className="text-red-500">*</span>
-            </label>
-            <Select
-              options={memberOptions}
-              value={newMsgRecipient}
-              onChange={(e) => setNewMsgRecipient(e.target.value)}
-              placeholder="Mitglied auswählen..."
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-neutral-700">
+                Empfänger <span className="text-red-500">*</span>
+              </label>
+            </div>
+            
+            {/* Show bulk badge when confirmed, or single select when not in bulk mode */}
+            {newMsgIsBulk && bulkSelectionConfirmed ? (
+              <div className="flex items-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <Users className="w-5 h-5 text-purple-600" />
+                <span className="font-medium text-purple-900">
+                  Mehrere ({bulkRecipients.length})
+                </span>
+                <span className="text-sm text-purple-600">
+                  {bulkFilterType === "all" && "Alle Mitglieder"}
+                  {bulkFilterType === "department" && `Abteilung: ${mockDepartments.find(d => d.id === bulkFilterDepartment)?.name || ""}`}
+                  {bulkFilterType === "team" && `Team: ${mockTeams.find(t => t.id === bulkFilterTeam)?.name || ""}`}
+                  {bulkFilterType === "role" && `Rolle: ${roleConfig[bulkFilterRole as keyof typeof roleConfig]?.label || ""}`}
+                  {bulkFilterType === "manual" && "Manuelle Auswahl"}
+                </span>
+                <button
+                  onClick={() => {
+                    setNewMsgIsBulk(false);
+                    setBulkSelectionConfirmed(false);
+                    setBulkFilterType("all");
+                    setBulkFilterDepartment("");
+                    setBulkFilterTeam("");
+                    setBulkFilterRole("");
+                    setBulkSelectedMembers([]);
+                    setBulkManualSearch("");
+                  }}
+                  className="ml-auto p-1 text-purple-400 hover:text-purple-600 hover:bg-purple-100 rounded transition-colors"
+                  title="Empfänger entfernen"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : !newMsgIsBulk ? (
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Select
+                    options={memberOptions}
+                    value={newMsgRecipient}
+                    onChange={(e) => setNewMsgRecipient(e.target.value)}
+                    placeholder="Mitglied auswählen..."
+                  />
+                </div>
+                <button
+                  onClick={() => setNewMsgIsBulk(true)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50 border border-purple-200 rounded-lg transition-colors"
+                  title="Rundschreiben an mehrere Empfänger"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Rundschreiben</span>
+                </button>
+              </div>
+            ) : null}
           </div>
+          
+          {/* Bulk Recipient Selector (shown when clicking Rundschreiben, before confirmation) */}
+          {newMsgIsBulk && !bulkSelectionConfirmed && (
+            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 space-y-4">
+              <h4 className="font-medium text-purple-900 flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Empfänger für Rundschreiben auswählen
+              </h4>
+              
+              {/* Filter Type */}
+              <div className="grid grid-cols-2 gap-2">
+                <label className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${bulkFilterType === "all" ? "bg-white border-purple-400 shadow-sm" : "bg-white/50 border-purple-200 hover:border-purple-300"}`}>
+                  <input type="radio" name="bulkFilter" checked={bulkFilterType === "all"} onChange={() => setBulkFilterType("all")} className="text-purple-500 focus:ring-purple-500" />
+                  <span className="text-sm font-medium">Alle Mitglieder</span>
+                </label>
+                
+                <label className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${bulkFilterType === "department" ? "bg-white border-purple-400 shadow-sm" : "bg-white/50 border-purple-200 hover:border-purple-300"}`}>
+                  <input type="radio" name="bulkFilter" checked={bulkFilterType === "department"} onChange={() => setBulkFilterType("department")} className="text-purple-500 focus:ring-purple-500" />
+                  <span className="text-sm font-medium">Nach Abteilung</span>
+                </label>
+                
+                <label className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${bulkFilterType === "team" ? "bg-white border-purple-400 shadow-sm" : "bg-white/50 border-purple-200 hover:border-purple-300"}`}>
+                  <input type="radio" name="bulkFilter" checked={bulkFilterType === "team"} onChange={() => setBulkFilterType("team")} className="text-purple-500 focus:ring-purple-500" />
+                  <span className="text-sm font-medium">Nach Team</span>
+                </label>
+                
+                <label className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${bulkFilterType === "role" ? "bg-white border-purple-400 shadow-sm" : "bg-white/50 border-purple-200 hover:border-purple-300"}`}>
+                  <input type="radio" name="bulkFilter" checked={bulkFilterType === "role"} onChange={() => setBulkFilterType("role")} className="text-purple-500 focus:ring-purple-500" />
+                  <span className="text-sm font-medium">Nach Rolle</span>
+                </label>
+                
+                <label className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors col-span-2 ${bulkFilterType === "manual" ? "bg-white border-purple-400 shadow-sm" : "bg-white/50 border-purple-200 hover:border-purple-300"}`}>
+                  <input type="radio" name="bulkFilter" checked={bulkFilterType === "manual"} onChange={() => setBulkFilterType("manual")} className="text-purple-500 focus:ring-purple-500" />
+                  <span className="text-sm font-medium">Manuell auswählen</span>
+                </label>
+              </div>
+              
+              {/* Filter Value Selector */}
+              {bulkFilterType === "department" && (
+                <Select
+                  options={mockDepartments.map(d => ({ value: d.id, label: d.name }))}
+                  value={bulkFilterDepartment}
+                  onChange={(e) => setBulkFilterDepartment(e.target.value)}
+                  placeholder="Abteilung wählen..."
+                />
+              )}
+              {bulkFilterType === "team" && (
+                <Select
+                  options={mockTeams.map(t => ({ value: t.id, label: t.name }))}
+                  value={bulkFilterTeam}
+                  onChange={(e) => setBulkFilterTeam(e.target.value)}
+                  placeholder="Team wählen..."
+                />
+              )}
+              {bulkFilterType === "role" && (
+                <Select
+                  options={Object.entries(roleConfig).map(([value, { label }]) => ({ value, label }))}
+                  value={bulkFilterRole}
+                  onChange={(e) => setBulkFilterRole(e.target.value)}
+                  placeholder="Rolle wählen..."
+                />
+              )}
+              {bulkFilterType === "manual" && (
+                <div className="space-y-2">
+                  {/* Search input */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <input
+                      type="text"
+                      value={bulkManualSearch}
+                      onChange={(e) => setBulkManualSearch(e.target.value)}
+                      placeholder="Mitglieder suchen..."
+                      className="w-full pl-10 pr-4 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
+                    />
+                  </div>
+                  
+                  {/* Members list with checkboxes */}
+                  <div className="border border-neutral-200 rounded-lg max-h-48 overflow-y-auto bg-white">
+                    {mockPersons
+                      .filter(p => !["p1", "p2", "p3"].includes(p.id))
+                      .filter(p => 
+                        !bulkManualSearch || 
+                        `${p.firstName} ${p.lastName}`.toLowerCase().includes(bulkManualSearch.toLowerCase())
+                      )
+                      .map(person => (
+                        <label key={person.id} className="flex items-center gap-2 px-3 py-2 hover:bg-purple-50 cursor-pointer border-b border-neutral-100 last:border-0">
+                          <input
+                            type="checkbox"
+                            checked={bulkSelectedMembers.includes(person.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setBulkSelectedMembers([...bulkSelectedMembers, person.id]);
+                              } else {
+                                setBulkSelectedMembers(bulkSelectedMembers.filter(id => id !== person.id));
+                              }
+                            }}
+                            className="text-purple-500 focus:ring-purple-500 rounded"
+                          />
+                          <span className="text-sm text-neutral-700">{person.firstName} {person.lastName}</span>
+                        </label>
+                      ))}
+                    {mockPersons
+                      .filter(p => !["p1", "p2", "p3"].includes(p.id))
+                      .filter(p => 
+                        !bulkManualSearch || 
+                        `${p.firstName} ${p.lastName}`.toLowerCase().includes(bulkManualSearch.toLowerCase())
+                      ).length === 0 && (
+                        <div className="p-4 text-center text-sm text-neutral-500">
+                          Keine Mitglieder gefunden
+                        </div>
+                      )}
+                  </div>
+                  
+                  {bulkSelectedMembers.length > 0 && (
+                    <p className="text-xs text-purple-600">
+                      {bulkSelectedMembers.length} ausgewählt: {mockPersons.filter(p => bulkSelectedMembers.includes(p.id)).map(p => p.firstName).slice(0, 3).join(", ")}
+                      {bulkSelectedMembers.length > 3 && ` +${bulkSelectedMembers.length - 3} weitere`}
+                    </p>
+                  )}
+                </div>
+              )}
+              
+              {/* Confirm Selection */}
+              <div className="flex items-center justify-between pt-2 border-t border-purple-200">
+                <div className="flex items-center gap-2 text-sm text-purple-700">
+                  <Users className="w-4 h-4" />
+                  <span className="font-medium">
+                    {bulkFilterType === "all" && `${mockPersons.filter(p => !["p1", "p2", "p3"].includes(p.id)).length} Empfänger`}
+                    {bulkFilterType === "department" && bulkFilterDepartment && `${bulkRecipients.length} Empfänger`}
+                    {bulkFilterType === "department" && !bulkFilterDepartment && "Bitte Abteilung wählen"}
+                    {bulkFilterType === "team" && bulkFilterTeam && `${bulkRecipients.length} Empfänger`}
+                    {bulkFilterType === "team" && !bulkFilterTeam && "Bitte Team wählen"}
+                    {bulkFilterType === "role" && bulkFilterRole && `${bulkRecipients.length} Empfänger`}
+                    {bulkFilterType === "role" && !bulkFilterRole && "Bitte Rolle wählen"}
+                    {bulkFilterType === "manual" && `${bulkSelectedMembers.length} ausgewählt`}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setNewMsgIsBulk(false);
+                      setBulkFilterType("all");
+                      setBulkFilterDepartment("");
+                      setBulkFilterTeam("");
+                      setBulkFilterRole("");
+                      setBulkSelectedMembers([]);
+                      setBulkManualSearch("");
+                    }}
+                  >
+                    Abbrechen
+                  </Button>
+                  <Button 
+                    size="sm"
+                    onClick={() => setBulkSelectionConfirmed(true)}
+                    disabled={
+                      (bulkFilterType === "department" && !bulkFilterDepartment) ||
+                      (bulkFilterType === "team" && !bulkFilterTeam) ||
+                      (bulkFilterType === "role" && !bulkFilterRole) ||
+                      (bulkFilterType === "manual" && bulkSelectedMembers.length === 0)
+                    }
+                  >
+                    OK
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Subject */}
           <div>
@@ -1580,11 +1959,18 @@ export function Inbox() {
             <label className="block text-sm font-medium text-neutral-700 mb-1">
               Kategorie
             </label>
-            <Select
-              options={categoryOptions}
-              value={newMsgCategory}
-              onChange={(e) => setNewMsgCategory(e.target.value as TicketCategory)}
-            />
+            {newMsgIsBulk && bulkSelectionConfirmed ? (
+              <div className="flex items-center gap-2 p-3 bg-neutral-100 border border-neutral-200 rounded-lg text-sm text-neutral-600">
+                <span>📢 Rundschreiben</span>
+                <span className="text-neutral-400">(fest zugewiesen)</span>
+              </div>
+            ) : (
+              <Select
+                options={categoryOptions}
+                value={newMsgCategory}
+                onChange={(e) => setNewMsgCategory(e.target.value as TicketCategory)}
+              />
+            )}
           </div>
 
           {/* Message Content */}
@@ -1626,14 +2012,71 @@ export function Inbox() {
                 )}
               </div>
             </div>
+            
+            {/* Personalization hint (bulk only) */}
+            {newMsgIsBulk && bulkSelectionConfirmed && (
+              <div className="mb-2 p-2 bg-amber-50 rounded-lg border border-amber-200">
+                <p className="text-xs text-amber-800">
+                  <strong>Personalisierung:</strong>{" "}
+                  <code className="bg-amber-100 px-1 rounded">{"{{firstName}}"}</code>{" "}
+                  <code className="bg-amber-100 px-1 rounded">{"{{lastName}}"}</code>{" "}
+                  <code className="bg-amber-100 px-1 rounded">{"{{fullName}}"}</code>
+                </p>
+              </div>
+            )}
+            
+            {/* Markdown Toolbar */}
+            <div className="flex items-center gap-1 mb-2 pb-2 border-b border-neutral-200">
+              {formatButtons.map((btn) => (
+                <button
+                  key={btn.label}
+                  onClick={() => setNewMsgContent(prev => prev + btn.before + btn.placeholder + btn.after)}
+                  className="px-2 py-1 text-sm text-neutral-600 hover:bg-neutral-100 rounded transition-colors"
+                  title={btn.label}
+                >
+                  {btn.icon}
+                </button>
+              ))}
+              <span className="ml-auto text-xs text-neutral-400">Markdown unterstützt</span>
+            </div>
+            
             <textarea
               value={newMsgContent}
               onChange={(e) => setNewMsgContent(e.target.value)}
-              placeholder="Ihre Nachricht..."
-              className="w-full p-3 text-sm border border-neutral-300 rounded-lg resize-none focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+              placeholder={newMsgIsBulk && bulkSelectionConfirmed
+                ? "Liebe(r) {{firstName}},\n\nIhre Nachricht hier...\n\nMit freundlichen Grüßen,\nIhr Vereinsteam" 
+                : "Ihre Nachricht..."
+              }
+              className="w-full p-3 text-sm border border-neutral-300 rounded-lg resize-none focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 font-mono"
               rows={6}
             />
           </div>
+
+          {/* Preview toggle (bulk only) */}
+          {newMsgIsBulk && bulkSelectionConfirmed && (
+            <div>
+              <button
+                onClick={() => setShowNewMsgPreview(!showNewMsgPreview)}
+                className="flex items-center gap-2 text-sm text-teal-600 hover:text-teal-700 mb-2"
+              >
+                <Eye className="w-4 h-4" />
+                <span>{showNewMsgPreview ? "Vorschau ausblenden" : "Vorschau anzeigen"}</span>
+              </button>
+              
+              {showNewMsgPreview && newMsgContent.trim() && bulkRecipients.length > 0 && (
+                <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium text-neutral-700">
+                      Vorschau für: {bulkRecipients[0].firstName} {bulkRecipients[0].lastName}
+                    </span>
+                  </div>
+                  <div className="text-sm text-neutral-700 bg-white p-3 rounded-lg border border-neutral-200 prose prose-sm max-w-none">
+                    {renderMarkdown(personalizeMessage(newMsgContent, bulkRecipients[0]))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Email Option */}
           <label className="flex items-center gap-2 text-sm text-neutral-600 cursor-pointer">
@@ -1646,9 +2089,16 @@ export function Inbox() {
             <Mail className="w-4 h-4 text-neutral-400" />
             <span>Auch als E-Mail senden</span>
           </label>
+        </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-neutral-200">
+        {/* Actions */}
+        <div className="flex items-center pt-4 mt-4 border-t border-neutral-200 justify-between">
+          {newMsgIsBulk && bulkSelectionConfirmed && (
+            <p className="text-sm text-neutral-500">
+              {bulkRecipients.length} Nachrichten{newMsgSendEmail && ` + ${bulkRecipients.length} E-Mails`}
+            </p>
+          )}
+          <div className={`flex gap-3 ${!(newMsgIsBulk && bulkSelectionConfirmed) ? "ml-auto" : ""}`}>
             <Button
               variant="outline"
               onClick={resetNewMessageForm}
@@ -1657,15 +2107,21 @@ export function Inbox() {
             </Button>
             <Button
               onClick={() => {
-                // Here you would create the ticket/message
-                // For demo, just close the modal
-                alert(`Nachricht an ${memberOptions.find(m => m.value === newMsgRecipient)?.label || "Mitglied"} gesendet!\n\nBetreff: ${newMsgSubject}\n\nE-Mail: ${newMsgSendEmail ? "Ja" : "Nein"}`);
+                if (newMsgIsBulk && bulkSelectionConfirmed) {
+                  alert(`Rundschreiben wird gesendet an ${bulkRecipients.length} Empfänger!\n\nBetreff: ${newMsgSubject}\n\nE-Mail: ${newMsgSendEmail ? "Ja" : "Nein"}`);
+                } else {
+                  alert(`Nachricht an ${memberOptions.find(m => m.value === newMsgRecipient)?.label || "Mitglied"} gesendet!\n\nBetreff: ${newMsgSubject}\n\nE-Mail: ${newMsgSendEmail ? "Ja" : "Nein"}`);
+                }
                 resetNewMessageForm();
               }}
-              disabled={!newMsgRecipient || !newMsgSubject.trim() || !newMsgContent.trim()}
+              disabled={
+                (newMsgIsBulk && bulkSelectionConfirmed)
+                  ? (!newMsgSubject.trim() || !newMsgContent.trim())
+                  : (!newMsgRecipient || !newMsgSubject.trim() || !newMsgContent.trim())
+              }
               icon={<Send className="w-4 h-4" />}
             >
-              Nachricht senden
+              {newMsgIsBulk && bulkSelectionConfirmed ? "Rundschreiben senden" : "Nachricht senden"}
             </Button>
           </div>
         </div>

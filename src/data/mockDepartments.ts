@@ -1,12 +1,40 @@
 import type { Department } from "../types/domain";
 
 export const mockDepartments: Department[] = [
+  // ==========================================
+  // DEMO DEPARTMENTS (synced with Member Portal)
+  // ==========================================
   {
-    id: "dept1",
+    id: "dept_football",
     clubId: "club1",
     name: "Fußball",
     kind: "sport",
     isActive: true
+  },
+  {
+    id: "dept_volleyball",
+    clubId: "club1",
+    name: "Volleyball",
+    kind: "sport",
+    isActive: true
+  },
+  {
+    id: "dept_fitness",
+    clubId: "club1",
+    name: "Fitness",
+    kind: "sport",
+    isActive: true
+  },
+  
+  // ==========================================
+  // ADDITIONAL DEPARTMENTS
+  // ==========================================
+  {
+    id: "dept1",
+    clubId: "club1",
+    name: "Fußball (Alt)",
+    kind: "sport",
+    isActive: false
   },
   {
     id: "dept2",
@@ -18,9 +46,9 @@ export const mockDepartments: Department[] = [
   {
     id: "dept3",
     clubId: "club1",
-    name: "Volleyball",
+    name: "Volleyball (Alt)",
     kind: "sport",
-    isActive: true
+    isActive: false
   },
   {
     id: "dept4",

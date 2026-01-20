@@ -22,7 +22,8 @@ import { Matches } from "./routes/Matches";
 // Communications is now consolidated into Inbox
 import { Documents } from "./routes/Documents";
 import { Inbox } from "./routes/Inbox";
-import { MemberPortal } from "./routes/MemberPortal";
+import { ClubNews } from "./routes/ClubNews";
+import { PilotInbox, PilotMemberPortal, ChatModeration, MemberWebPortal } from "./routes/pilot";
 
 function App() {
   // Use basename for GitHub Pages deployment
@@ -60,15 +61,33 @@ function App() {
           <Route path="transactions" element={<Transactions />} />
           <Route path="finance" element={<Finance />} />
           
-          {/* Verwaltung */}
+          {/* Kommunikation */}
           <Route path="communications" element={<Navigate to="/inbox" replace />} />
           <Route path="inbox" element={<Inbox />} />
+          <Route path="club-news" element={<ClubNews />} />
+          
+          {/* Verwaltung */}
           <Route path="documents" element={<Documents />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         
-        {/* Member Portal (standalone mobile route) */}
-        <Route path="member-portal" element={<MemberPortal />} />
+        {/* Member Portal - redirect old URL to new pilot version */}
+        <Route path="member-portal" element={<Navigate to="/pilot/member-portal" replace />} />
+        
+        {/* Main Member Portal with profile routes */}
+        <Route path="pilot/member-portal" element={<Navigate to="/pilot/member-portal/lena" replace />} />
+        <Route path="pilot/member-portal/:profileSlug" element={<PilotMemberPortal />} />
+        
+        {/* Pilot Admin Routes */}
+        <Route path="pilot" element={<AppLayout />}>
+          <Route index element={<Navigate to="/pilot/inbox" replace />} />
+          <Route path="inbox" element={<PilotInbox />} />
+          <Route path="chat-moderation" element={<ChatModeration />} />
+          <Route path="club-news" element={<ClubNews />} />
+        </Route>
+        
+        {/* Member Web Portal (Desktop version for members like Lena) */}
+        <Route path="member" element={<MemberWebPortal />} />
       </Routes>
     </BrowserRouter>
   );

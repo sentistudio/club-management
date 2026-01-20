@@ -1,17 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  /* Primary Teal - Coachbetter style */
-  --color-teal-50: #E8F9F5;
-  --color-teal-100: #D1F3EB;
-  --color-teal-200: #A3E7D7;
-  --color-teal-300: #75DBC3;
-  --color-teal-400: #3ECFB4;
-  --color-teal-500: #35B89F;
-  --color-teal-600: #2A9D87;
-  --color-teal-700: #1F826F;
-  --color-teal-800: #146657;
-  --color-teal-900: #0A4B3F;
+  /* DFB Brand Colors */
+  /* Primary: DFB Dunkelgrün #004941 */
+  /* Secondary: DFB Mintgrün #C8F2E0 */
+  --color-teal-50: #E8F8F3;
+  --color-teal-100: #C8F2E0;  /* DFB Mintgrün */
+  --color-teal-200: #9BE5C9;
+  --color-teal-300: #6DD7B2;
+  --color-teal-400: #3FC99B;
+  --color-teal-500: #00806A;
+  --color-teal-600: #004941;  /* DFB Dunkelgrün - Primary */
+  --color-teal-700: #003D37;
+  --color-teal-800: #00312D;
+  --color-teal-900: #002522;
 
   /* Extended Gray palette */
   --color-neutral-50: #FAFAFA;
@@ -80,7 +82,7 @@ body {
 
 /* Focus styles */
 *:focus-visible {
-  outline: 2px solid var(--color-teal-400);
+  outline: 2px solid var(--color-teal-500);
   outline-offset: 2px;
 }
 

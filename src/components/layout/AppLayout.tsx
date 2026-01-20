@@ -31,11 +31,6 @@ const pageActions: Record<string, React.ReactNode> = {
     <Button variant="primary" icon={<Plus className="w-4 h-4" />}>
       Rechnung erstellen
     </Button>
-  ),
-  "/events": (
-    <Button variant="primary" icon={<Plus className="w-4 h-4" />}>
-      Event erstellen
-    </Button>
   )
 };
 

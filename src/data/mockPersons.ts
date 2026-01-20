@@ -1,6 +1,22 @@
 import type { Person } from "../types/domain";
+import { ALL_DEMO_PERSONAS } from "./mockDemoPersonas";
+
+// Convert demo personas to Person type for club management
+const demoPersonsConverted: Person[] = ALL_DEMO_PERSONAS.map(p => ({
+  id: p.id,
+  organizationId: "org1",
+  firstName: p.firstName,
+  lastName: p.lastName,
+  dateOfBirth: p.birthDate || "1985-01-01",
+  email: p.email,
+  phone: p.phone
+}));
 
 export const mockPersons: Person[] = [
+  // Demo personas from member portal (for cohesive demo)
+  ...demoPersonsConverted,
+  
+  // Additional generic members
   {
     id: "p1",
     organizationId: "org1",
@@ -20,15 +36,6 @@ export const mockPersons: Person[] = [
     phone: "+49 172 9876543"
   },
   {
-    id: "p3",
-    organizationId: "org1",
-    firstName: "Thomas",
-    lastName: "Müller",
-    dateOfBirth: "1978-11-30",
-    email: "t.mueller@example.com",
-    phone: "+49 170 5551234"
-  },
-  {
     id: "p4",
     organizationId: "org1",
     firstName: "Klaus",
@@ -44,31 +51,6 @@ export const mockPersons: Person[] = [
     dateOfBirth: "1995-09-18",
     email: "lisa.bauer@example.com",
     phone: "+49 176 3334455"
-  },
-  {
-    id: "p6",
-    organizationId: "org1",
-    firstName: "Peter",
-    lastName: "Klein",
-    dateOfBirth: "1982-01-25",
-    email: "peter.klein@example.com"
-  },
-  {
-    id: "p7",
-    organizationId: "org1",
-    firstName: "Sandra",
-    lastName: "Hoffmann",
-    dateOfBirth: "1988-06-12",
-    email: "sandra.hoffmann@example.com",
-    phone: "+49 175 6667788"
-  },
-  {
-    id: "p8",
-    organizationId: "org1",
-    firstName: "Michael",
-    lastName: "Schneider",
-    dateOfBirth: "1975-12-03",
-    email: "m.schneider@example.com"
   },
   {
     id: "p9",
@@ -88,7 +70,7 @@ export const mockPersons: Person[] = [
     email: "hans.braun@example.com"
   },
   {
-    id: "p11",
+    id: "p11_old",
     organizationId: "org1",
     firstName: "Emma",
     lastName: "Wagner",
@@ -96,14 +78,14 @@ export const mockPersons: Person[] = [
     email: "emma.wagner@example.com"
   },
   {
-    id: "p12",
+    id: "p12_old",
     organizationId: "org1",
     firstName: "Felix",
     lastName: "Zimmermann",
     dateOfBirth: "2010-11-05"
   },
   {
-    id: "p13",
+    id: "p13_old",
     organizationId: "org1",
     firstName: "Markus",
     lastName: "Lehmann",

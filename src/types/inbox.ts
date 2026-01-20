@@ -10,14 +10,18 @@ export type TicketCategory =
   | "technical" 
   | "general"
   | "complaint"
-  | "suggestion";
+  | "suggestion"
+  | "absence"
+  | "equipment"
+  | "organization"
+  | "report";  // Chat message reports
 
 export type MemberRole = "active" | "passive" | "admin" | "trainer" | "volunteer";
 
 export interface Ticket {
   id: string;
   clubId: string;
-  // Requester (member)
+  // Requester (member) - for incoming tickets
   requesterId: string; // personId
   requesterMembershipId?: string; // clubMembershipId
   requesterEmail: string;
@@ -47,6 +51,21 @@ export interface Ticket {
   // Related entities
   relatedInvoiceId?: string;
   relatedSubscriptionId?: string;
+  // Bulk message (Rundschreiben)
+  isBulkMessage?: boolean;
+  bulkRecipientCount?: number;
+  bulkFilter?: string; // e.g., "Alle Mitglieder", "Abteilung: Fußball"
+  bulkSentBy?: string; // Staff who sent the bulk message
+  // On behalf (parent messaging for child)
+  isOnBehalf?: boolean;
+  onBehalfOfName?: string;
+  onBehalfOfId?: string;
+  // Report-specific fields (for category: "report")
+  isReport?: boolean;
+  reportedChatId?: string;
+  reportedChatName?: string;
+  reportedMessageId?: string;
+  reportCategory?: "inappropriate_content" | "harassment" | "bullying" | "spam" | "safety_concern" | "other";
 }
 
 export interface TicketMessage {
@@ -83,6 +102,7 @@ export interface TicketForm {
   category: TicketCategory;
   fields: TicketFormField[];
   isActive: boolean;
+  icon?: string;  // Optional emoji icon for the form
 }
 
 export interface TicketFormField {

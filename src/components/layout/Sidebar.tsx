@@ -11,7 +11,7 @@ import {
   Trophy,
   Calendar,
   FolderOpen,
-  Inbox,
+  MessageSquare,
   ChevronRight,
   ExternalLink
 } from "lucide-react";
@@ -29,7 +29,7 @@ interface NavSection {
 }
 
 interface NavItem {
-  to: string;
+  to?: string;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   badge?: number;
@@ -103,7 +103,17 @@ const navSections: NavSection[] = [
   },
   {
     items: [
-      { to: "/inbox", icon: Inbox, label: "Posteingang", badge: myOpenTickets },
+      { 
+        icon: MessageSquare, 
+        label: "Kommunikation",
+        badge: myOpenTickets,
+        children: [
+          { to: "/pilot/inbox", label: "Postfach (Pilot)" },
+          { to: "/pilot/chat-moderation", label: "Chat-Moderation" },
+          { to: "/inbox", label: "Postfach (MVP)" },
+          { to: "/club-news", label: "Club News" }
+        ]
+      },
       { to: "/documents", icon: FolderOpen, label: "Dokumente" },
       { to: "/settings", icon: Settings, label: "Einstellungen" },
     ]
@@ -112,6 +122,9 @@ const navSections: NavSection[] = [
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  
+  // Member Portal path
+  const memberPortalPath = "pilot/member-portal";
 
   const toggleExpand = (label: string) => {
     setExpandedItems(prev => 
@@ -178,7 +191,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               )}
               <div className="space-y-0.5">
                 {section.items.map((item) => (
-                  <div key={item.to}>
+                  <div key={item.to || item.label}>
                     {item.children ? (
                       <>
                         <button
@@ -224,7 +237,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           </div>
                         )}
                       </>
-                    ) : (
+                    ) : item.to ? (
                       <NavLink
                         to={item.to}
                         onClick={onClose}
@@ -247,7 +260,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           </span>
                         )}
                       </NavLink>
-                    )}
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -255,15 +268,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           ))}
         </nav>
 
-        {/* Member Portal Link */}
-        <div className="px-4 pb-2">
+        {/* Member Portal Links */}
+        <div className="px-4 pb-2 space-y-1">
           <a
-            href="/member-portal"
+            href={`${import.meta.env.BASE_URL}${memberPortalPath}`}
             target="_blank"
             className="flex items-center gap-3 px-3 py-2 text-sm text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
-            <span>Mitglieder-Portal öffnen</span>
+            <span>Mitglieder-App (Mobile)</span>
+          </a>
+          <a
+            href={`${import.meta.env.BASE_URL}member`}
+            target="_blank"
+            className="flex items-center gap-3 px-3 py-2 text-sm text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            <span>Mitglieder-Portal (Lena)</span>
           </a>
         </div>
 
