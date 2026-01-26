@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import { 
   Plus, Search, Calendar as CalendarIcon, List, Grid3X3,
-  MoreHorizontal, Eye, Edit2, Copy, Send, XCircle,
+  Edit2, Copy, Send,
   ChevronLeft, ChevronRight, Users, Clock, MapPin,
   Lock, Globe, RefreshCw, Filter, Sun
 } from "lucide-react";
@@ -50,8 +50,6 @@ export function ClubEvents() {
   const [editingEvent, setEditingEvent] = useState<ClubEvent | null>(null);
   const [initialDate, setInitialDate] = useState<string | undefined>(undefined);
   
-  // Dropdown menu state
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // Compute actual statuses (mark completed if past)
   const now = new Date();
@@ -830,9 +828,6 @@ export function ClubEvents() {
             const dateStr = calendarMonth.toISOString().split("T")[0];
             const dayEvents = filteredEvents.filter(e => e.date === dateStr);
             const isToday = calendarMonth.toDateString() === new Date().toDateString();
-            
-            // Generate hours
-            const hours = Array.from({ length: 24 }, (_, i) => i);
             
             return (
               <div 
