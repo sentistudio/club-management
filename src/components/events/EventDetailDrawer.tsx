@@ -65,11 +65,22 @@ export function EventDetailDrawer({
       
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        {/* Banner Image */}
+        {event.bannerImage && (
+          <div className="h-40 w-full overflow-hidden flex-shrink-0">
+            <img 
+              src={event.bannerImage} 
+              alt="" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+        
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-slate-200">
+        <div className={`flex items-start justify-between p-6 border-b border-slate-200 ${event.bannerImage ? "-mt-8 relative z-10 bg-white rounded-t-2xl mx-4 shadow-lg" : ""}`}>
           <div className="flex-1 min-w-0 pr-4">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusColors.bg} ${statusColors.text}`}>
                 {getStatusLabel(event.status)}
               </span>
@@ -77,6 +88,14 @@ export function EventDetailDrawer({
               <span className="text-sm text-slate-500">
                 {getVisibilityIcon(event.visibility)} {getVisibilityLabel(event.visibility)}
               </span>
+              {event.isAllDay && (
+                <>
+                  <span className="text-slate-400">•</span>
+                  <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+                    Ganztägig
+                  </span>
+                </>
+              )}
             </div>
             <h2 className="text-xl font-bold text-slate-800 truncate">{event.title}</h2>
             {event.category && (
@@ -131,10 +150,17 @@ export function EventDetailDrawer({
                 </div>
                 <div>
                   <p className="font-medium text-slate-800">{formatDate(event.date)}</p>
-                  <p className="text-slate-500 flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    {formatTime(event.startTime)} - {formatTime(event.endTime)}
-                  </p>
+                  {event.isAllDay ? (
+                    <p className="text-amber-600 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Ganztägig
+                    </p>
+                  ) : (
+                    <p className="text-slate-500 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      {formatTime(event.startTime)} - {formatTime(event.endTime)}
+                    </p>
+                  )}
                 </div>
               </div>
 

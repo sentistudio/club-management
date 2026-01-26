@@ -41,9 +41,11 @@ export interface ClubEvent {
   title: string;
   description?: string;
   date: string;
+  isAllDay?: boolean;
   startTime: string;
   endTime: string;
   location?: string;
+  bannerImage?: string;
   
   // Audience
   audience: AudienceConfig;
@@ -82,9 +84,11 @@ export interface ClubEventFormData {
   title: string;
   description: string;
   date: string;
+  isAllDay: boolean;
   startTime: string;
   endTime: string;
   location: string;
+  bannerImage: string;
   audienceMode: AudienceMode;
   departmentIds: string[];
   groupIds: string[];
@@ -103,9 +107,11 @@ export const defaultEventFormData: ClubEventFormData = {
   title: "",
   description: "",
   date: "",
+  isAllDay: false,
   startTime: "18:00",
   endTime: "20:00",
   location: "",
+  bannerImage: "",
   audienceMode: "all",
   departmentIds: [],
   groupIds: [],
@@ -119,3 +125,15 @@ export const defaultEventFormData: ClubEventFormData = {
   recurrenceWeekdays: [],
   recurrenceUntil: ""
 };
+
+// Default banner images
+export const DEFAULT_BANNERS = [
+  { id: "meeting", url: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop", label: "Versammlung" },
+  { id: "celebration", url: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&h=400&fit=crop", label: "Fest" },
+  { id: "workshop", url: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop", label: "Workshop" },
+  { id: "sports", url: "https://images.unsplash.com/photo-1461896836934- voices-fb84391f?w=800&h=400&fit=crop", label: "Sport" },
+  { id: "outdoor", url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=400&fit=crop", label: "Outdoor" },
+  { id: "family", url: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&h=400&fit=crop", label: "Familie" },
+  { id: "carnival", url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&h=400&fit=crop", label: "Karneval" },
+  { id: "christmas", url: "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=800&h=400&fit=crop", label: "Weihnachten" }
+];

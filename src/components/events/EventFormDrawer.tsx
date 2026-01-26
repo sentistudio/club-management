@@ -5,9 +5,10 @@
 import { useState, useEffect, useRef } from "react";
 import { 
   X, Calendar, MapPin, FileText, 
-  Lock, Globe, Save, Send
+  Lock, Globe, Save, Send, Image, Upload, Check
 } from "lucide-react";
 import type { ClubEvent, ClubEventFormData } from "../../types/events";
+import { DEFAULT_BANNERS } from "../../types/events";
 import { AudienceSelector } from "./AudienceSelector";
 import { RecurrenceEditor } from "./RecurrenceEditor";
 import { RSVPSection } from "./RSVPSection";
@@ -30,9 +31,11 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
     title: "",
     description: "",
     date: "",
+    isAllDay: false,
     startTime: "18:00",
     endTime: "20:00",
     location: "",
+    bannerImage: "",
     audienceMode: "all",
     departmentIds: [],
     groupIds: [],
@@ -46,6 +49,8 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
     recurrenceWeekdays: [],
     recurrenceUntil: ""
   });
+  
+  const [showBannerPicker, setShowBannerPicker] = useState(false);
 
   // Load event data when editing or set initial date
   useEffect(() => {
@@ -54,9 +59,11 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
         title: event.title,
         description: event.description || "",
         date: event.date,
+        isAllDay: event.isAllDay || false,
         startTime: event.startTime,
         endTime: event.endTime,
         location: event.location || "",
+        bannerImage: event.bannerImage || "",
         audienceMode: event.audience.mode,
         departmentIds: event.audience.departmentIds || [],
         groupIds: event.audience.groupIds || [],
@@ -118,9 +125,11 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
       title: formData.title.trim(),
       description: formData.description.trim() || undefined,
       date: formData.date,
-      startTime: formData.startTime,
-      endTime: formData.endTime,
+      isAllDay: formData.isAllDay,
+      startTime: formData.isAllDay ? "00:00" : formData.startTime,
+      endTime: formData.isAllDay ? "23:59" : formData.endTime,
       location: formData.location.trim() || undefined,
+      bannerImage: formData.bannerImage || undefined,
       audience: {
         mode: formData.audienceMode,
         departmentIds: formData.audienceMode === "departments" ? formData.departmentIds : undefined,
@@ -158,7 +167,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
     onSave(newEvent, isDraft);
   };
 
-  const isValid = formData.title.trim() && formData.date && formData.startTime && formData.endTime;
+  const isValid = formData.title.trim() && formData.date && (formData.isAllDay || (formData.startTime && formData.endTime));
 
   return (
     <>
@@ -197,38 +206,79 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
               />
             </div>
 
+            {/* Banner Image */}
+            {formData.bannerImage && (
+              <div className="relative rounded-xl overflow-hidden h-32">
+                <img 
+                  src={formData.bannerImage} 
+                  alt="Event Banner" 
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, bannerImage: "" })}
+                  className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            
+            <button
+              type="button"
+              onClick={() => setShowBannerPicker(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 hover:border-[#004941] hover:text-[#004941] transition-colors"
+            >
+              <Image className="w-5 h-5" />
+              <span>{formData.bannerImage ? "Banner ändern" : "Banner hinzufügen"}</span>
+            </button>
+
             {/* Date & Time Row */}
             <div className="flex items-start gap-3">
               <div className="p-2.5 mt-1 bg-slate-100 rounded-lg">
                 <Calendar className="w-5 h-5 text-slate-600" />
               </div>
               <div className="flex-1 space-y-3">
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
-                />
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <label className="block text-xs text-slate-500 mb-1">Beginn</label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
+                  />
+                  {/* All Day Toggle */}
+                  <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
                     <input
-                      type="time"
-                      value={formData.startTime}
-                      onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
+                      type="checkbox"
+                      checked={formData.isAllDay}
+                      onChange={(e) => setFormData({ ...formData, isAllDay: e.target.checked })}
+                      className="w-4 h-4 rounded border-slate-300 text-[#004941] focus:ring-[#004941]"
                     />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-xs text-slate-500 mb-1">Ende</label>
-                    <input
-                      type="time"
-                      value={formData.endTime}
-                      onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
-                    />
-                  </div>
+                    <span className="text-sm text-slate-600">Ganztägig</span>
+                  </label>
                 </div>
+                {!formData.isAllDay && (
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <label className="block text-xs text-slate-500 mb-1">Beginn</label>
+                      <input
+                        type="time"
+                        value={formData.startTime}
+                        onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs text-slate-500 mb-1">Ende</label>
+                      <input
+                        type="time"
+                        value={formData.endTime}
+                        onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -401,6 +451,93 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
           </div>
         </div>
       </div>
+
+      {/* Banner Picker Modal */}
+      {showBannerPicker && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+              <h3 className="text-lg font-bold text-slate-800">Banner auswählen</h3>
+              <button 
+                onClick={() => setShowBannerPicker(false)}
+                className="p-2 hover:bg-slate-100 rounded-lg"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Upload Custom */}
+              <div className="mb-6">
+                <p className="text-sm font-medium text-slate-700 mb-3">Eigenes Bild hochladen</p>
+                <label className="flex items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 hover:border-[#004941] hover:text-[#004941] cursor-pointer transition-colors">
+                  <Upload className="w-5 h-5" />
+                  <span>Bild auswählen (JPG, PNG)</span>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          setFormData({ ...formData, bannerImage: ev.target?.result as string });
+                          setShowBannerPicker(false);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              
+              {/* Default Banners */}
+              <div>
+                <p className="text-sm font-medium text-slate-700 mb-3">Oder Vorlage wählen</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {DEFAULT_BANNERS.map(banner => (
+                    <button
+                      key={banner.id}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, bannerImage: banner.url });
+                        setShowBannerPicker(false);
+                      }}
+                      className={`relative rounded-xl overflow-hidden h-24 group ${
+                        formData.bannerImage === banner.url ? "ring-2 ring-[#004941]" : ""
+                      }`}
+                    >
+                      <img 
+                        src={banner.url} 
+                        alt={banner.label}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">{banner.label}</span>
+                      </div>
+                      {formData.bannerImage === banner.url && (
+                        <div className="absolute top-2 right-2 p-1 bg-[#004941] rounded-full">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl">
+              <button
+                onClick={() => setShowBannerPicker(false)}
+                className="w-full px-4 py-2.5 bg-[#004941] text-white rounded-lg hover:bg-[#003830] transition-colors"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

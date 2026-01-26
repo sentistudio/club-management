@@ -284,6 +284,7 @@ export const mockClubEvents: ClubEvent[] = [
     startTime: "19:00",
     endTime: "22:00",
     location: "Vereinsheim - Großer Saal",
+    bannerImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop",
     audience: {
       mode: "all" as AudienceMode
     },
@@ -446,6 +447,7 @@ export const mockClubEvents: ClubEvent[] = [
     startTime: "15:00",
     endTime: "22:00",
     location: "Vereinsheim - Großer Saal",
+    bannerImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&h=400&fit=crop",
     audience: {
       mode: "all" as AudienceMode
     },
@@ -604,6 +606,7 @@ export const mockClubEvents: ClubEvent[] = [
     startTime: "15:00",
     endTime: "20:00",
     location: "Vereinsheim - Großer Saal",
+    bannerImage: "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=800&h=400&fit=crop",
     audience: {
       mode: "all" as AudienceMode
     },
@@ -667,6 +670,86 @@ export const mockClubEvents: ClubEvent[] = [
     createdByName: ADMIN_USER.name,
     updatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
     category: "Versammlung"
+  },
+
+  // ═══════════════════════════════════════════
+  // 11. SPORTPLATZTAG - All Day Event
+  // ═══════════════════════════════════════════
+  {
+    id: "evt_sportplatztag",
+    title: "Sportplatztag - Arbeitseinsatz",
+    description: "Ganztägiger Arbeitseinsatz für die Pflege unserer Sportanlagen. Kommt vorbei, wann es euch passt! Verpflegung wird gestellt. 🔧⚽",
+    date: "2026-03-15",
+    isAllDay: true,
+    startTime: "00:00",
+    endTime: "23:59",
+    location: "Sportgelände",
+    bannerImage: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=400&fit=crop",
+    audience: {
+      mode: "groups" as AudienceMode,
+      groupIds: ["grp_helfer_pool"]
+    },
+    resolvedMemberCount: 42,
+    visibility: "private" as EventVisibility,
+    rsvpRequired: true,
+    rsvpDeadline: "2026-03-12T23:59:00",
+    rsvpStats: {
+      invited: 42,
+      confirmed: 18,
+      declined: 5,
+      pending: 19,
+      waitlist: 0
+    },
+    status: "published" as EventStatus,
+    statusHistory: createHistory(
+      { status: "draft", daysAgo: 21 },
+      { status: "published", daysAgo: 14 }
+    ),
+    createdAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Arbeitseinsatz"
+  },
+
+  // ═══════════════════════════════════════════
+  // 12. SOMMERCAMP - All Day Event Draft
+  // ═══════════════════════════════════════════
+  {
+    id: "evt_sommercamp",
+    title: "Jugend-Sommercamp 2026",
+    description: "Einwöchiges Sommercamp für alle Jugendlichen von 10-16 Jahren. Fußball, Volleyball, Schwimmen, Lagerfeuer und mehr!",
+    date: "2026-08-03",
+    isAllDay: true,
+    startTime: "00:00",
+    endTime: "23:59",
+    location: "Sportcamp Bodensee",
+    bannerImage: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=400&fit=crop",
+    audience: {
+      mode: "all" as AudienceMode
+    },
+    resolvedMemberCount: 89,
+    visibility: "public" as EventVisibility,
+    rsvpRequired: true,
+    rsvpDeadline: "2026-06-30T23:59:00",
+    maxParticipants: 50,
+    rsvpStats: {
+      invited: 89,
+      confirmed: 0,
+      declined: 0,
+      pending: 89,
+      waitlist: 0
+    },
+    status: "draft" as EventStatus,
+    statusHistory: createHistory(
+      { status: "draft", daysAgo: 3 }
+    ),
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Camp",
+    tags: ["Jugend", "Sommer"]
   }
 ];
 
