@@ -1,4 +1,4 @@
-// Event Detail Drawer Component
+// Event Detail Modal Component
 // ==========================================
 // View full event details with actions
 
@@ -18,7 +18,7 @@ import {
 import { 
   getStatusLabel, 
   getStatusColor, 
-  formatDate, 
+  formatDate,
   formatTime,
   getVisibilityLabel,
   getVisibilityIcon
@@ -61,10 +61,11 @@ export function EventDetailDrawer({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
       
-      {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl z-50 flex flex-col">
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-start justify-between p-6 border-b border-slate-200">
           <div className="flex-1 min-w-0 pr-4">
@@ -336,7 +337,7 @@ export function EventDetailDrawer({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-200 bg-slate-50">
+        <div className="p-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl">
           <div className="flex items-center gap-3">
             {canCancel && (
               <button
@@ -374,6 +375,7 @@ export function EventDetailDrawer({
               </button>
             )}
           </div>
+        </div>
         </div>
       </div>
 

@@ -42,11 +42,12 @@ export function ClubEvents() {
   // Calendar state
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   
-  // Drawer state
+  // Modal state
   const [showFormDrawer, setShowFormDrawer] = useState(false);
   const [showDetailDrawer, setShowDetailDrawer] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<ClubEvent | null>(null);
   const [editingEvent, setEditingEvent] = useState<ClubEvent | null>(null);
+  const [initialDate, setInitialDate] = useState<string | undefined>(undefined);
   
   // Dropdown menu state
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -154,8 +155,9 @@ export function ClubEvents() {
   };
 
   // Handlers
-  const handleOpenCreate = () => {
+  const handleOpenCreate = (date?: string) => {
     setEditingEvent(null);
+    setInitialDate(date);
     setShowFormDrawer(true);
   };
 
@@ -167,6 +169,7 @@ export function ClubEvents() {
 
   const handleEdit = (event: ClubEvent) => {
     setEditingEvent(event);
+    setInitialDate(undefined);
     setShowFormDrawer(true);
     setShowDetailDrawer(false);
     setOpenMenuId(null);
@@ -261,7 +264,7 @@ export function ClubEvents() {
           <h1 className="text-2xl font-bold text-slate-800">Vereinstermine</h1>
           <p className="text-slate-500 mt-1">Club-Events, Versammlungen und Veranstaltungen verwalten</p>
         </div>
-        <Button icon={<Plus className="w-4 h-4" />} onClick={handleOpenCreate}>
+        <Button icon={<Plus className="w-4 h-4" />} onClick={() => handleOpenCreate()}>
           Neues Event
         </Button>
       </div>
@@ -474,7 +477,7 @@ export function ClubEvents() {
               <CalendarIcon className="w-12 h-12 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-800">Keine Events gefunden</h3>
               <p className="text-slate-500 mt-1">Passen Sie Ihre Filter an oder erstellen Sie ein neues Event</p>
-              <Button className="mt-4" onClick={handleOpenCreate}>
+              <Button className="mt-4" onClick={() => handleOpenCreate()}>
                 <Plus className="w-4 h-4 mr-2" />
                 Neues Event
               </Button>
@@ -669,11 +672,13 @@ export function ClubEvents() {
             {/* Calendar Days */}
             {getCalendarDays().map((day, i) => {
               const isToday = day.date.toDateString() === new Date().toDateString();
+              const dateStr = day.date.toISOString().split("T")[0];
               return (
                 <div
                   key={i}
-                  className={`bg-white min-h-[100px] p-2 ${
-                    !day.isCurrentMonth ? "bg-slate-50" : ""
+                  onClick={() => day.isCurrentMonth && handleOpenCreate(dateStr)}
+                  className={`bg-white min-h-[100px] p-2 cursor-pointer transition-colors hover:bg-[#C8F2E0]/20 ${
+                    !day.isCurrentMonth ? "bg-slate-50 cursor-default hover:bg-slate-50" : ""
                   }`}
                 >
                   <p className={`text-sm font-medium mb-1 ${
@@ -689,7 +694,7 @@ export function ClubEvents() {
                       return (
                         <button
                           key={event.id}
-                          onClick={() => handleOpenDetail(event)}
+                          onClick={(e) => { e.stopPropagation(); handleOpenDetail(event); }}
                           className={`w-full text-left px-1.5 py-0.5 rounded text-xs truncate ${colors.bg} ${colors.text} hover:opacity-80`}
                         >
                           {event.startTime} {event.title}
@@ -721,11 +726,12 @@ export function ClubEvents() {
         />
       )}
 
-      {/* Event Form Drawer */}
+      {/* Event Form Modal */}
       {showFormDrawer && (
         <EventFormDrawer
           event={editingEvent}
-          onClose={() => { setShowFormDrawer(false); setEditingEvent(null); }}
+          initialDate={initialDate}
+          onClose={() => { setShowFormDrawer(false); setEditingEvent(null); setInitialDate(undefined); }}
           onSave={handleSaveEvent}
         />
       )}

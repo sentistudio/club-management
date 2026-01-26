@@ -1,4 +1,4 @@
-// Event Form Drawer Component
+// Event Form Modal Component
 // ==========================================
 // Create/Edit event with Google Calendar UX
 
@@ -16,11 +16,12 @@ import { generateEventId, createStatusHistoryEntry } from "../../utils/eventUtil
 
 interface EventFormDrawerProps {
   event?: ClubEvent | null;
+  initialDate?: string; // Pre-fill date when clicking on calendar day
   onClose: () => void;
   onSave: (event: ClubEvent, isDraft: boolean) => void;
 }
 
-export function EventFormDrawer({ event, onClose, onSave }: EventFormDrawerProps) {
+export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFormDrawerProps) {
   const isEditing = !!event;
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -46,7 +47,7 @@ export function EventFormDrawer({ event, onClose, onSave }: EventFormDrawerProps
     recurrenceUntil: ""
   });
 
-  // Load event data when editing
+  // Load event data when editing or set initial date
   useEffect(() => {
     if (event) {
       setFormData({
@@ -69,8 +70,10 @@ export function EventFormDrawer({ event, onClose, onSave }: EventFormDrawerProps
         recurrenceWeekdays: event.recurrence?.weekdays || [],
         recurrenceUntil: event.recurrence?.until || ""
       });
+    } else if (initialDate) {
+      setFormData(prev => ({ ...prev, date: initialDate }));
     }
-  }, [event]);
+  }, [event, initialDate]);
 
   // Autofocus title
   useEffect(() => {
@@ -160,25 +163,26 @@ export function EventFormDrawer({ event, onClose, onSave }: EventFormDrawerProps
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
       
-      {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 w-full max-w-xl bg-white shadow-2xl z-50 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-800">
-            {isEditing ? "Event bearbeiten" : "Neues Event"}
-          </h2>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-lg"
-          >
-            <X className="w-5 h-5 text-slate-500" />
-          </button>
-        </div>
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+            <h2 className="text-xl font-bold text-slate-800">
+              {isEditing ? "Event bearbeiten" : "Neues Event"}
+            </h2>
+            <button 
+              onClick={onClose}
+              className="p-2 hover:bg-slate-100 rounded-lg"
+            >
+              <X className="w-5 h-5 text-slate-500" />
+            </button>
+          </div>
 
-        {/* Form Content */}
-        <div className="flex-1 overflow-y-auto">
+          {/* Form Content */}
+          <div className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-6">
             
             {/* Title - Primary Focus */}
@@ -367,31 +371,32 @@ export function EventFormDrawer({ event, onClose, onSave }: EventFormDrawerProps
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={onClose}
-              className="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-            >
-              Abbrechen
-            </button>
-            <div className="flex items-center gap-3">
+          <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl">
+            <div className="flex items-center justify-between">
               <button
-                onClick={() => handleSubmit(true)}
-                disabled={!isValid}
-                className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={onClose}
+                className="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
               >
-                <Save className="w-4 h-4" />
-                <span>Als Entwurf speichern</span>
+                Abbrechen
               </button>
-              <button
-                onClick={() => handleSubmit(false)}
-                disabled={!isValid}
-                className="flex items-center gap-2 px-4 py-2.5 bg-[#004941] text-white rounded-lg hover:bg-[#003830] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Send className="w-4 h-4" />
-                <span>Veröffentlichen</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleSubmit(true)}
+                  disabled={!isValid}
+                  className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Als Entwurf speichern</span>
+                </button>
+                <button
+                  onClick={() => handleSubmit(false)}
+                  disabled={!isValid}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-[#004941] text-white rounded-lg hover:bg-[#003830] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Veröffentlichen</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
