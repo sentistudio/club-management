@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import { 
   Plus, Search, Calendar as CalendarIcon, List, Grid3X3,
-  Edit2, Copy, Send,
+  Edit2, Copy, Send, XCircle,
   ChevronLeft, ChevronRight, Users, Clock, MapPin,
   Lock, Globe, RefreshCw, Filter, Sun
 } from "lucide-react";
@@ -163,7 +163,6 @@ export function ClubEvents() {
   const handleOpenDetail = (event: ClubEvent) => {
     setSelectedEvent(event);
     setShowDetailDrawer(true);
-    setOpenMenuId(null);
   };
 
   const handleEdit = (event: ClubEvent) => {
@@ -171,7 +170,6 @@ export function ClubEvents() {
     setInitialDate(undefined);
     setShowFormDrawer(true);
     setShowDetailDrawer(false);
-    setOpenMenuId(null);
   };
 
   const handleDuplicate = (event: ClubEvent) => {
@@ -194,7 +192,6 @@ export function ClubEvents() {
     setEditingEvent(duplicated);
     setShowFormDrawer(true);
     setShowDetailDrawer(false);
-    setOpenMenuId(null);
   };
 
   const handlePublish = (event: ClubEvent) => {
@@ -211,7 +208,6 @@ export function ClubEvents() {
     });
     setEvents(updated);
     setShowDetailDrawer(false);
-    setOpenMenuId(null);
   };
 
   const handleCancel = (event: ClubEvent, reason: string) => {
@@ -228,7 +224,6 @@ export function ClubEvents() {
     });
     setEvents(updated);
     setShowDetailDrawer(false);
-    setOpenMenuId(null);
   };
 
   const handleSaveEvent = (event: ClubEvent, _isDraft: boolean) => {
