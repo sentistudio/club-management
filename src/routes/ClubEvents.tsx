@@ -13,8 +13,7 @@ import { Card, Button } from "../components/ui";
 import { EventDetailDrawer, EventFormDrawer } from "../components/events";
 import { 
   mockClubEvents, 
-  ADMIN_USER,
-  getAudienceDescription
+  ADMIN_USER
 } from "../data/mockClubEvents";
 import type { ClubEvent, EventStatus, EventVisibility, AudienceMode } from "../types/events";
 import { 
