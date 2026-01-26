@@ -252,274 +252,144 @@ export function ClubEvents() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-4">
+      {/* Header with Stats Summary */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Vereinstermine</h1>
-          <p className="text-slate-500 mt-1">Club-Events, Versammlungen und Veranstaltungen verwalten</p>
+          <div className="flex items-center gap-4 mt-2 text-sm">
+            <span className="text-slate-500">
+              <span className="font-semibold text-slate-800">{stats.total}</span> Gesamt
+            </span>
+            <span className="text-[#004941]">
+              <span className="font-semibold">{stats.upcoming}</span> Anstehend
+            </span>
+            <span className="text-slate-500">
+              <span className="font-semibold text-slate-600">{stats.draft}</span> Entwürfe
+            </span>
+          </div>
         </div>
         <Button icon={<Plus className="w-4 h-4" />} onClick={() => handleOpenCreate()}>
           Neue Veranstaltung
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setTimeFilter("all")}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-100">
-              <CalendarIcon className="w-5 h-5 text-slate-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-800">{stats.total}</p>
-              <p className="text-sm text-slate-500">Gesamt</p>
-            </div>
+      {/* Unified Toolbar */}
+      <Card className="!p-3">
+        <div className="flex flex-col lg:flex-row gap-3">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Suchen..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941] focus:border-transparent"
+            />
           </div>
-        </Card>
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setTimeFilter("upcoming"); setStatusFilter(""); }}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[#C8F2E0]">
-              <CalendarIcon className="w-5 h-5 text-[#004941]" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-[#004941]">{stats.upcoming}</p>
-              <p className="text-sm text-slate-500">Anstehend</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter("draft")}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-100">
-              <Edit2 className="w-5 h-5 text-slate-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-600">{stats.draft}</p>
-              <p className="text-sm text-slate-500">Entwürfe</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter("published")}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-100">
-              <Send className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-emerald-600">{stats.published}</p>
-              <p className="text-sm text-slate-500">Veröffentlicht</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter("cancelled")}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-red-100">
-              <XCircle className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-red-600">{stats.cancelled}</p>
-              <p className="text-sm text-slate-500">Abgesagt</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Search & Filters */}
-      <Card>
-        {/* Search - Full Width on Top */}
-        <div className="relative mb-4">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Events suchen..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 text-lg border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] focus:border-transparent"
-          />
-        </div>
-        
-        {/* Filters & View Toggle Row */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Filter Dropdowns */}
-          <div className="flex flex-wrap gap-2 flex-1">
-            {/* Time Filter */}
-            <select
-              value={timeFilter}
-              onChange={(e) => setTimeFilter(e.target.value as TimeFilter)}
-              className="px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
-            >
-              <option value="upcoming">Anstehend</option>
-              <option value="past">Vergangen</option>
-              <option value="all">Alle</option>
-            </select>
-            
-            {/* Status Filter */}
+          
+          {/* Compact Filters */}
+          <div className="flex flex-wrap items-center gap-2">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as EventStatus | "")}
-              className="px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
+              className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
             >
               <option value="">Alle Status</option>
               <option value="draft">Entwurf</option>
               <option value="published">Veröffentlicht</option>
-              <option value="completed">Abgeschlossen</option>
               <option value="cancelled">Abgesagt</option>
             </select>
             
-            {/* Visibility Filter */}
             <select
               value={visibilityFilter}
               onChange={(e) => setVisibilityFilter(e.target.value as EventVisibility | "")}
-              className="px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
+              className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
             >
-              <option value="">Alle Sichtbarkeit</option>
-              <option value="public">🌐 Öffentlich</option>
-              <option value="private">🔒 Privat</option>
+              <option value="">Sichtbarkeit</option>
+              <option value="public">Öffentlich</option>
+              <option value="private">Privat</option>
             </select>
-            
-            {/* Audience Mode Filter */}
-            <select
-              value={audienceFilter}
-              onChange={(e) => setAudienceFilter(e.target.value as AudienceMode | "")}
-              className="px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
-            >
-              <option value="">Alle Zielgruppen</option>
-              <option value="all">Alle Mitglieder</option>
-              <option value="departments">Abteilungen</option>
-              <option value="groups">Gruppen</option>
-              <option value="manual">Manuell</option>
-            </select>
-          </div>
-          
-          {/* View Toggle */}
-          <div className="flex border border-slate-200 rounded-lg overflow-hidden">
-            <button
-              onClick={() => setViewMode("list")}
-              className={`px-4 py-2.5 flex items-center gap-2 ${
-                viewMode === "list" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              <List className="w-4 h-4" />
-              <span className="hidden sm:inline">Liste</span>
-            </button>
-            <button
-              onClick={() => setViewMode("calendar")}
-              className={`px-4 py-2.5 flex items-center gap-2 ${
-                viewMode === "calendar" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              <Grid3X3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Kalender</span>
-            </button>
+
+            {/* View Toggle */}
+            <div className="flex border border-slate-200 rounded-lg overflow-hidden ml-auto">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`px-3 py-2 flex items-center gap-1.5 text-sm ${
+                  viewMode === "list" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <List className="w-4 h-4" />
+                Liste
+              </button>
+              <button
+                onClick={() => setViewMode("calendar")}
+                className={`px-3 py-2 flex items-center gap-1.5 text-sm ${
+                  viewMode === "calendar" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <Grid3X3 className="w-4 h-4" />
+                Kalender
+              </button>
+            </div>
           </div>
         </div>
-        
-        {/* Active filters display */}
-        {(statusFilter || visibilityFilter || audienceFilter || departmentFilter || groupFilter) && (
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-200">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <span className="text-sm text-slate-500">Filter:</span>
-            {statusFilter && (
-              <button
-                onClick={() => setStatusFilter("")}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 rounded text-sm hover:bg-slate-200"
-              >
-                {getStatusLabel(statusFilter)}
-                <XCircle className="w-3.5 h-3.5" />
-              </button>
-            )}
-            {visibilityFilter && (
-              <button
-                onClick={() => setVisibilityFilter("")}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 rounded text-sm hover:bg-slate-200"
-              >
-                {visibilityFilter === "public" ? "Öffentlich" : "Privat"}
-                <XCircle className="w-3.5 h-3.5" />
-              </button>
-            )}
-            {audienceFilter && (
-              <button
-                onClick={() => setAudienceFilter("")}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 rounded text-sm hover:bg-slate-200"
-              >
-                {audienceFilter === "all" ? "Alle Mitglieder" : 
-                 audienceFilter === "departments" ? "Abteilungen" :
-                 audienceFilter === "groups" ? "Gruppen" : "Manuell"}
-                <XCircle className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <button
-              onClick={() => {
-                setStatusFilter("");
-                setVisibilityFilter("");
-                setAudienceFilter("");
-                setDepartmentFilter("");
-                setGroupFilter("");
-              }}
-              className="text-sm text-[#004941] hover:underline ml-2"
-            >
-              Alle zurücksetzen
-            </button>
-          </div>
-        )}
       </Card>
 
-      {/* LIST VIEW - With Week Picker Context */}
+      {/* LIST VIEW */}
       {viewMode === "list" && (
-        <div className="space-y-4">
-          {/* Week Picker - Date Navigation Context */}
-          <div className="bg-white rounded-xl border border-slate-200 p-3">
-            <div className="flex items-center gap-2 mb-3">
-              <button
-                onClick={() => {
-                  const newDate = new Date(calendarMonth);
-                  newDate.setDate(newDate.getDate() - 7);
-                  setCalendarMonth(newDate);
-                }}
-                className="p-1.5 hover:bg-slate-100 rounded-lg"
-              >
-                <ChevronLeft className="w-4 h-4 text-slate-600" />
-              </button>
-              <span className="text-sm font-medium text-slate-600">
-                {calendarMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}
-              </span>
-              <button
-                onClick={() => {
-                  const newDate = new Date(calendarMonth);
-                  newDate.setDate(newDate.getDate() + 7);
-                  setCalendarMonth(newDate);
-                }}
-                className="p-1.5 hover:bg-slate-100 rounded-lg"
-              >
-                <ChevronRight className="w-4 h-4 text-slate-600" />
-              </button>
-              <button
-                onClick={() => setCalendarMonth(new Date())}
-                className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-600"
-              >
-                Heute
-              </button>
-              <div className="ml-auto flex items-center gap-2">
-                {selectedDate && (
-                  <span className="text-xs text-slate-500">
-                    {new Date(selectedDate).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}
-                  </span>
-                )}
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          {/* Integrated Week Navigator */}
+          <div className="border-b border-slate-200 p-3 bg-slate-50">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1">
                 <button
-                  onClick={() => setSelectedDate(null)}
-                  className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
-                    selectedDate === null 
-                      ? "bg-[#004941] text-white" 
-                      : "bg-slate-100 hover:bg-slate-200 text-slate-600"
-                  }`}
+                  onClick={() => {
+                    const newDate = new Date(calendarMonth);
+                    newDate.setDate(newDate.getDate() - 7);
+                    setCalendarMonth(newDate);
+                  }}
+                  className="p-1 hover:bg-white rounded"
                 >
-                  <Eye className="w-3.5 h-3.5 inline mr-1" />
-                  Alle anzeigen
+                  <ChevronLeft className="w-4 h-4 text-slate-500" />
+                </button>
+                <span className="text-sm font-medium text-slate-700 min-w-[120px] text-center">
+                  {calendarMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}
+                </span>
+                <button
+                  onClick={() => {
+                    const newDate = new Date(calendarMonth);
+                    newDate.setDate(newDate.getDate() + 7);
+                    setCalendarMonth(newDate);
+                  }}
+                  className="p-1 hover:bg-white rounded"
+                >
+                  <ChevronRight className="w-4 h-4 text-slate-500" />
+                </button>
+                <button
+                  onClick={() => { setCalendarMonth(new Date()); setSelectedDate(null); }}
+                  className="ml-2 text-xs px-2 py-1 text-[#004941] hover:bg-[#C8F2E0] rounded"
+                >
+                  Heute
                 </button>
               </div>
+              
+              {selectedDate ? (
+                <button
+                  onClick={() => setSelectedDate(null)}
+                  className="text-xs px-2 py-1 bg-[#004941] text-white rounded flex items-center gap-1"
+                >
+                  {new Date(selectedDate).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}
+                  <XCircle className="w-3 h-3" />
+                </button>
+              ) : (
+                <span className="text-xs text-slate-500">{filteredEvents.length} Events</span>
+              )}
             </div>
             
-            {/* Week Days - Scrollable */}
-            <div className="flex gap-1 overflow-x-auto pb-1">
+            {/* Compact Week Strip */}
+            <div className="flex gap-1">
               {(() => {
                 const startOfWeek = new Date(calendarMonth);
                 const dayOfWeek = startOfWeek.getDay();
@@ -527,7 +397,7 @@ export function ClubEvents() {
                 startOfWeek.setDate(startOfWeek.getDate() + diff);
                 
                 const days = [];
-                for (let i = 0; i < 14; i++) {
+                for (let i = 0; i < 7; i++) {
                   const d = new Date(startOfWeek);
                   d.setDate(d.getDate() + i);
                   days.push(d);
@@ -547,24 +417,24 @@ export function ClubEvents() {
                     <button
                       key={i}
                       onClick={() => setSelectedDate(isSelected ? null : dateStr)}
-                      className={`flex-shrink-0 w-12 py-2 rounded-lg text-center transition-all ${
+                      className={`flex-1 py-1.5 rounded text-center transition-all ${
                         isSelected 
                           ? "bg-[#004941] text-white" 
                           : isToday 
                           ? "bg-[#C8F2E0] text-[#004941]" 
-                          : "hover:bg-slate-100"
+                          : hasEvents
+                          ? "bg-white hover:bg-slate-100"
+                          : "hover:bg-white"
                       }`}
                     >
                       <p className={`text-[10px] uppercase ${isSelected ? "text-white/70" : "text-slate-400"}`}>
                         {day.toLocaleDateString("de-DE", { weekday: "short" })}
                       </p>
-                      <p className={`text-lg font-bold ${isSelected ? "text-white" : isToday ? "text-[#004941]" : "text-slate-800"}`}>
+                      <p className={`text-sm font-bold ${isSelected ? "text-white" : isToday ? "text-[#004941]" : "text-slate-700"}`}>
                         {day.getDate()}
                       </p>
                       {hasEvents && (
-                        <div className={`text-[10px] font-medium ${isSelected ? "text-white/80" : "text-[#004941]"}`}>
-                          {dayEvents.length}
-                        </div>
+                        <div className={`w-1 h-1 rounded-full mx-auto mt-0.5 ${isSelected ? "bg-white" : "bg-[#004941]"}`} />
                       )}
                     </button>
                   );
@@ -573,151 +443,119 @@ export function ClubEvents() {
             </div>
           </div>
           
-          {/* Events List - Full Cards */}
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden" style={{ maxHeight: "calc(100vh - 480px)" }}>
-            <div className="overflow-y-auto p-4" style={{ maxHeight: "calc(100vh - 500px)" }}>
-              {(() => {
-                const displayEvents = selectedDate 
-                  ? filteredEvents.filter(e => e.date === selectedDate)
-                  : filteredEvents;
-                  
-                if (displayEvents.length === 0) {
-                  return (
-                    <div className="text-center py-12">
-                      <CalendarIcon className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                      <h3 className="text-base font-semibold text-slate-800">
-                        {selectedDate ? "Keine Events an diesem Tag" : "Keine Events gefunden"}
-                      </h3>
-                      <p className="text-sm text-slate-500 mt-1">
-                        {selectedDate 
-                          ? "Wählen Sie einen anderen Tag oder erstellen Sie ein neues Event"
-                          : "Passen Sie Ihre Filter an oder erstellen Sie ein neues Event"
-                        }
-                      </p>
-                      <Button className="mt-4" size="sm" onClick={() => handleOpenCreate(selectedDate || undefined)}>
-                        <Plus className="w-4 h-4 mr-1" />
-                        Event erstellen
-                      </Button>
-                    </div>
-                  );
-                }
+          {/* Events List */}
+          <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 340px)" }}>
+            {(() => {
+              const displayEvents = selectedDate 
+                ? filteredEvents.filter(e => e.date === selectedDate)
+                : filteredEvents;
                 
+              if (displayEvents.length === 0) {
                 return (
-                  <div className="space-y-4">
-                    {/* Show selected date header or count */}
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                      <p className="text-sm text-slate-500">
-                        {selectedDate 
-                          ? `Events am ${new Date(selectedDate).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}`
-                          : `${displayEvents.length} Events`
-                        }
-                      </p>
-                    </div>
-                    
-                    {/* Event Cards - Full Detail */}
+                  <div className="text-center py-16 px-4">
+                    <CalendarIcon className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                    <h3 className="text-base font-medium text-slate-600">
+                      {selectedDate ? "Keine Events an diesem Tag" : "Keine Events gefunden"}
+                    </h3>
+                    <p className="text-sm text-slate-400 mt-1 mb-4">
+                      {selectedDate 
+                        ? "Wählen Sie einen anderen Tag"
+                        : "Erstellen Sie Ihr erstes Event"
+                      }
+                    </p>
+                    <Button size="sm" onClick={() => handleOpenCreate(selectedDate || undefined)}>
+                      <Plus className="w-4 h-4 mr-1" />
+                      Event erstellen
+                    </Button>
+                  </div>
+                );
+              }
+              
+              return (
+                <div className="divide-y divide-slate-100">
+                    {/* Compact Event Rows */}
                     {displayEvents.map(event => (
                       <div
                         key={event.id}
                         onClick={() => handleOpenDetail(event)}
-                        className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group"
+                        className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group"
                       >
-                        <div className="p-4">
-                          {/* Top Row: Date/Time + Status */}
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              {/* Compact Calendar Badge */}
-                              <div className="flex-shrink-0 w-10 h-10 bg-[#004941] rounded-lg flex flex-col items-center justify-center text-white">
-                                <span className="text-[10px] font-medium leading-none">
-                                  {new Date(event.date).toLocaleDateString("de-DE", { month: "short" }).toUpperCase()}
-                                </span>
-                                <span className="text-lg font-bold leading-none">
-                                  {new Date(event.date).getDate()}
-                                </span>
+                        <div className="flex items-start gap-3">
+                          {/* Date Badge */}
+                          <div className="flex-shrink-0 w-11 h-11 bg-[#004941] rounded-lg flex flex-col items-center justify-center text-white">
+                            <span className="text-[9px] font-medium leading-none opacity-80">
+                              {new Date(event.date).toLocaleDateString("de-DE", { month: "short" }).toUpperCase()}
+                            </span>
+                            <span className="text-lg font-bold leading-none">
+                              {new Date(event.date).getDate()}
+                            </span>
+                          </div>
+                          
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            {/* Title + Status Row */}
+                            <div className="flex items-center justify-between gap-2">
+                              <h3 className="font-semibold text-slate-800 group-hover:text-[#004941] transition-colors truncate">
+                                {event.title}
+                              </h3>
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                {getStatusBadge(event.status)}
+                                {event.visibility === "private" && <Lock className="w-3.5 h-3.5 text-slate-400" />}
+                                {event.recurrence?.enabled && <RefreshCw className="w-3.5 h-3.5 text-[#004941]" />}
                               </div>
-                              
-                              <span className="font-medium">
-                                {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}.
+                            </div>
+                            
+                            {/* Meta Row */}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-500">
+                              <span>
+                                {event.isAllDay ? "Ganztägig" : `${event.startTime} - ${event.endTime}`}
                               </span>
-                              {event.isAllDay ? (
-                                <span className="text-amber-600 font-medium">Ganztägig</span>
-                              ) : (
-                                <span className="text-slate-500">{event.startTime} - {event.endTime}</span>
+                              {event.location && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-3.5 h-3.5" />
+                                  <span className="truncate max-w-[180px]">{event.location}</span>
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Users className="w-3.5 h-3.5" />
+                                {event.resolvedMemberCount || 0}
+                              </span>
+                              {event.rsvpRequired && event.rsvpStats && event.rsvpStats.invited > 0 && (
+                                <span className="text-xs text-slate-400">
+                                  {event.rsvpStats.confirmed}/{event.rsvpStats.invited} bestätigt
+                                </span>
                               )}
                             </div>
                             
-                            <div className="flex items-center gap-2">
-                              {getStatusBadge(event.status)}
-                              <span className="text-slate-400">
-                                {event.visibility === "public" ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                              </span>
-                              {event.recurrence?.enabled && (
-                                <span className="text-[#004941]">
-                                  <RefreshCw className="w-4 h-4" />
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Title */}
-                          <h3 className="font-semibold text-lg text-slate-800 group-hover:text-[#004941] transition-colors">
-                            {event.title}
-                          </h3>
-                          
-                          {/* Description */}
-                          {event.description && (
-                            <p className="text-sm text-slate-500 mt-1 line-clamp-2">{event.description}</p>
-                          )}
-                          
-                          {/* Location & Participants */}
-                          <div className="flex items-center gap-4 mt-3 text-sm text-slate-500">
-                            {event.location && (
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-4 h-4" />
-                                <span>{event.location}</span>
-                              </div>
+                            {/* Description Preview */}
+                            {event.description && (
+                              <p className="text-sm text-slate-400 mt-1 line-clamp-1">{event.description}</p>
                             )}
-                            <div className="flex items-center gap-1">
-                              <Users className="w-4 h-4" />
-                              <span>{event.resolvedMemberCount || 0} eingeladen</span>
-                            </div>
                           </div>
                           
-                          {/* RSVP Progress - Subtle */}
-                          {event.rsvpRequired && event.rsvpStats && event.rsvpStats.invited > 0 && (
-                            <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
-                              <span>{event.rsvpStats.confirmed}/{event.rsvpStats.invited}</span>
-                              <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[100px]">
-                                <div 
-                                  className="h-full bg-emerald-400 rounded-full" 
-                                  style={{ width: `${(event.rsvpStats.confirmed / event.rsvpStats.invited) * 100}%` }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Quick Actions */}
-                          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
+                          {/* Quick Actions - On Hover */}
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleEdit(event); }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded"
+                              title="Bearbeiten"
                             >
-                              <Edit2 className="w-3.5 h-3.5" />
-                              Bearbeiten
+                              <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleDuplicate(event); }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded"
+                              title="Kopieren"
                             >
-                              <Copy className="w-3.5 h-3.5" />
-                              Kopieren
+                              <Copy className="w-4 h-4" />
                             </button>
                             {event.status === "draft" && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); handlePublish(event); }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors ml-auto"
+                                className="p-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-100 rounded"
+                                title="Veröffentlichen"
                               >
-                                <Send className="w-3.5 h-3.5" />
-                                Veröffentlichen
+                                <Send className="w-4 h-4" />
                               </button>
                             )}
                           </div>
