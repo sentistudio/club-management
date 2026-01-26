@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { 
   Plus, Search, Calendar as CalendarIcon, List, Grid3X3,
   Edit2, Copy, Send, XCircle,
-  ChevronLeft, ChevronRight, Users, Clock, MapPin,
+  ChevronLeft, ChevronRight, Users, MapPin,
   Lock, Globe, RefreshCw, Filter, Eye
 } from "lucide-react";
 import { Card, Button } from "../components/ui";
