@@ -1653,7 +1653,7 @@ const MOCK_ENHANCED_EVENTS: EnhancedEvent[] = [
     id: "evt_team_1",
     title: "Fußball U12 Training",
     description: "Reguläres Mannschaftstraining mit Fokus auf Passübungen und Spieltaktik.",
-    date: "2026-01-24",
+    date: "2026-01-27",
     startTime: "16:00",
     endTime: "17:15",
     location: "Platz 3",
@@ -1665,17 +1665,18 @@ const MOCK_ENHANCED_EVENTS: EnhancedEvent[] = [
     organizerAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
     participants: { confirmed: 12, pending: 3, declined: 1 },
     rsvpRequired: true,
-    rsvpDeadline: "2026-01-24T12:00",
+    rsvpDeadline: "2026-01-27T12:00",
     myRsvp: "confirmed",
     resources: ["Platz 3", "Trainingsleibchen"],
     isRecurring: true,
-    recurringPattern: "Jeden Freitag"
+    recurringPattern: "Jeden Dienstag",
+    bannerImage: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop"
   },
   {
     id: "evt_team_2",
     title: "Ligaspiel vs. JSG Laubach U12",
     description: "Heimspiel in der Kreisliga. Treffpunkt 30 Minuten vor Spielbeginn.",
-    date: "2026-01-25",
+    date: "2026-01-28",
     startTime: "10:30",
     endTime: "11:30",
     location: "Sportplatz SfB",
@@ -1687,11 +1688,12 @@ const MOCK_ENHANCED_EVENTS: EnhancedEvent[] = [
     organizerAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
     participants: { confirmed: 14, pending: 1, declined: 0 },
     rsvpRequired: true,
-    rsvpDeadline: "2026-01-24T18:00",
+    rsvpDeadline: "2026-01-27T18:00",
     myRsvp: "confirmed",
     resources: ["Hauptplatz", "Kabine 1"],
     notes: "Bitte alle in Vereinstrikot erscheinen!",
-    dfbReference: "SP-2026-00123"
+    dfbReference: "SP-2026-00123",
+    bannerImage: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&h=400&fit=crop"
   },
   {
     id: "evt_club_info",
@@ -1732,7 +1734,27 @@ const MOCK_ENHANCED_EVENTS: EnhancedEvent[] = [
       { name: "Einladung_JHV_2026.pdf", type: "pdf" },
       { name: "Tagesordnung.pdf", type: "pdf" }
     ],
-    resources: ["Großer Saal", "Mikrofon", "Beamer"]
+    resources: ["Großer Saal", "Mikrofon", "Beamer"],
+    bannerImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop"
+  },
+  {
+    id: "evt_club_fasching",
+    title: "Vereinsfasching 2026",
+    description: "Großer Vereinsfasching für die ganze Familie! Mit DJ, Kinderprogramm, Tombola und Buffet. Kostüme erwünscht! 🎭🎉",
+    date: "2026-02-22",
+    startTime: "15:00",
+    endTime: "22:00",
+    location: "Vereinsheim - Großer Saal",
+    scope: "club",
+    type: "general",
+    visibility: ["all"],
+    organizer: "Patrick Steuble",
+    organizerAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
+    participants: { confirmed: 89, pending: 260, declined: 45 },
+    rsvpRequired: true,
+    rsvpDeadline: "2026-02-18T23:59",
+    myRsvp: null,
+    bannerImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&h=400&fit=crop"
   },
   {
     id: "evt_club_2",
@@ -1749,13 +1771,15 @@ const MOCK_ENHANCED_EVENTS: EnhancedEvent[] = [
     participants: { confirmed: 156, pending: 89, declined: 23 },
     rsvpRequired: false,
     myRsvp: null,
-    notes: "Helfer für Auf- und Abbau gesucht!"
+    notes: "Helfer für Auf- und Abbau gesucht!",
+    isAllDay: true,
+    bannerImage: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=400&fit=crop"
   },
   {
     id: "evt_team_3",
     title: "Fitness - Morgengruppe",
     description: "Core-Training und Stretching für einen guten Start in den Tag.",
-    date: "2026-01-24",
+    date: "2026-01-27",
     startTime: "07:00",
     endTime: "08:00",
     location: "Fitness Studio",
@@ -1769,7 +1793,8 @@ const MOCK_ENHANCED_EVENTS: EnhancedEvent[] = [
     rsvpRequired: false,
     myRsvp: "confirmed",
     isRecurring: true,
-    recurringPattern: "Mo, Mi, Fr"
+    recurringPattern: "Mo, Mi, Fr",
+    bannerImage: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=400&fit=crop"
   }
 ];
 
@@ -1974,6 +1999,8 @@ interface EnhancedEvent {
   recurringPattern?: string;
   resources?: string[];
   dfbReference?: string; // For DFB/SpielPlus integration
+  bannerImage?: string;
+  isAllDay?: boolean;
 }
 
 // Mock attachment type
@@ -3223,47 +3250,68 @@ export function PilotMemberPortal() {
                   <button 
                     key={event.id}
                     onClick={() => { setSelectedEvent(event); setView("event-detail"); }}
-                    className="rounded-2xl shadow-sm p-4 w-full text-left hover:shadow-md transition-shadow"
+                    className="rounded-2xl shadow-sm overflow-hidden w-full text-left hover:shadow-md transition-shadow"
                     style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className="text-center min-w-[40px]">
-                        <span className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
-                          {event.date.split("-")[2]}
-                        </span>
-                        <span className="text-sm block" style={{ color: theme.textMuted }}>
-                          {new Date(event.date).toLocaleDateString(language === "de" ? "de-DE" : "en-US", { weekday: "short" })}
-                        </span>
+                    {/* Banner Image */}
+                    {event.bannerImage && (
+                      <div className="h-24 w-full overflow-hidden">
+                        <img 
+                          src={event.bannerImage} 
+                          alt="" 
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">🏟️</span>
-                          <h3 className="font-semibold" style={{ color: theme.textPrimary }}>{event.title}</h3>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm mt-1" style={{ color: theme.textMuted }}>
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{event.startTime} - {event.endTime}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm mt-0.5" style={{ color: theme.textMuted }}>
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span>{event.location}</span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-3">
-                          {/* Scope badge */}
-                          <span 
-                            className="px-2 py-0.5 rounded-full text-[10px] font-medium"
-                            style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}
-                          >
-                            {t.scopeClub}
+                    )}
+                    <div className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className="text-center min-w-[40px]">
+                          <span className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
+                            {event.date.split("-")[2]}
                           </span>
-                          {/* Participant count */}
-                          {event.participants && (
-                            <span className="text-xs flex items-center gap-1" style={{ color: theme.textMuted }}>
-                              <Users className="w-3 h-3" />
-                              {event.participants.confirmed} {t.rsvpConfirmed}
+                          <span className="text-sm block" style={{ color: theme.textMuted }}>
+                            {new Date(event.date).toLocaleDateString(language === "de" ? "de-DE" : "en-US", { weekday: "short" })}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🏟️</span>
+                            <h3 className="font-semibold" style={{ color: theme.textPrimary }}>{event.title}</h3>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm mt-1" style={{ color: theme.textMuted }}>
+                            <Clock className="w-3.5 h-3.5" />
+                            {event.isAllDay ? (
+                              <span className="text-amber-600">Ganztägig</span>
+                            ) : (
+                              <span>{event.startTime} - {event.endTime}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 text-sm mt-0.5" style={{ color: theme.textMuted }}>
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span>{event.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-3">
+                            {/* Scope badge */}
+                            <span 
+                              className="px-2 py-0.5 rounded-full text-[10px] font-medium"
+                              style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}
+                            >
+                              {t.scopeClub}
                             </span>
-                          )}
-                          <ChevronRight className="w-4 h-4 ml-auto" style={{ color: theme.textMuted }} />
+                            {event.isAllDay && (
+                              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-medium">
+                                Ganztag
+                              </span>
+                            )}
+                            {/* Participant count */}
+                            {event.participants && (
+                              <span className="text-xs flex items-center gap-1" style={{ color: theme.textMuted }}>
+                                <Users className="w-3 h-3" />
+                                {event.participants.confirmed} {t.rsvpConfirmed}
+                              </span>
+                            )}
+                            <ChevronRight className="w-4 h-4 ml-auto" style={{ color: theme.textMuted }} />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -4661,29 +4709,58 @@ export function PilotMemberPortal() {
     
     return (
       <div className="min-h-full pb-24" style={{ backgroundColor: theme.pageBg }}>
-        {/* Header */}
-        <div 
-          className="sticky top-0 px-5 py-4 z-10"
-          style={{ backgroundColor: theme.cardBg, borderBottom: `1px solid ${theme.cardBorder}` }}
-        >
-          <div className="flex items-center gap-3">
-            <button onClick={goBack} className="p-2 -ml-2 rounded-lg" style={{ color: theme.textSecondary }}>
+        {/* Banner Image */}
+        {selectedEvent.bannerImage && (
+          <div className="relative h-40 w-full overflow-hidden">
+            <img 
+              src={selectedEvent.bannerImage} 
+              alt="" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            {/* Back button on banner */}
+            <button 
+              onClick={goBack} 
+              className="absolute top-4 left-4 p-2 rounded-full bg-black/30 backdrop-blur-sm"
+              style={{ color: "white" }}
+            >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-lg font-semibold" style={{ color: theme.textPrimary }}>{t.eventDetails}</h1>
           </div>
-        </div>
+        )}
         
-        <div className="p-5 space-y-4">
+        {/* Header - only show if no banner */}
+        {!selectedEvent.bannerImage && (
+          <div 
+            className="sticky top-0 px-5 py-4 z-10"
+            style={{ backgroundColor: theme.cardBg, borderBottom: `1px solid ${theme.cardBorder}` }}
+          >
+            <div className="flex items-center gap-3">
+              <button onClick={goBack} className="p-2 -ml-2 rounded-lg" style={{ color: theme.textSecondary }}>
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-lg font-semibold" style={{ color: theme.textPrimary }}>{t.eventDetails}</h1>
+            </div>
+          </div>
+        )}
+        
+        <div className={`p-5 space-y-4 ${selectedEvent.bannerImage ? "-mt-8 relative z-10" : ""}`}>
           {/* Event Title Card */}
           <div 
-            className="rounded-2xl shadow-sm p-5"
+            className={`rounded-2xl shadow-sm p-5 ${selectedEvent.bannerImage ? "shadow-lg" : ""}`}
             style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
           >
             <div className="flex items-start gap-3">
               <span className="text-3xl">{scope.icon}</span>
               <div className="flex-1">
-                <h2 className="text-xl font-bold" style={{ color: theme.textPrimary }}>{selectedEvent.title}</h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-xl font-bold" style={{ color: theme.textPrimary }}>{selectedEvent.title}</h2>
+                  {selectedEvent.isAllDay && (
+                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+                      Ganztägig
+                    </span>
+                  )}
+                </div>
                 <span 
                   className="inline-block mt-2 px-2.5 py-1 rounded-full text-xs font-medium"
                   style={{ backgroundColor: `${scope.color}20`, color: scope.color }}

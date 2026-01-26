@@ -89,6 +89,8 @@ interface EnhancedEvent {
   scope: "team" | "department" | "club";
   department?: string;
   team?: string;
+  bannerImage?: string;
+  isAllDay?: boolean;
   rsvp?: {
     status: "confirmed" | "declined" | "pending" | "maybe";
     deadline?: string;
@@ -191,7 +193,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     id: "evt_lena_1",
     title: "Fitness Training - Morgengruppe",
     description: "Reguläres Fitnesstraining mit Fokus auf Cardio und Kräftigung.",
-    date: "2026-01-22",
+    date: "2026-01-27",
     startTime: "07:00",
     endTime: "08:00",
     location: "Fitness-Raum",
@@ -200,6 +202,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     scope: "team",
     department: "Fitness",
     team: "Fitness – Morgengruppe",
+    bannerImage: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=400&fit=crop",
     rsvp: {
       status: "confirmed",
       required: true,
@@ -218,7 +221,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     id: "evt_lena_2",
     title: "Frauen Ü40 Training",
     description: "Wöchentliches Mannschaftstraining mit Taktik- und Spielübungen.",
-    date: "2026-01-24",
+    date: "2026-01-28",
     startTime: "19:00",
     endTime: "20:30",
     location: "Platz 2",
@@ -227,9 +230,10 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     scope: "team",
     department: "Fußball",
     team: "Frauen Ü40",
+    bannerImage: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop",
     rsvp: {
       status: "pending",
-      deadline: "2026-01-23",
+      deadline: "2026-01-27",
       required: true,
       confirmed: 8,
       declined: 3,
@@ -246,7 +250,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     id: "evt_lena_3",
     title: "Freundschaftsspiel vs. TuS Mainberg",
     description: "Auswärtsspiel gegen TuS Mainberg. Treffpunkt 30 Minuten vor Spielbeginn.",
-    date: "2026-01-26",
+    date: "2026-01-29",
     startTime: "15:00",
     endTime: "17:00",
     location: "Sportplatz Mainberg",
@@ -255,6 +259,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     scope: "team",
     department: "Fußball",
     team: "Frauen Ü40",
+    bannerImage: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&h=400&fit=crop",
     rsvp: {
       status: "confirmed",
       required: true,
@@ -271,26 +276,79 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
   },
   {
     id: "evt_lena_4",
-    title: "Vereinsversammlung",
+    title: "Vereinsversammlung 2026",
     description: "Jährliche Mitgliederversammlung mit Berichten des Vorstands und Wahlen.",
     date: "2026-02-15",
     startTime: "18:00",
     endTime: "20:00",
-    location: "Vereinsheim",
+    location: "Vereinsheim - Großer Saal",
     type: "meeting",
     scope: "club",
+    bannerImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop",
     rsvp: {
       status: "pending",
       deadline: "2026-02-10",
       required: false,
-      confirmed: 45,
-      declined: 12,
-      pending: 88,
-      total: 145
+      confirmed: 67,
+      declined: 23,
+      pending: 304,
+      total: 394
     },
     organizer: {
-      name: "Vorstand",
-      role: "Vereinsleitung"
+      name: "Patrick Steuble",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
+      role: "Vereinsvorstand"
+    }
+  },
+  {
+    id: "evt_lena_5",
+    title: "Vereinsfasching 2026",
+    description: "Großer Vereinsfasching für die ganze Familie! Mit DJ, Kinderprogramm, Tombola und Buffet. Kostüme erwünscht! 🎭🎉",
+    date: "2026-02-22",
+    startTime: "15:00",
+    endTime: "22:00",
+    location: "Vereinsheim - Großer Saal",
+    type: "event",
+    scope: "club",
+    bannerImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&h=400&fit=crop",
+    rsvp: {
+      status: "pending",
+      deadline: "2026-02-18",
+      required: true,
+      confirmed: 89,
+      declined: 45,
+      pending: 260,
+      total: 394
+    },
+    organizer: {
+      name: "Patrick Steuble",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
+      role: "Vereinsvorstand"
+    }
+  },
+  {
+    id: "evt_lena_6",
+    title: "Elternabend Jugendfußball",
+    description: "Informationsabend für alle Eltern der Jugendmannschaften (U8 bis U17). Themen: Saisonplanung, Trainingscamp Sommer.",
+    date: "2026-01-30",
+    startTime: "19:00",
+    endTime: "21:00",
+    location: "Vereinsheim - Sitzungszimmer",
+    type: "meeting",
+    scope: "department",
+    department: "Fußball",
+    rsvp: {
+      status: "confirmed",
+      deadline: "2026-01-28",
+      required: true,
+      confirmed: 34,
+      declined: 12,
+      pending: 110,
+      total: 156
+    },
+    organizer: {
+      name: "Jugendleitung",
+      role: "Fußball-Abteilung"
     }
   }
 ];
@@ -651,40 +709,62 @@ export function MemberWebPortal() {
             Alle anzeigen
           </button>
         </div>
-        <div className="divide-y divide-neutral-100">
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {MOCK_LENA_EVENTS.slice(0, 3).map((event) => (
-            <button
+            <div
               key={event.id}
               onClick={() => {
                 setSelectedEvent(event);
                 setView("event-detail");
               }}
-              className="w-full p-4 flex items-center gap-4 hover:bg-neutral-50 transition-colors text-left"
+              className="bg-neutral-50 rounded-xl overflow-hidden hover:bg-neutral-100 transition-colors cursor-pointer group border border-neutral-100"
             >
-              <div className="w-12 h-12 rounded-xl bg-neutral-100 flex flex-col items-center justify-center">
-                <span className="text-xs text-neutral-500">{formatDate(event.date)}</span>
-                <span className="text-lg">{event.teamIcon || "📅"}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-neutral-900 truncate">{event.title}</p>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-sm text-neutral-500 flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {event.startTime}
+              {/* Mini Banner */}
+              {event.bannerImage && (
+                <div className="h-24 w-full overflow-hidden">
+                  <img 
+                    src={event.bannerImage} 
+                    alt="" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              )}
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-teal-700">
+                    {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}
                   </span>
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${getEventTypeColor(event.type)}`}>
+                    {getEventTypeLabel(event.type)}
+                  </span>
+                </div>
+                <p className="font-medium text-neutral-900 truncate text-sm">{event.title}</p>
+                <div className="flex items-center gap-2 mt-1.5 text-xs text-neutral-500">
+                  <Clock className="w-3 h-3" />
+                  <span>{event.isAllDay ? "Ganztägig" : event.startTime}</span>
                   {event.location && (
-                    <span className="text-sm text-neutral-500 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {event.location}
-                    </span>
+                    <>
+                      <span>•</span>
+                      <MapPin className="w-3 h-3" />
+                      <span className="truncate">{event.location}</span>
+                    </>
                   )}
                 </div>
+                {event.rsvp && (
+                  <div className="mt-2 pt-2 border-t border-neutral-200 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <span className="text-green-600">✓ {event.rsvp.confirmed}</span>
+                      <span className="text-neutral-400">•</span>
+                      <span className="text-amber-500">⏳ {event.rsvp.pending}</span>
+                    </div>
+                    <span className={`w-2 h-2 rounded-full ${
+                      event.rsvp.status === "confirmed" ? "bg-green-500" :
+                      event.rsvp.status === "declined" ? "bg-red-500" : "bg-amber-500"
+                    }`} />
+                  </div>
+                )}
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
-                {getEventTypeLabel(event.type)}
-              </span>
-              <ChevronRight className="w-5 h-5 text-neutral-400" />
-            </button>
+            </div>
           ))}
         </div>
       </div>
@@ -729,69 +809,169 @@ export function MemberWebPortal() {
   // ==========================================
   // RENDER: CALENDAR VIEW
   // ==========================================
-  const renderCalendar = () => (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-neutral-900">Kalender</h1>
-      </div>
-
-      {/* Events List */}
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
-        <div className="p-4 border-b border-neutral-200">
-          <h2 className="font-semibold text-neutral-900">Meine Termine</h2>
+  const renderCalendar = () => {
+    // Group events by time sections
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const weekEnd = new Date(today);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+    const monthEnd = new Date(today);
+    monthEnd.setMonth(monthEnd.getMonth() + 1);
+    
+    type SectionKey = "today" | "tomorrow" | "thisWeek" | "thisMonth" | "later";
+    
+    const sections: { key: SectionKey; label: string; bgColor: string; events: EnhancedEvent[] }[] = [
+      { key: "today", label: "Heute", bgColor: "bg-amber-500", events: [] },
+      { key: "tomorrow", label: "Morgen", bgColor: "bg-orange-400", events: [] },
+      { key: "thisWeek", label: "Diese Woche", bgColor: "bg-teal-600", events: [] },
+      { key: "thisMonth", label: "Diesen Monat", bgColor: "bg-neutral-500", events: [] },
+      { key: "later", label: "Später", bgColor: "bg-neutral-400", events: [] }
+    ];
+    
+    const sortedEvents = [...MOCK_LENA_EVENTS].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    
+    sortedEvents.forEach(event => {
+      const eventDate = new Date(event.date);
+      eventDate.setHours(0, 0, 0, 0);
+      
+      if (eventDate.getTime() === today.getTime()) {
+        sections.find(s => s.key === "today")!.events.push(event);
+      } else if (eventDate.getTime() === tomorrow.getTime()) {
+        sections.find(s => s.key === "tomorrow")!.events.push(event);
+      } else if (eventDate < weekEnd) {
+        sections.find(s => s.key === "thisWeek")!.events.push(event);
+      } else if (eventDate < monthEnd) {
+        sections.find(s => s.key === "thisMonth")!.events.push(event);
+      } else {
+        sections.find(s => s.key === "later")!.events.push(event);
+      }
+    });
+    
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-neutral-900">Kalender</h1>
         </div>
-        <div className="divide-y divide-neutral-100">
-          {MOCK_LENA_EVENTS.map((event) => (
-            <button
-              key={event.id}
-              onClick={() => {
-                setSelectedEvent(event);
-                setView("event-detail");
-              }}
-              className="w-full p-4 flex items-center gap-4 hover:bg-neutral-50 transition-colors text-left"
-            >
-              <div className="w-16 h-16 rounded-xl bg-neutral-100 flex flex-col items-center justify-center">
-                <span className="text-xs text-neutral-500">{formatDate(event.date)}</span>
-                <span className="text-2xl">{event.teamIcon || "📅"}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-neutral-900">{event.title}</p>
-                <p className="text-sm text-neutral-500 mt-0.5">{event.team || event.department}</p>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-sm text-neutral-500 flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {event.startTime} {event.endTime && `- ${event.endTime}`}
-                  </span>
-                  {event.location && (
-                    <span className="text-sm text-neutral-500 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {event.location}
-                    </span>
-                  )}
+
+        {/* Timeline Events */}
+        <div className="space-y-8">
+          {sections.filter(s => s.events.length > 0).map(section => (
+            <div key={section.key}>
+              {/* Section Header */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-10 h-10 ${section.bgColor} rounded-lg flex items-center justify-center`}>
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-neutral-900">{section.label}</h2>
+                  <p className="text-sm text-neutral-500">{section.events.length} Termine</p>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
-                  {getEventTypeLabel(event.type)}
-                </span>
-                {event.rsvp && (
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    event.rsvp.status === "confirmed" ? "bg-green-100 text-green-700" :
-                    event.rsvp.status === "declined" ? "bg-red-100 text-red-700" :
-                    "bg-amber-100 text-amber-700"
-                  }`}>
-                    {event.rsvp.status === "confirmed" ? "Zugesagt" :
-                     event.rsvp.status === "declined" ? "Abgesagt" : "Ausstehend"}
-                  </span>
-                )}
+              
+              {/* Events Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {section.events.map(event => (
+                  <div
+                    key={event.id}
+                    onClick={() => {
+                      setSelectedEvent(event);
+                      setView("event-detail");
+                    }}
+                    className="bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
+                  >
+                    {/* Banner Image */}
+                    {event.bannerImage && (
+                      <div className="h-32 w-full overflow-hidden">
+                        <img 
+                          src={event.bannerImage} 
+                          alt="" 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="p-4">
+                      {/* Date & Type Row */}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium text-teal-700">
+                            {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}
+                          </span>
+                          {event.isAllDay ? (
+                            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+                              Ganztägig
+                            </span>
+                          ) : (
+                            <span className="text-neutral-500">{event.startTime} - {event.endTime}</span>
+                          )}
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
+                          {getEventTypeLabel(event.type)}
+                        </span>
+                      </div>
+                      
+                      {/* Title */}
+                      <h3 className="font-semibold text-neutral-900 group-hover:text-teal-700 transition-colors">
+                        {event.title}
+                      </h3>
+                      <p className="text-sm text-neutral-500 mt-0.5">{event.team || event.department || "Vereinsweit"}</p>
+                      
+                      {/* Location */}
+                      {event.location && (
+                        <div className="flex items-center gap-1 text-sm text-neutral-500 mt-2">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span>{event.location}</span>
+                        </div>
+                      )}
+                      
+                      {/* RSVP Status */}
+                      {event.rsvp && (
+                        <div className="mt-3 pt-3 border-t border-neutral-100">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 text-xs">
+                              <span className="text-green-600">✓ {event.rsvp.confirmed}</span>
+                              <span className="text-red-500">✗ {event.rsvp.declined}</span>
+                              <span className="text-amber-500">⏳ {event.rsvp.pending}</span>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              event.rsvp.status === "confirmed" ? "bg-green-100 text-green-700" :
+                              event.rsvp.status === "declined" ? "bg-red-100 text-red-700" :
+                              "bg-amber-100 text-amber-700"
+                            }`}>
+                              {event.rsvp.status === "confirmed" ? "Zugesagt" :
+                               event.rsvp.status === "declined" ? "Abgesagt" : "Offen"}
+                            </span>
+                          </div>
+                          {event.rsvp.total > 0 && (
+                            <div className="flex h-1.5 bg-neutral-100 rounded-full overflow-hidden mt-2">
+                              <div className="bg-green-500" style={{ width: `${(event.rsvp.confirmed / event.rsvp.total) * 100}%` }} />
+                              <div className="bg-red-400" style={{ width: `${(event.rsvp.declined / event.rsvp.total) * 100}%` }} />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <ChevronRight className="w-5 h-5 text-neutral-400" />
-            </button>
+            </div>
           ))}
+          
+          {MOCK_LENA_EVENTS.length === 0 && (
+            <div className="text-center py-12 bg-white rounded-xl border border-neutral-200">
+              <Calendar className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+              <p className="text-neutral-600 font-medium">Keine Termine</p>
+              <p className="text-sm text-neutral-400 mt-1">Deine Termine erscheinen hier</p>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // ==========================================
   // RENDER: EVENT DETAIL
@@ -810,18 +990,36 @@ export function MemberWebPortal() {
         </button>
 
         <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+          {/* Banner Image */}
+          {selectedEvent.bannerImage && (
+            <div className="h-48 w-full overflow-hidden">
+              <img 
+                src={selectedEvent.bannerImage} 
+                alt="" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          
           {/* Header */}
-          <div className="p-6 border-b border-neutral-200">
+          <div className={`p-6 border-b border-neutral-200 ${selectedEvent.bannerImage ? "-mt-12 relative z-10 bg-white mx-6 rounded-t-xl shadow-lg" : ""}`}>
             <div className="flex items-start gap-4">
               <div className="w-16 h-16 rounded-xl bg-neutral-100 flex items-center justify-center text-3xl">
                 {selectedEvent.teamIcon || "📅"}
               </div>
               <div className="flex-1">
-                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getEventTypeColor(selectedEvent.type)}`}>
-                  {getEventTypeLabel(selectedEvent.type)}
-                </span>
+                <div className="flex items-center gap-2 flex-wrap mb-2">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(selectedEvent.type)}`}>
+                    {getEventTypeLabel(selectedEvent.type)}
+                  </span>
+                  {selectedEvent.isAllDay && (
+                    <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+                      Ganztägig
+                    </span>
+                  )}
+                </div>
                 <h1 className="text-2xl font-bold text-neutral-900">{selectedEvent.title}</h1>
-                <p className="text-neutral-500 mt-1">{selectedEvent.team || selectedEvent.department}</p>
+                <p className="text-neutral-500 mt-1">{selectedEvent.team || selectedEvent.department || "Vereinsweit"}</p>
               </div>
             </div>
           </div>
