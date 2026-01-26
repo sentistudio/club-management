@@ -328,25 +328,24 @@ export function ClubEvents() {
         </Card>
       </div>
 
-      {/* Filters & View Toggle */}
+      {/* Search & Filters */}
       <Card>
+        {/* Search - Full Width on Top */}
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Events suchen..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 text-lg border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] focus:border-transparent"
+          />
+        </div>
+        
+        {/* Filters & View Toggle Row */}
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Events suchen..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941]"
-              />
-            </div>
-          </div>
-          
           {/* Filter Dropdowns */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 flex-1">
             {/* Time Filter */}
             <select
               value={timeFilter}
