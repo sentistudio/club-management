@@ -924,32 +924,27 @@ export function MemberWebPortal() {
                       className="bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group"
                     >
                       <div className="p-4">
-                        {/* Top Row: Calendar Badge + Date/Time + Type */}
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            {/* Calendar Date Icon */}
-                            <div className="flex-shrink-0 w-11 h-13 bg-neutral-50 border border-neutral-200 rounded-lg flex flex-col items-center justify-center overflow-hidden">
-                              <div className="w-full bg-teal-600 text-white text-[9px] text-center py-0.5 font-medium">
+                        {/* Top Row: Date/Time + Type */}
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2 text-sm text-neutral-600">
+                            {/* Compact Calendar Badge */}
+                            <div className="flex-shrink-0 w-9 h-9 bg-teal-600 rounded-lg flex flex-col items-center justify-center text-white">
+                              <span className="text-[9px] font-medium leading-none">
                                 {new Date(event.date).toLocaleDateString("de-DE", { month: "short" }).toUpperCase()}
-                              </div>
-                              <span className="text-base font-bold text-neutral-800 mt-0.5">
-                                {new Date(event.date).getDate()}
                               </span>
-                              <span className="text-[9px] text-neutral-400 -mt-0.5">
-                                {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short" })}
+                              <span className="text-base font-bold leading-none">
+                                {new Date(event.date).getDate()}
                               </span>
                             </div>
                             
-                            <div>
-                              <p className="text-sm font-medium text-neutral-700">
-                                {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}.{" "}
-                                {event.isAllDay ? (
-                                  <span className="text-amber-600">Ganztägig</span>
-                                ) : (
-                                  <span className="text-neutral-500">{event.startTime} - {event.endTime}</span>
-                                )}
-                              </p>
-                            </div>
+                            <span className="font-medium">
+                              {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}.
+                            </span>
+                            {event.isAllDay ? (
+                              <span className="text-amber-600 font-medium">Ganztägig</span>
+                            ) : (
+                              <span className="text-neutral-500">{event.startTime} - {event.endTime}</span>
+                            )}
                           </div>
                           
                           <span className={`flex-shrink-0 px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>

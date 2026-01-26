@@ -539,32 +539,27 @@ export function ClubEvents() {
                             className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group"
                           >
                             <div className="p-4">
-                              {/* Top Row: Calendar Badge + Date/Time + Status */}
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                  {/* Calendar Date Icon */}
-                                  <div className="flex-shrink-0 w-12 h-14 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center overflow-hidden">
-                                    <div className="w-full bg-[#004941] text-white text-[10px] text-center py-0.5 font-medium">
+                              {/* Top Row: Date/Time + Status */}
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-sm text-slate-600">
+                                  {/* Compact Calendar Badge */}
+                                  <div className="flex-shrink-0 w-10 h-10 bg-[#004941] rounded-lg flex flex-col items-center justify-center text-white">
+                                    <span className="text-[10px] font-medium leading-none">
                                       {new Date(event.date).toLocaleDateString("de-DE", { month: "short" }).toUpperCase()}
-                                    </div>
-                                    <span className="text-lg font-bold text-slate-800 mt-0.5">
-                                      {new Date(event.date).getDate()}
                                     </span>
-                                    <span className="text-[10px] text-slate-400 -mt-0.5">
-                                      {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short" })}
+                                    <span className="text-lg font-bold leading-none">
+                                      {new Date(event.date).getDate()}
                                     </span>
                                   </div>
                                   
-                                  <div>
-                                    <p className="text-sm font-medium text-slate-700">
-                                      {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}.{" "}
-                                      {event.isAllDay ? (
-                                        <span className="text-amber-600">Ganztägig</span>
-                                      ) : (
-                                        <span className="text-slate-500">{event.startTime} - {event.endTime}</span>
-                                      )}
-                                    </p>
-                                  </div>
+                                  <span className="font-medium">
+                                    {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}.
+                                  </span>
+                                  {event.isAllDay ? (
+                                    <span className="text-amber-600 font-medium">Ganztägig</span>
+                                  ) : (
+                                    <span className="text-slate-500">{event.startTime} - {event.endTime}</span>
+                                  )}
                                 </div>
                                 
                                 <div className="flex items-center gap-2">
