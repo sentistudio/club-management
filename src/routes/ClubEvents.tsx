@@ -526,33 +526,21 @@ export function ClubEvents() {
                 .filter(section => section.events.length > 0)
                 .map(section => (
                   <div key={section.key} className="space-y-3">
-                    {/* Section Header */}
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${section.bgColor} text-white`}>
-                        {section.icon}
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-bold text-slate-800">{section.label}</h2>
-                        <p className="text-sm text-slate-500">{section.events.length} {section.events.length === 1 ? "Event" : "Events"}</p>
-                      </div>
+                    {/* Section Header - Subtle */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`w-2 h-2 rounded-full ${section.bgColor}`} />
+                      <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{section.label}</span>
+                      <span className="text-xs text-slate-400">({section.events.length})</span>
                     </div>
                     
-                    {/* Timeline Events */}
-                    <div className="relative pl-6 ml-4 border-l-2 border-slate-200 space-y-4">
+                    {/* Events */}
+                    <div className="space-y-3 ml-1">
                       {section.events.map(event => (
-                        <div key={event.id} className="relative">
-                          {/* Timeline dot */}
-                          <div className={`absolute -left-[25px] w-4 h-4 rounded-full border-2 border-white ${
-                            event.status === "cancelled" ? "bg-red-400" :
-                            event.status === "draft" ? "bg-slate-400" :
-                            event.status === "completed" ? "bg-slate-300" :
-                            "bg-[#004941]"
-                          }`} />
-                          
+                        <div key={event.id}>
                           {/* Event Card */}
                           <div
                             onClick={() => handleOpenDetail(event)}
-                            className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
+                            className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group"
                           >
                             {/* Banner Image */}
                             {event.bannerImage && (

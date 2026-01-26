@@ -842,19 +842,15 @@ export function MemberWebPortal() {
         <div className="space-y-8">
           {sections.filter(s => s.events.length > 0).map(section => (
             <div key={section.key}>
-              {/* Section Header */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 ${section.bgColor} rounded-lg flex items-center justify-center`}>
-                  <Calendar className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="font-bold text-neutral-900">{section.label}</h2>
-                  <p className="text-sm text-neutral-500">{section.events.length} Termine</p>
-                </div>
+              {/* Section Header - Subtle */}
+              <div className="flex items-center gap-2 mb-3">
+                <span className={`w-2 h-2 rounded-full ${section.bgColor}`} />
+                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">{section.label}</span>
+                <span className="text-xs text-neutral-400">({section.events.length})</span>
               </div>
               
               {/* Events Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {section.events.map(event => (
                   <div
                     key={event.id}
