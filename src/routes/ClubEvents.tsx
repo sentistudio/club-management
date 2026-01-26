@@ -5,9 +5,9 @@
 import { useMemo, useState } from "react";
 import { 
   Plus, Search, Calendar as CalendarIcon, List, Grid3X3,
-  Edit2, Copy, Send, XCircle,
+  Edit2, Send, XCircle,
   ChevronLeft, ChevronRight, Users, Clock, MapPin,
-  Lock, Globe, RefreshCw, Filter, Sun
+  Filter
 } from "lucide-react";
 import { Card, Button } from "../components/ui";
 import { EventDetailDrawer, EventFormDrawer } from "../components/events";
