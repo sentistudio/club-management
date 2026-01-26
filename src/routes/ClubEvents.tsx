@@ -518,19 +518,21 @@ export function ClubEvents() {
                 }
               });
               
-              return sections
+              return (
+                <div className="space-y-8">
+                {sections
                 .filter(section => section.events.length > 0)
                 .map(section => (
-                  <div key={section.key} className="space-y-3">
+                  <div key={section.key} className="space-y-4">
                     {/* Section Header - Subtle */}
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-3 mt-2">
                       <span className={`w-2 h-2 rounded-full ${section.bgColor}`} />
                       <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{section.label}</span>
                       <span className="text-xs text-slate-400">({section.events.length})</span>
                     </div>
                     
                     {/* Events */}
-                    <div className="space-y-3 ml-1">
+                    <div className="space-y-4 ml-1">
                       {section.events.map(event => (
                         <div key={event.id}>
                           {/* Event Card - Vertical Layout with Calendar Badge */}
@@ -644,7 +646,9 @@ export function ClubEvents() {
                       ))}
                     </div>
                   </div>
-                ));
+                ))}
+                </div>
+              );
             })()
           )}
           </div>

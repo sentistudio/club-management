@@ -902,11 +902,11 @@ export function MemberWebPortal() {
         
         {/* LIST VIEW */}
         {calendarViewMode === "list" && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {sections.filter(s => s.events.length > 0).map(section => (
-              <div key={section.key}>
+              <div key={section.key} className="space-y-4">
                 {/* Section Header - Subtle */}
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-3">
                   <span className={`w-2 h-2 rounded-full ${section.bgColor}`} />
                   <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">{section.label}</span>
                   <span className="text-xs text-neutral-400">({section.events.length})</span>
