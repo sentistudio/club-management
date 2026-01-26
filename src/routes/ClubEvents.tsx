@@ -533,104 +533,116 @@ export function ClubEvents() {
                     <div className="space-y-3 ml-1">
                       {section.events.map(event => (
                         <div key={event.id}>
-                          {/* Event Card - Horizontal Layout */}
+                          {/* Event Card - Vertical Layout with Calendar Badge */}
                           <div
                             onClick={() => handleOpenDetail(event)}
-                            className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group flex"
+                            className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group"
                           >
-                            {/* Left: Calendar Date Badge */}
-                            <div className="flex-shrink-0 w-16 flex flex-col items-center justify-center bg-slate-50 border-r border-slate-100">
-                              <span className="text-xs text-slate-500 uppercase">
-                                {new Date(event.date).toLocaleDateString("de-DE", { month: "short" })}
-                              </span>
-                              <span className="text-2xl font-bold text-slate-800">
-                                {new Date(event.date).getDate()}
-                              </span>
-                              <span className="text-xs text-slate-400">
-                                {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short" })}
-                              </span>
-                            </div>
-                            
-                            {/* Middle: Banner Image (square) */}
-                            {event.bannerImage && (
-                              <div className="flex-shrink-0 w-20 h-20 overflow-hidden self-center m-2 rounded-lg">
-                                <img 
-                                  src={event.bannerImage} 
-                                  alt="" 
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                />
-                              </div>
-                            )}
-                            
-                            {/* Right: Content */}
-                            <div className="flex-1 p-3 min-w-0">
-                              {/* Title & Status */}
-                              <div className="flex items-start justify-between gap-2">
-                                <h3 className="font-semibold text-slate-800 group-hover:text-[#004941] transition-colors truncate">
-                                  {event.title}
-                                </h3>
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                  {getStatusBadge(event.status)}
-                                </div>
-                              </div>
-                              
-                              {/* Time & Location */}
-                              <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {event.isAllDay ? "Ganztägig" : `${event.startTime} - ${event.endTime}`}
-                                </span>
-                                {event.location && (
-                                  <span className="flex items-center gap-1 truncate">
-                                    <MapPin className="w-3 h-3" />
-                                    {event.location}
-                                  </span>
-                                )}
-                              </div>
-                              
-                              {/* Bottom row: Icons & RSVP */}
-                              <div className="flex items-center justify-between mt-2">
-                                <div className="flex items-center gap-2 text-slate-400">
-                                  {event.visibility === "public" ? <Globe className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-                                  {event.recurrence?.enabled && <RefreshCw className="w-3.5 h-3.5 text-[#004941]" />}
-                                  <span className="text-xs">{event.resolvedMemberCount || 0} <Users className="w-3 h-3 inline" /></span>
-                                </div>
-                                {event.rsvpRequired && event.rsvpStats && event.rsvpStats.invited > 0 && (
-                                  <div className="flex items-center gap-1 text-xs text-slate-400">
-                                    <span>{event.rsvpStats.confirmed}/{event.rsvpStats.invited}</span>
-                                    <div className="w-8 h-1 bg-slate-100 rounded-full overflow-hidden">
-                                      <div className="h-full bg-emerald-400" style={{ width: `${(event.rsvpStats.confirmed / event.rsvpStats.invited) * 100}%` }} />
+                            <div className="p-4">
+                              {/* Top Row: Calendar Badge + Date/Time + Status */}
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  {/* Calendar Date Icon */}
+                                  <div className="flex-shrink-0 w-12 h-14 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center overflow-hidden">
+                                    <div className="w-full bg-[#004941] text-white text-[10px] text-center py-0.5 font-medium">
+                                      {new Date(event.date).toLocaleDateString("de-DE", { month: "short" }).toUpperCase()}
                                     </div>
+                                    <span className="text-lg font-bold text-slate-800 mt-0.5">
+                                      {new Date(event.date).getDate()}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 -mt-0.5">
+                                      {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short" })}
+                                    </span>
+                                  </div>
+                                  
+                                  <div>
+                                    <p className="text-sm font-medium text-slate-700">
+                                      {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}.{" "}
+                                      {event.isAllDay ? (
+                                        <span className="text-amber-600">Ganztägig</span>
+                                      ) : (
+                                        <span className="text-slate-500">{event.startTime} - {event.endTime}</span>
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  {getStatusBadge(event.status)}
+                                  <span className="text-slate-400">
+                                    {event.visibility === "public" ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                                  </span>
+                                  {event.recurrence?.enabled && (
+                                    <span className="text-[#004941]">
+                                      <RefreshCw className="w-4 h-4" />
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* Title */}
+                              <h3 className="font-semibold text-lg text-slate-800 group-hover:text-[#004941] transition-colors">
+                                {event.title}
+                              </h3>
+                              
+                              {/* Description */}
+                              {event.description && (
+                                <p className="text-sm text-slate-500 mt-1 line-clamp-2">{event.description}</p>
+                              )}
+                              
+                              {/* Location & Participants */}
+                              <div className="flex items-center gap-4 mt-3 text-sm text-slate-500">
+                                {event.location && (
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="w-4 h-4" />
+                                    <span>{event.location}</span>
                                   </div>
                                 )}
+                                <div className="flex items-center gap-1">
+                                  <Users className="w-4 h-4" />
+                                  <span>{event.resolvedMemberCount || 0} eingeladen</span>
+                                </div>
                               </div>
-                            </div>
-                            
-                            {/* Quick Actions - Compact */}
-                            <div className="flex-shrink-0 flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleEdit(event); }}
-                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
-                                title="Bearbeiten"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDuplicate(event); }}
-                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
-                                title="Kopieren"
-                              >
-                                <Copy className="w-4 h-4" />
-                              </button>
-                              {event.status === "draft" && (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handlePublish(event); }}
-                                  className="p-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
-                                  title="Veröffentlichen"
-                                >
-                                  <Send className="w-4 h-4" />
-                                </button>
+                              
+                              {/* RSVP Progress - Subtle */}
+                              {event.rsvpRequired && event.rsvpStats && event.rsvpStats.invited > 0 && (
+                                <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
+                                  <span>{event.rsvpStats.confirmed}/{event.rsvpStats.invited}</span>
+                                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[100px]">
+                                    <div 
+                                      className="h-full bg-emerald-400 rounded-full" 
+                                      style={{ width: `${(event.rsvpStats.confirmed / event.rsvpStats.invited) * 100}%` }}
+                                    />
+                                  </div>
+                                </div>
                               )}
+                              
+                              {/* Quick Actions */}
+                              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleEdit(event); }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                  Bearbeiten
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDuplicate(event); }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                  Kopieren
+                                </button>
+                                {event.status === "draft" && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handlePublish(event); }}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors ml-auto"
+                                  >
+                                    <Send className="w-3.5 h-3.5" />
+                                    Veröffentlichen
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>

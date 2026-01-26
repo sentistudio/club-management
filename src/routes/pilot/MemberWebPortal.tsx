@@ -912,8 +912,8 @@ export function MemberWebPortal() {
                   <span className="text-xs text-neutral-400">({section.events.length})</span>
                 </div>
                 
-                {/* Events List - Horizontal Cards */}
-                <div className="space-y-2">
+                {/* Events List - Vertical Cards with Calendar Badge */}
+                <div className="space-y-3">
                   {section.events.map(event => (
                     <div
                       key={event.id}
@@ -921,65 +921,65 @@ export function MemberWebPortal() {
                         setSelectedEvent(event);
                         setView("event-detail");
                       }}
-                      className="bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group flex"
+                      className="bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group"
                     >
-                      {/* Left: Calendar Date Badge */}
-                      <div className="flex-shrink-0 w-14 flex flex-col items-center justify-center bg-neutral-50 border-r border-neutral-100 py-2">
-                        <span className="text-xs text-neutral-500 uppercase">
-                          {new Date(event.date).toLocaleDateString("de-DE", { month: "short" })}
-                        </span>
-                        <span className="text-xl font-bold text-neutral-800">
-                          {new Date(event.date).getDate()}
-                        </span>
-                        <span className="text-xs text-neutral-400">
-                          {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short" })}
-                        </span>
-                      </div>
-                      
-                      {/* Middle: Banner Image (square) */}
-                      {event.bannerImage && (
-                        <div className="flex-shrink-0 w-16 h-16 overflow-hidden self-center m-2 rounded-lg">
-                          <img 
-                            src={event.bannerImage} 
-                            alt="" 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                      )}
-                      
-                      {/* Right: Content */}
-                      <div className="flex-1 p-3 min-w-0">
-                        {/* Title & Type */}
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-semibold text-neutral-900 group-hover:text-teal-700 transition-colors truncate">
-                            {event.title}
-                          </h3>
-                          <span className={`flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium ${getEventTypeColor(event.type)}`}>
+                      <div className="p-4">
+                        {/* Top Row: Calendar Badge + Date/Time + Type */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            {/* Calendar Date Icon */}
+                            <div className="flex-shrink-0 w-11 h-13 bg-neutral-50 border border-neutral-200 rounded-lg flex flex-col items-center justify-center overflow-hidden">
+                              <div className="w-full bg-teal-600 text-white text-[9px] text-center py-0.5 font-medium">
+                                {new Date(event.date).toLocaleDateString("de-DE", { month: "short" }).toUpperCase()}
+                              </div>
+                              <span className="text-base font-bold text-neutral-800 mt-0.5">
+                                {new Date(event.date).getDate()}
+                              </span>
+                              <span className="text-[9px] text-neutral-400 -mt-0.5">
+                                {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short" })}
+                              </span>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm font-medium text-neutral-700">
+                                {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}.{" "}
+                                {event.isAllDay ? (
+                                  <span className="text-amber-600">Ganztägig</span>
+                                ) : (
+                                  <span className="text-neutral-500">{event.startTime} - {event.endTime}</span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <span className={`flex-shrink-0 px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
                             {getEventTypeLabel(event.type)}
                           </span>
                         </div>
                         
-                        {/* Time & Location */}
-                        <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {event.isAllDay ? "Ganztägig" : `${event.startTime} - ${event.endTime}`}
-                          </span>
-                          {event.location && (
-                            <span className="flex items-center gap-1 truncate">
-                              <MapPin className="w-3 h-3" />
-                              {event.location}
-                            </span>
-                          )}
-                        </div>
+                        {/* Title */}
+                        <h3 className="font-semibold text-neutral-900 group-hover:text-teal-700 transition-colors">
+                          {event.title}
+                        </h3>
+                        <p className="text-sm text-neutral-500 mt-0.5">{event.team || event.department || "Vereinsweit"}</p>
                         
-                        {/* RSVP */}
+                        {/* Location */}
+                        {event.location && (
+                          <div className="flex items-center gap-1 text-sm text-neutral-500 mt-2">
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span>{event.location}</span>
+                          </div>
+                        )}
+                        
+                        {/* RSVP Status - Subtle */}
                         {event.rsvp && (
-                          <div className="flex items-center gap-2 mt-1.5 text-xs text-neutral-400">
+                          <div className="flex items-center gap-2 mt-2 text-xs text-neutral-400">
                             <span>{event.rsvp.confirmed}/{event.rsvp.total}</span>
-                            <div className="w-10 h-1 bg-neutral-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-teal-400" style={{ width: `${(event.rsvp.confirmed / event.rsvp.total) * 100}%` }} />
-                            </div>
+                            {event.rsvp.total > 0 && (
+                              <div className="w-16 h-1 bg-neutral-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-teal-400" style={{ width: `${(event.rsvp.confirmed / event.rsvp.total) * 100}%` }} />
+                              </div>
+                            )}
                             <span className={`w-1.5 h-1.5 rounded-full ${
                               event.rsvp.status === "confirmed" ? "bg-green-500" :
                               event.rsvp.status === "declined" ? "bg-red-500" : "bg-amber-400"
