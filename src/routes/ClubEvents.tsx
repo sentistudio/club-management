@@ -25,6 +25,7 @@ import {
 
 type ViewMode = "list" | "calendar";
 type TimeFilter = "upcoming" | "past" | "all";
+type CalendarViewMode = "day" | "week" | "month";
 
 export function ClubEvents() {
   // State
@@ -40,6 +41,7 @@ export function ClubEvents() {
   
   // Calendar state
   const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [calendarViewMode, setCalendarViewMode] = useState<CalendarViewMode>("month");
   
   // Modal state
   const [showFormDrawer, setShowFormDrawer] = useState(false);
@@ -264,7 +266,7 @@ export function ClubEvents() {
           <p className="text-slate-500 mt-1">Club-Events, Versammlungen und Veranstaltungen verwalten</p>
         </div>
         <Button icon={<Plus className="w-4 h-4" />} onClick={() => handleOpenCreate()}>
-          Neues Event
+          Neue Veranstaltung
         </Button>
       </div>
 
@@ -467,19 +469,20 @@ export function ClubEvents() {
         )}
       </Card>
 
-      {/* LIST VIEW - Timeline Style */}
+      {/* LIST VIEW - Timeline Style - Scrollable Container */}
       {viewMode === "list" && (
-        <div className="space-y-6">
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden" style={{ maxHeight: "calc(100vh - 380px)" }}>
+          <div className="overflow-y-auto p-4" style={{ maxHeight: "calc(100vh - 400px)" }}>
           {filteredEvents.length === 0 ? (
-            <Card className="text-center py-12">
+            <div className="text-center py-12">
               <CalendarIcon className="w-12 h-12 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-800">Keine Events gefunden</h3>
               <p className="text-slate-500 mt-1">Passen Sie Ihre Filter an oder erstellen Sie ein neues Event</p>
               <Button className="mt-4" onClick={() => handleOpenCreate()}>
                 <Plus className="w-4 h-4 mr-2" />
-                Neues Event
+                Neue Veranstaltung
               </Button>
-            </Card>
+            </div>
           ) : (
             (() => {
               // Group events by time sections
@@ -537,14 +540,27 @@ export function ClubEvents() {
                     <div className="space-y-3 ml-1">
                       {section.events.map(event => (
                         <div key={event.id}>
-                          {/* Event Card */}
+                          {/* Event Card - Horizontal Layout */}
                           <div
                             onClick={() => handleOpenDetail(event)}
-                            className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group"
+                            className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group flex"
                           >
-                            {/* Banner Image */}
+                            {/* Left: Calendar Date Badge */}
+                            <div className="flex-shrink-0 w-16 flex flex-col items-center justify-center bg-slate-50 border-r border-slate-100">
+                              <span className="text-xs text-slate-500 uppercase">
+                                {new Date(event.date).toLocaleDateString("de-DE", { month: "short" })}
+                              </span>
+                              <span className="text-2xl font-bold text-slate-800">
+                                {new Date(event.date).getDate()}
+                              </span>
+                              <span className="text-xs text-slate-400">
+                                {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short" })}
+                              </span>
+                            </div>
+                            
+                            {/* Middle: Banner Image (square) */}
                             {event.bannerImage && (
-                              <div className="h-32 w-full overflow-hidden">
+                              <div className="flex-shrink-0 w-20 h-20 overflow-hidden self-center m-2 rounded-lg">
                                 <img 
                                   src={event.bannerImage} 
                                   alt="" 
@@ -553,143 +569,75 @@ export function ClubEvents() {
                               </div>
                             )}
                             
-                            <div className="p-4">
-                              {/* Top Row: Date + Badges */}
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2 text-sm">
-                                  <span className="font-medium text-[#004941]">
-                                    {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}
-                                  </span>
-                                  {event.isAllDay ? (
-                                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">
-                                      Ganztägig
-                                    </span>
-                                  ) : (
-                                    <span className="text-slate-500">{event.startTime} - {event.endTime}</span>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2">
+                            {/* Right: Content */}
+                            <div className="flex-1 p-3 min-w-0">
+                              {/* Title & Status */}
+                              <div className="flex items-start justify-between gap-2">
+                                <h3 className="font-semibold text-slate-800 group-hover:text-[#004941] transition-colors truncate">
+                                  {event.title}
+                                </h3>
+                                <div className="flex items-center gap-1 flex-shrink-0">
                                   {getStatusBadge(event.status)}
-                                  <span className="text-slate-400">
-                                    {event.visibility === "public" ? (
-                                      <Globe className="w-4 h-4" />
-                                    ) : (
-                                      <Lock className="w-4 h-4" />
-                                    )}
-                                  </span>
-                                  {event.recurrence?.enabled && (
-                                    <span className="text-[#004941]">
-                                      <RefreshCw className="w-4 h-4" />
-                                    </span>
-                                  )}
                                 </div>
                               </div>
                               
-                              {/* Title & Description */}
-                              <h3 className="font-semibold text-lg text-slate-800 group-hover:text-[#004941] transition-colors">
-                                {event.title}
-                              </h3>
-                              {event.description && (
-                                <p className="text-sm text-slate-500 mt-1 line-clamp-2">{event.description}</p>
-                              )}
-                              
-                              {/* Meta Info */}
-                              <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-slate-500">
+                              {/* Time & Location */}
+                              <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {event.isAllDay ? "Ganztägig" : `${event.startTime} - ${event.endTime}`}
+                                </span>
                                 {event.location && (
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="w-4 h-4" />
-                                    <span>{event.location}</span>
-                                  </div>
+                                  <span className="flex items-center gap-1 truncate">
+                                    <MapPin className="w-3 h-3" />
+                                    {event.location}
+                                  </span>
                                 )}
-                                <div className="flex items-center gap-1">
-                                  <Users className="w-4 h-4" />
-                                  <span>{event.resolvedMemberCount || 0} eingeladen</span>
-                                </div>
                               </div>
                               
-                              {/* RSVP Stats - Subtle */}
-                              {event.rsvpRequired && event.rsvpStats && event.rsvpStats.invited > 0 && (
-                                <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
-                                  <span className="text-slate-500">{event.rsvpStats.confirmed + event.rsvpStats.declined}/{event.rsvpStats.invited}</span>
-                                  <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden max-w-[60px]">
-                                    <div 
-                                      className="h-full bg-emerald-400" 
-                                      style={{ width: `${(event.rsvpStats.confirmed / event.rsvpStats.invited) * 100}%` }}
-                                    />
-                                  </div>
+                              {/* Bottom row: Icons & RSVP */}
+                              <div className="flex items-center justify-between mt-2">
+                                <div className="flex items-center gap-2 text-slate-400">
+                                  {event.visibility === "public" ? <Globe className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                                  {event.recurrence?.enabled && <RefreshCw className="w-3.5 h-3.5 text-[#004941]" />}
+                                  <span className="text-xs">{event.resolvedMemberCount || 0} <Users className="w-3 h-3 inline" /></span>
                                 </div>
-                              )}
-                              
-                              {/* Quick Actions */}
-                              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleEdit(event); }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                  Bearbeiten
-                                </button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleDuplicate(event); }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                                >
-                                  <Copy className="w-3.5 h-3.5" />
-                                  Kopieren
-                                </button>
-                                {event.status === "draft" && (
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handlePublish(event); }}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors ml-auto"
-                                  >
-                                    <Send className="w-3.5 h-3.5" />
-                                    Veröffentlichen
-                                  </button>
-                                )}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenMenuId(openMenuId === event.id ? null : event.id);
-                                  }}
-                                  className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors ml-auto"
-                                >
-                                  <MoreHorizontal className="w-4 h-4 text-slate-500" />
-                                </button>
-                                
-                                {openMenuId === event.id && (
-                                  <>
-                                    <div 
-                                      className="fixed inset-0 z-10" 
-                                      onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }}
-                                    />
-                                    <div className="absolute right-4 bottom-16 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-20">
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleOpenDetail(event); }}
-                                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                                      >
-                                        <Eye className="w-4 h-4" />
-                                        Details anzeigen
-                                      </button>
-                                      {(event.status === "draft" || event.status === "published") && (
-                                        <>
-                                          <hr className="my-1 border-slate-200" />
-                                          <button
-                                            onClick={(e) => { 
-                                              e.stopPropagation(); 
-                                              setSelectedEvent(event);
-                                              setShowDetailDrawer(true);
-                                              setOpenMenuId(null);
-                                            }}
-                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                          >
-                                            <XCircle className="w-4 h-4" />
-                                            Event absagen
-                                          </button>
-                                        </>
-                                      )}
+                                {event.rsvpRequired && event.rsvpStats && event.rsvpStats.invited > 0 && (
+                                  <div className="flex items-center gap-1 text-xs text-slate-400">
+                                    <span>{event.rsvpStats.confirmed}/{event.rsvpStats.invited}</span>
+                                    <div className="w-8 h-1 bg-slate-100 rounded-full overflow-hidden">
+                                      <div className="h-full bg-emerald-400" style={{ width: `${(event.rsvpStats.confirmed / event.rsvpStats.invited) * 100}%` }} />
                                     </div>
-                                  </>
+                                  </div>
                                 )}
                               </div>
+                            </div>
+                            
+                            {/* Quick Actions - Compact */}
+                            <div className="flex-shrink-0 flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleEdit(event); }}
+                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                                title="Bearbeiten"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDuplicate(event); }}
+                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                                title="Kopieren"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </button>
+                              {event.status === "draft" && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handlePublish(event); }}
+                                  className="p-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                                  title="Veröffentlichen"
+                                >
+                                  <Send className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -699,6 +647,7 @@ export function ClubEvents() {
                 ));
             })()
           )}
+          </div>
         </div>
       )}
 
@@ -706,25 +655,70 @@ export function ClubEvents() {
       {viewMode === "calendar" && (
         <Card>
           {/* Calendar Header */}
-          <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}
-              className="p-2 hover:bg-slate-100 rounded-lg"
-            >
-              <ChevronLeft className="w-5 h-5 text-slate-600" />
-            </button>
-            <h2 className="text-lg font-semibold text-slate-800">
-              {calendarMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}
-            </h2>
-            <button
-              onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))}
-              className="p-2 hover:bg-slate-100 rounded-lg"
-            >
-              <ChevronRight className="w-5 h-5 text-slate-600" />
-            </button>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (calendarViewMode === "day") {
+                    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), calendarMonth.getDate() - 1));
+                  } else if (calendarViewMode === "week") {
+                    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), calendarMonth.getDate() - 7));
+                  } else {
+                    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1));
+                  }
+                }}
+                className="p-2 hover:bg-slate-100 rounded-lg"
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-600" />
+              </button>
+              <h2 className="text-lg font-semibold text-slate-800 min-w-[200px] text-center">
+                {calendarViewMode === "day" 
+                  ? calendarMonth.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+                  : calendarViewMode === "week"
+                  ? `KW ${Math.ceil((calendarMonth.getDate() - calendarMonth.getDay() + 1) / 7)} - ${calendarMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}`
+                  : calendarMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}
+              </h2>
+              <button
+                onClick={() => {
+                  if (calendarViewMode === "day") {
+                    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), calendarMonth.getDate() + 1));
+                  } else if (calendarViewMode === "week") {
+                    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), calendarMonth.getDate() + 7));
+                  } else {
+                    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1));
+                  }
+                }}
+                className="p-2 hover:bg-slate-100 rounded-lg"
+              >
+                <ChevronRight className="w-5 h-5 text-slate-600" />
+              </button>
+            </div>
+            
+            {/* View Mode Toggle */}
+            <div className="flex border border-slate-200 rounded-lg overflow-hidden text-sm">
+              <button
+                onClick={() => setCalendarViewMode("day")}
+                className={`px-3 py-1.5 ${calendarViewMode === "day" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+              >
+                Tag
+              </button>
+              <button
+                onClick={() => setCalendarViewMode("week")}
+                className={`px-3 py-1.5 ${calendarViewMode === "week" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+              >
+                Woche
+              </button>
+              <button
+                onClick={() => setCalendarViewMode("month")}
+                className={`px-3 py-1.5 ${calendarViewMode === "month" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+              >
+                Monat
+              </button>
+            </div>
           </div>
 
-          {/* Calendar Grid */}
+          {/* Calendar Grid - Monthly View */}
+          {calendarViewMode === "month" && (
           <div className="grid grid-cols-7 gap-px bg-slate-200 rounded-lg overflow-hidden">
             {/* Weekday Headers */}
             {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(day => (
@@ -775,6 +769,117 @@ export function ClubEvents() {
               );
             })}
           </div>
+          )}
+          
+          {/* Calendar Grid - Weekly View */}
+          {calendarViewMode === "week" && (() => {
+            // Get the start of the week (Monday)
+            const startOfWeek = new Date(calendarMonth);
+            const dayOfWeek = startOfWeek.getDay();
+            const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+            startOfWeek.setDate(startOfWeek.getDate() + diff);
+            
+            const weekDays = [];
+            for (let i = 0; i < 7; i++) {
+              const d = new Date(startOfWeek);
+              d.setDate(d.getDate() + i);
+              const dateStr = d.toISOString().split("T")[0];
+              const dayEvents = filteredEvents.filter(e => e.date === dateStr);
+              weekDays.push({ date: d, events: dayEvents });
+            }
+            
+            return (
+              <div className="grid grid-cols-7 gap-2">
+                {weekDays.map((day, i) => {
+                  const isToday = day.date.toDateString() === new Date().toDateString();
+                  const dateStr = day.date.toISOString().split("T")[0];
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => handleOpenCreate(dateStr)}
+                      className={`min-h-[300px] bg-slate-50 rounded-lg p-2 cursor-pointer hover:bg-[#C8F2E0]/20 ${isToday ? "ring-2 ring-[#004941]" : ""}`}
+                    >
+                      <div className="text-center mb-2">
+                        <p className="text-xs text-slate-500">{day.date.toLocaleDateString("de-DE", { weekday: "short" })}</p>
+                        <p className={`text-lg font-bold ${isToday ? "text-[#004941]" : "text-slate-700"}`}>{day.date.getDate()}</p>
+                      </div>
+                      <div className="space-y-1">
+                        {day.events.map(event => {
+                          const colors = getStatusColor(event.status);
+                          return (
+                            <button
+                              key={event.id}
+                              onClick={(e) => { e.stopPropagation(); handleOpenDetail(event); }}
+                              className={`w-full text-left p-1.5 rounded text-xs ${colors.bg} ${colors.text} hover:opacity-80`}
+                            >
+                              <p className="font-medium truncate">{event.title}</p>
+                              <p className="opacity-70">{event.isAllDay ? "Ganztägig" : event.startTime}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+          
+          {/* Calendar Grid - Daily View */}
+          {calendarViewMode === "day" && (() => {
+            const dateStr = calendarMonth.toISOString().split("T")[0];
+            const dayEvents = filteredEvents.filter(e => e.date === dateStr);
+            const isToday = calendarMonth.toDateString() === new Date().toDateString();
+            
+            // Generate hours
+            const hours = Array.from({ length: 24 }, (_, i) => i);
+            
+            return (
+              <div 
+                className="bg-slate-50 rounded-lg p-4 cursor-pointer hover:bg-[#C8F2E0]/10"
+                onClick={() => handleOpenCreate(dateStr)}
+              >
+                <div className={`text-center mb-4 pb-3 border-b border-slate-200 ${isToday ? "text-[#004941]" : ""}`}>
+                  <p className="text-sm text-slate-500">{calendarMonth.toLocaleDateString("de-DE", { weekday: "long" })}</p>
+                  <p className="text-3xl font-bold">{calendarMonth.getDate()}</p>
+                </div>
+                
+                {dayEvents.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400">
+                    <CalendarIcon className="w-8 h-8 mx-auto mb-2" />
+                    <p>Keine Termine</p>
+                    <p className="text-xs mt-1">Klicken zum Erstellen</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                    {dayEvents
+                      .sort((a, b) => (a.isAllDay ? -1 : b.isAllDay ? 1 : a.startTime.localeCompare(b.startTime)))
+                      .map(event => {
+                        const colors = getStatusColor(event.status);
+                        return (
+                          <button
+                            key={event.id}
+                            onClick={(e) => { e.stopPropagation(); handleOpenDetail(event); }}
+                            className={`w-full text-left p-3 rounded-lg ${colors.bg} ${colors.text} hover:opacity-80 flex items-center gap-3`}
+                          >
+                            {event.bannerImage && (
+                              <img src={event.bannerImage} alt="" className="w-12 h-12 rounded object-cover" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold truncate">{event.title}</p>
+                              <p className="text-sm opacity-70">
+                                {event.isAllDay ? "Ganztägig" : `${event.startTime} - ${event.endTime}`}
+                                {event.location && ` · ${event.location}`}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </Card>
       )}
 
