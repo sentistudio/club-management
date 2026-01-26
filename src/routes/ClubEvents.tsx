@@ -583,7 +583,8 @@ export function ClubEvents() {
                   );
                 }
                 
-                {/* Condensed Event Cards - Progressive Disclosure */}
+                // Condensed Event Cards - Progressive Disclosure
+                return (
                   <div className="divide-y divide-slate-100">
                     {displayEvents.map(event => (
                       <div
