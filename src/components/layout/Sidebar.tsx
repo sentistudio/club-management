@@ -75,7 +75,14 @@ const navSections: NavSection[] = [
           { to: "/payment-links", label: "Payment Links" }
         ]
       },
-      { to: "/events", icon: Calendar, label: "Veranstaltungen" },
+      { 
+        icon: Calendar, 
+        label: "Veranstaltungen",
+        children: [
+          { to: "/club-events", label: "Vereinstermine (Pilot)" },
+          { to: "/events", label: "Team-Events (MVP)" }
+        ]
+      },
     ]
   },
   {
