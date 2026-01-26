@@ -581,21 +581,6 @@ export function MemberWebPortal() {
   }, [chatTab, searchTerm]);
 
   // Event helpers
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return "Heute";
-    }
-    if (date.toDateString() === tomorrow.toDateString()) {
-      return "Morgen";
-    }
-    return date.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
-  };
-
   const getEventTypeColor = (type: string) => {
     switch (type) {
       case "training": return "bg-teal-100 text-teal-700";
