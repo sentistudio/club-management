@@ -736,15 +736,11 @@ export function MemberWebPortal() {
                   )}
                 </div>
                 {event.rsvp && (
-                  <div className="mt-2 pt-2 border-t border-neutral-200 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <span className="text-green-600">✓ {event.rsvp.confirmed}</span>
-                      <span className="text-neutral-400">•</span>
-                      <span className="text-amber-500">⏳ {event.rsvp.pending}</span>
-                    </div>
-                    <span className={`w-2 h-2 rounded-full ${
+                  <div className="flex items-center justify-between mt-2 text-xs text-neutral-400">
+                    <span>{event.rsvp.confirmed}/{event.rsvp.total}</span>
+                    <span className={`w-1.5 h-1.5 rounded-full ${
                       event.rsvp.status === "confirmed" ? "bg-green-500" :
-                      event.rsvp.status === "declined" ? "bg-red-500" : "bg-amber-500"
+                      event.rsvp.status === "declined" ? "bg-red-500" : "bg-amber-400"
                     }`} />
                   </div>
                 )}
@@ -913,30 +909,21 @@ export function MemberWebPortal() {
                         </div>
                       )}
                       
-                      {/* RSVP Status */}
+                      {/* RSVP Status - Subtle */}
                       {event.rsvp && (
-                        <div className="mt-3 pt-3 border-t border-neutral-100">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 text-xs">
-                              <span className="text-green-600">✓ {event.rsvp.confirmed}</span>
-                              <span className="text-red-500">✗ {event.rsvp.declined}</span>
-                              <span className="text-amber-500">⏳ {event.rsvp.pending}</span>
-                            </div>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              event.rsvp.status === "confirmed" ? "bg-green-100 text-green-700" :
-                              event.rsvp.status === "declined" ? "bg-red-100 text-red-700" :
-                              "bg-amber-100 text-amber-700"
-                            }`}>
-                              {event.rsvp.status === "confirmed" ? "Zugesagt" :
-                               event.rsvp.status === "declined" ? "Abgesagt" : "Offen"}
-                            </span>
+                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-neutral-100">
+                          <div className="flex items-center gap-2 text-xs text-neutral-400">
+                            <span>{event.rsvp.confirmed}/{event.rsvp.total}</span>
+                            {event.rsvp.total > 0 && (
+                              <div className="w-12 h-1 bg-neutral-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-teal-400" style={{ width: `${(event.rsvp.confirmed / event.rsvp.total) * 100}%` }} />
+                              </div>
+                            )}
                           </div>
-                          {event.rsvp.total > 0 && (
-                            <div className="flex h-1.5 bg-neutral-100 rounded-full overflow-hidden mt-2">
-                              <div className="bg-green-500" style={{ width: `${(event.rsvp.confirmed / event.rsvp.total) * 100}%` }} />
-                              <div className="bg-red-400" style={{ width: `${(event.rsvp.declined / event.rsvp.total) * 100}%` }} />
-                            </div>
-                          )}
+                          <span className={`w-2 h-2 rounded-full ${
+                            event.rsvp.status === "confirmed" ? "bg-green-500" :
+                            event.rsvp.status === "declined" ? "bg-red-500" : "bg-amber-400"
+                          }`} />
                         </div>
                       )}
                     </div>

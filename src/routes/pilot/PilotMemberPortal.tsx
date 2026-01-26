@@ -3303,11 +3303,10 @@ export function PilotMemberPortal() {
                                 Ganztag
                               </span>
                             )}
-                            {/* Participant count */}
+                            {/* Participant count - subtle */}
                             {event.participants && (
-                              <span className="text-xs flex items-center gap-1" style={{ color: theme.textMuted }}>
-                                <Users className="w-3 h-3" />
-                                {event.participants.confirmed} {t.rsvpConfirmed}
+                              <span className="text-[10px]" style={{ color: theme.textMuted }}>
+                                {event.participants.confirmed}/{event.participants.confirmed + event.participants.pending + event.participants.declined}
                               </span>
                             )}
                             <ChevronRight className="w-4 h-4 ml-auto" style={{ color: theme.textMuted }} />

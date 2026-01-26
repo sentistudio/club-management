@@ -619,29 +619,15 @@ export function ClubEvents() {
                                 </div>
                               </div>
                               
-                              {/* RSVP Stats Bar */}
+                              {/* RSVP Stats - Subtle */}
                               {event.rsvpRequired && event.rsvpStats && event.rsvpStats.invited > 0 && (
-                                <div className="mt-3 pt-3 border-t border-slate-100">
-                                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                                    <span>Rückmeldungen</span>
-                                    <span>
-                                      {event.rsvpStats.confirmed + event.rsvpStats.declined} / {event.rsvpStats.invited}
-                                    </span>
-                                  </div>
-                                  <div className="flex h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
+                                  <span className="text-slate-500">{event.rsvpStats.confirmed + event.rsvpStats.declined}/{event.rsvpStats.invited}</span>
+                                  <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden max-w-[60px]">
                                     <div 
-                                      className="bg-emerald-500" 
+                                      className="h-full bg-emerald-400" 
                                       style={{ width: `${(event.rsvpStats.confirmed / event.rsvpStats.invited) * 100}%` }}
                                     />
-                                    <div 
-                                      className="bg-red-400" 
-                                      style={{ width: `${(event.rsvpStats.declined / event.rsvpStats.invited) * 100}%` }}
-                                    />
-                                  </div>
-                                  <div className="flex items-center gap-4 mt-1.5 text-xs">
-                                    <span className="text-emerald-600">✓ {event.rsvpStats.confirmed} Zusagen</span>
-                                    <span className="text-red-500">✗ {event.rsvpStats.declined} Absagen</span>
-                                    <span className="text-amber-500">⏳ {event.rsvpStats.pending} offen</span>
                                   </div>
                                 </div>
                               )}
