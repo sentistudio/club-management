@@ -192,6 +192,42 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
 
           {/* Form Content */}
           <div className="flex-1 overflow-y-auto">
+          
+          {/* Banner Image - At top like final display */}
+          {formData.bannerImage ? (
+            <div className="relative h-36 overflow-hidden">
+              <img 
+                src={formData.bannerImage} 
+                alt="Event Banner" 
+                className="w-full h-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, bannerImage: "" })}
+                className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowBannerPicker(true)}
+                className="absolute bottom-2 right-2 px-3 py-1.5 bg-black/50 hover:bg-black/70 rounded-lg text-white text-sm flex items-center gap-1.5"
+              >
+                <Image className="w-4 h-4" />
+                Ändern
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowBannerPicker(true)}
+              className="w-full h-24 flex items-center justify-center gap-2 bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+            >
+              <Image className="w-5 h-5" />
+              <span>Banner hinzufügen</span>
+            </button>
+          )}
+          
           <div className="p-6 space-y-6">
             
             {/* Title - Primary Focus */}
@@ -205,33 +241,6 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
                 className="w-full text-2xl font-semibold text-slate-800 placeholder-slate-400 border-0 border-b-2 border-transparent focus:border-[#004941] focus:outline-none pb-2 transition-colors"
               />
             </div>
-
-            {/* Banner Image */}
-            {formData.bannerImage && (
-              <div className="relative rounded-xl overflow-hidden h-32">
-                <img 
-                  src={formData.bannerImage} 
-                  alt="Event Banner" 
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, bannerImage: "" })}
-                  className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-            
-            <button
-              type="button"
-              onClick={() => setShowBannerPicker(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 hover:border-[#004941] hover:text-[#004941] transition-colors"
-            >
-              <Image className="w-5 h-5" />
-              <span>{formData.bannerImage ? "Banner ändern" : "Banner hinzufügen"}</span>
-            </button>
 
             {/* Date & Time Row */}
             <div className="flex items-start gap-3">
