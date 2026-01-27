@@ -24,6 +24,7 @@ import { Matches } from "./routes/Matches";
 import { Documents } from "./routes/Documents";
 import { Inbox } from "./routes/Inbox";
 import { ClubNews } from "./routes/ClubNews";
+import { Login } from "./routes/Login";
 import { PilotInbox, PilotMemberPortal, ChatModeration } from "./routes/pilot";
 import { 
   MemberHome, 
@@ -42,6 +43,9 @@ function App() {
       <RoleProvider>
         <BrowserRouter basename={basename}>
           <Routes>
+            {/* Login Page */}
+            <Route path="login" element={<Login />} />
+            
             {/* 
               Unified AppLayout for both Admin and Member portals.
               The Sidebar automatically shows different menu items based on the route.

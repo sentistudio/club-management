@@ -26,7 +26,7 @@ import { useLanguage } from "../../i18n";
 import { useRole } from "../../contexts";
 
 // ==========================================
-// MOCK DATA FOR PATRICK
+// MOCK DATA
 // ==========================================
 interface EnhancedEvent {
   id: string;
@@ -164,6 +164,133 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
   }
 ];
 
+// Lena's events
+const MOCK_LENA_EVENTS: EnhancedEvent[] = [
+  {
+    id: "evt_l1",
+    title: "Fitness Training - Morgengruppe",
+    description: "Reguläres Fitnesstraining mit Fokus auf Cardio und Kräftigung.",
+    date: "2026-01-28",
+    startTime: "07:00",
+    endTime: "08:00",
+    location: "Fitness-Raum",
+    type: "training",
+    teamIcon: "💪",
+    scope: "team",
+    department: "Fitness",
+    team: "Fitness – Morgengruppe",
+    bannerImage: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=400&fit=crop",
+    rsvp: {
+      status: "confirmed",
+      required: true,
+      confirmed: 12,
+      declined: 2,
+      pending: 1,
+      total: 15
+    },
+    organizer: {
+      name: "Sandra Müller",
+      avatar: "https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=50&h=50&fit=crop&crop=face",
+      role: "Trainerin"
+    }
+  },
+  {
+    id: "evt_l2",
+    title: "Frauen Ü40 Training",
+    description: "Wöchentliches Mannschaftstraining mit Taktik- und Spielübungen.",
+    date: "2026-01-29",
+    startTime: "19:00",
+    endTime: "20:30",
+    location: "Platz 2",
+    type: "training",
+    teamIcon: "⚽",
+    scope: "team",
+    department: "Fußball",
+    team: "Frauen Ü40",
+    bannerImage: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop",
+    rsvp: {
+      status: "pending",
+      deadline: "2026-01-28",
+      required: true,
+      confirmed: 8,
+      declined: 3,
+      pending: 5,
+      total: 16
+    },
+    organizer: {
+      name: "Bernd Weber",
+      avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=50&h=50&fit=crop&crop=face",
+      role: "Trainer"
+    }
+  },
+  {
+    id: "evt_l3",
+    title: "Freundschaftsspiel vs. TuS Mainberg",
+    description: "Auswärtsspiel gegen TuS Mainberg. Treffpunkt 30 Minuten vor Spielbeginn.",
+    date: "2026-02-01",
+    startTime: "15:00",
+    endTime: "17:00",
+    location: "Sportplatz Mainberg",
+    type: "match",
+    teamIcon: "⚽",
+    scope: "team",
+    department: "Fußball",
+    team: "Frauen Ü40",
+    bannerImage: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&h=400&fit=crop",
+    rsvp: {
+      status: "confirmed",
+      required: true,
+      confirmed: 14,
+      declined: 1,
+      pending: 1,
+      total: 16
+    }
+  },
+  {
+    id: "evt_l4",
+    title: "Vereinsversammlung 2026",
+    description: "Jährliche Mitgliederversammlung mit Berichten des Vorstands und Wahlen.",
+    date: "2026-02-15",
+    startTime: "18:00",
+    endTime: "20:00",
+    location: "Vereinsheim - Großer Saal",
+    type: "event",
+    scope: "club",
+    bannerImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop",
+    rsvp: {
+      status: "pending",
+      deadline: "2026-02-10",
+      required: false,
+      confirmed: 67,
+      declined: 23,
+      pending: 304,
+      total: 394
+    }
+  }
+];
+
+// Helper to get events based on user
+const getUserEvents = (userId: string): EnhancedEvent[] => {
+  if (userId === "lena_schneider") {
+    return MOCK_LENA_EVENTS;
+  }
+  return MOCK_PATRICK_EVENTS;
+};
+
+// Helper to get user memberships
+const getUserMemberships = (userId: string) => {
+  if (userId === "lena_schneider") {
+    return [
+      { icon: "💪", name: "Fitness – Morgengruppe", department: "Fitness", role: "Aktiv" },
+      { icon: "⚽", name: "Frauen Ü40", department: "Fußball", role: "Spielerin" }
+    ];
+  }
+  return [
+    { icon: "⚽", name: "Männer Ü40", department: "Fußball", role: "Spieler" },
+    { icon: "🛡️", name: "Vereinsvorstand", department: "Verein", role: "Vorsitzender" }
+  ];
+};
+
 const MOCK_CLUB_NEWS = [
   {
     id: "news_1",
@@ -194,7 +321,8 @@ export function MemberHome() {
   const { user } = useRole();
   const navigate = useNavigate();
 
-  const upcomingEvents = MOCK_PATRICK_EVENTS.slice(0, 3);
+  const upcomingEvents = getUserEvents(user.id).slice(0, 3);
+  const memberships = getUserMemberships(user.id);
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
@@ -365,9 +493,11 @@ export function MemberHome() {
 // MEMBER CALENDAR
 // ==========================================
 export function MemberCalendar() {
+  const { user } = useRole();
   const [selectedDate] = useState<string | null>(null);
   
-  const sortedEvents = [...MOCK_PATRICK_EVENTS].sort((a, b) => 
+  const allEvents = getUserEvents(user.id);
+  const sortedEvents = [...allEvents].sort((a, b) => 
     new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
@@ -569,7 +699,7 @@ export function MemberProfile() {
             <p className="text-neutral-500">{user.email}</p>
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="teal">Aktives Mitglied</Badge>
-              <Badge variant="info">Admin</Badge>
+              {user.roles.includes("admin") && <Badge variant="info">Admin</Badge>}
             </div>
           </div>
         </div>
@@ -581,26 +711,18 @@ export function MemberProfile() {
           <h3 className="font-semibold text-neutral-900">Meine Mitgliedschaften</h3>
         </div>
         <div className="divide-y divide-neutral-100">
-          <div className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-2xl">
-              ⚽
+          {getUserMemberships(user.id).map((membership, idx) => (
+            <div key={idx} className="p-4 flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-2xl">
+                {membership.icon}
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-neutral-900">{membership.name}</p>
+                <p className="text-sm text-neutral-500">{membership.department}</p>
+              </div>
+              <Badge variant="teal">{membership.role}</Badge>
             </div>
-            <div className="flex-1">
-              <p className="font-medium text-neutral-900">Männer Ü40</p>
-              <p className="text-sm text-neutral-500">Fußball</p>
-            </div>
-            <Badge variant="teal">Spieler</Badge>
-          </div>
-          <div className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center text-2xl">
-              🛡️
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-neutral-900">Vereinsvorstand</p>
-              <p className="text-sm text-neutral-500">Verein</p>
-            </div>
-            <Badge variant="info">Vorsitzender</Badge>
-          </div>
+          ))}
         </div>
       </Card>
 

@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { mockTickets, CURRENT_STAFF_ID } from "../../data/mockInbox";
-import { useRole } from "../../contexts";
+import { useRole, UserSwitcher } from "../../contexts";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -329,23 +329,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
         )}
 
-        {/* User Profile */}
+        {/* User Profile with Switcher */}
         <div className="p-4 border-t border-neutral-200">
-          <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-neutral-100 cursor-pointer transition-colors">
-            <img 
-              src={user.avatar}
-              alt={user.firstName}
-              className="w-9 h-9 rounded-full object-cover"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-neutral-900 truncate">
-                {user.firstName} {user.lastName}
-              </p>
-              <p className="text-xs text-neutral-500">
-                {activeRole === "admin" ? "Administrator" : "Mitglied"}
-              </p>
-            </div>
-          </div>
+          <UserSwitcher onClose={onClose} />
         </div>
       </aside>
     </>

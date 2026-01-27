@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 export type UserRole = "admin" | "member";
 
-interface User {
+export interface User {
   id: string;
   firstName: string;
   lastName: string;
@@ -18,38 +18,95 @@ interface RoleContextType {
   setActiveRole: (role: UserRole) => void;
   hasRole: (role: UserRole) => boolean;
   canSwitchRoles: boolean;
+  // User switching
+  availableUsers: User[];
+  switchUser: (userId: string) => void;
+  logout: () => void;
+  isLoggedIn: boolean;
 }
 
-// Patrick Steuble - Club Admin who is also a member
-const PATRICK_USER: User = {
-  id: "patrick_steuble",
-  firstName: "Patrick",
-  lastName: "Steuble",
-  email: "patrick.steuble@sfb.de",
-  avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
-  roles: ["admin", "member"]
-};
+// Available demo users
+const DEMO_USERS: User[] = [
+  {
+    id: "patrick_steuble",
+    firstName: "Patrick",
+    lastName: "Steuble",
+    email: "patrick.steuble@sfb.de",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
+    roles: ["admin", "member"] // Can switch between admin and member
+  },
+  {
+    id: "lena_schneider",
+    firstName: "Lena",
+    lastName: "Schneider",
+    email: "lena.schneider@example.com",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50&h=50&fit=crop&crop=face",
+    roles: ["member"] // Member only - no role switcher
+  }
+];
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: ReactNode }) {
+  // Current user (load from localStorage or default to Patrick)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
+    const saved = localStorage.getItem("app-current-user");
+    return saved || "patrick_steuble";
+  });
+
+  // Active role
   const [activeRole, setActiveRole] = useState<UserRole>(() => {
     const saved = localStorage.getItem("app-active-role");
     if (saved === "admin" || saved === "member") return saved;
     return "admin";
   });
 
+  // Get current user object
+  const currentUser = DEMO_USERS.find(u => u.id === currentUserId) || DEMO_USERS[0];
+
+  // If user doesn't have the active role, switch to their first available role
+  useEffect(() => {
+    if (!currentUser.roles.includes(activeRole)) {
+      setActiveRole(currentUser.roles[0]);
+      localStorage.setItem("app-active-role", currentUser.roles[0]);
+    }
+  }, [currentUser, activeRole]);
+
   const handleSetRole = (role: UserRole) => {
-    setActiveRole(role);
-    localStorage.setItem("app-active-role", role);
+    if (currentUser.roles.includes(role)) {
+      setActiveRole(role);
+      localStorage.setItem("app-active-role", role);
+    }
+  };
+
+  const switchUser = (userId: string) => {
+    const newUser = DEMO_USERS.find(u => u.id === userId);
+    if (newUser) {
+      setCurrentUserId(userId);
+      localStorage.setItem("app-current-user", userId);
+      // Set role to user's first available role
+      const newRole = newUser.roles[0];
+      setActiveRole(newRole);
+      localStorage.setItem("app-active-role", newRole);
+    }
+  };
+
+  const logout = () => {
+    setCurrentUserId(null);
+    localStorage.removeItem("app-current-user");
+    localStorage.removeItem("app-active-role");
   };
 
   const value: RoleContextType = {
-    user: PATRICK_USER,
+    user: currentUser,
     activeRole,
     setActiveRole: handleSetRole,
-    hasRole: (role: UserRole) => PATRICK_USER.roles.includes(role),
-    canSwitchRoles: PATRICK_USER.roles.length > 1
+    hasRole: (role: UserRole) => currentUser.roles.includes(role),
+    canSwitchRoles: currentUser.roles.length > 1,
+    availableUsers: DEMO_USERS,
+    switchUser,
+    logout,
+    isLoggedIn: currentUserId !== null
   };
 
   return (
@@ -69,17 +126,21 @@ export function useRole() {
 
 // Component to sync role with route (auto-switch based on URL)
 export function RoleRouteSync() {
-  const { setActiveRole } = useRole();
+  const { setActiveRole, user } = useRole();
   const location = useLocation();
 
   useEffect(() => {
-    // Auto-set role based on current route
+    // Auto-set role based on current route (only if user has that role)
     if (location.pathname.startsWith("/member")) {
-      setActiveRole("member");
+      if (user.roles.includes("member")) {
+        setActiveRole("member");
+      }
     } else {
-      setActiveRole("admin");
+      if (user.roles.includes("admin")) {
+        setActiveRole("admin");
+      }
     }
-  }, [location.pathname, setActiveRole]);
+  }, [location.pathname, setActiveRole, user.roles]);
 
   return null;
 }
@@ -91,7 +152,16 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (!canSwitchRoles) return null;
+  // Don't show if user can't switch roles
+  if (!canSwitchRoles) {
+    // Show a static badge instead
+    return (
+      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-neutral-100 ${className}`}>
+        <span>👤</span>
+        <span className="text-sm font-medium text-neutral-600">Mitglied</span>
+      </div>
+    );
+  }
 
   // Check if we're in the member portal
   const isInMemberPortal = location.pathname.startsWith("/member");
@@ -99,17 +169,13 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
   const roleConfig = {
     admin: { 
       label: "Administrator", 
-      labelEn: "Administrator",
       icon: "🛡️",
-      description: "Vereinsverwaltung & alle Funktionen",
-      descriptionEn: "Club management & all features"
+      description: "Vereinsverwaltung & alle Funktionen"
     },
     member: { 
       label: "Mitglied", 
-      labelEn: "Member",
       icon: "👤",
-      description: "Persönliche Termine & Nachrichten",
-      descriptionEn: "Personal events & messages"
+      description: "Persönliche Termine & Nachrichten"
     }
   };
 
@@ -119,10 +185,8 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
     
     // Navigate based on role selection
     if (role === "member" && !isInMemberPortal) {
-      // Switch to member portal
       navigate("/member");
     } else if (role === "admin" && isInMemberPortal) {
-      // Switch to admin dashboard
       navigate("/dashboard");
     }
   };
@@ -199,6 +263,130 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
             <div className="px-4 py-3 bg-neutral-50 border-t border-neutral-200">
               <p className="text-xs text-neutral-500">
                 💡 Als Admin & Mitglied kannst du zwischen beiden Ansichten wechseln.
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// User Switcher for the sidebar profile section
+export function UserSwitcher({ onClose }: { onClose?: () => void }) {
+  const { user, availableUsers, switchUser, logout } = useRole();
+  const [showUserList, setShowUserList] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSwitchUser = (userId: string) => {
+    const newUser = availableUsers.find(u => u.id === userId);
+    switchUser(userId);
+    setShowUserList(false);
+    
+    // Navigate based on new user's roles
+    if (newUser) {
+      if (newUser.roles.includes("admin")) {
+        navigate("/dashboard");
+      } else {
+        navigate("/member");
+      }
+    }
+    
+    onClose?.();
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+    onClose?.();
+  };
+
+  return (
+    <div className="relative">
+      <button 
+        onClick={() => setShowUserList(!showUserList)}
+        className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-neutral-100 cursor-pointer transition-colors"
+      >
+        <img 
+          src={user.avatar}
+          alt={user.firstName}
+          className="w-9 h-9 rounded-full object-cover"
+        />
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-sm font-medium text-neutral-900 truncate">
+            {user.firstName} {user.lastName}
+          </p>
+          <p className="text-xs text-neutral-500">
+            {user.roles.includes("admin") ? "Administrator" : "Mitglied"}
+          </p>
+        </div>
+        <svg className={`w-4 h-4 text-neutral-400 transition-transform ${showUserList ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* User Switch Dropdown */}
+      {showUserList && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setShowUserList(false)} 
+          />
+          <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden z-50">
+            <div className="p-2">
+              <p className="px-3 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                Demo: Benutzer wechseln
+              </p>
+              {availableUsers.map((u) => (
+                <button
+                  key={u.id}
+                  onClick={() => handleSwitchUser(u.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
+                    user.id === u.id 
+                      ? "bg-teal-50 text-teal-700" 
+                      : "hover:bg-neutral-50 text-neutral-700"
+                  }`}
+                >
+                  <img 
+                    src={u.avatar}
+                    alt={u.firstName}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{u.firstName} {u.lastName}</p>
+                    <p className="text-xs text-neutral-500">
+                      {u.roles.includes("admin") 
+                        ? "Admin & Mitglied" 
+                        : "Nur Mitglied"
+                      }
+                    </p>
+                  </div>
+                  {user.id === u.id && (
+                    <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            {/* Logout */}
+            <div className="p-2 border-t border-neutral-200">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span className="font-medium">Abmelden</span>
+              </button>
+            </div>
+            
+            {/* Info */}
+            <div className="px-4 py-3 bg-neutral-50 border-t border-neutral-200">
+              <p className="text-xs text-neutral-500">
+                💡 Demo: Wechsle zwischen Benutzern, um unterschiedliche Berechtigungen zu sehen.
               </p>
             </div>
           </div>
