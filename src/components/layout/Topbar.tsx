@@ -4,6 +4,7 @@ import { SearchInput } from "../ui/Input";
 import { mockNotifications } from "../../data/mockInbox";
 import type { Notification } from "../../data/mockInbox";
 import { useLanguage } from "../../i18n";
+import { RoleSwitcher } from "../../contexts";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -70,8 +71,11 @@ export function Topbar({ onMenuClick, actions }: TopbarProps) {
       </div>
 
       {/* Right side actions - pushed to right */}
-      <div className="flex items-center gap-1 ml-auto">
+      <div className="flex items-center gap-2 ml-auto">
         {actions}
+
+        {/* Role Switcher - Context Switcher Pattern */}
+        <RoleSwitcher />
 
         {/* Language Selector */}
         <div className="flex items-center border border-neutral-200 rounded-lg overflow-hidden">

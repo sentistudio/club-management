@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { 
   Home,
   Calendar,
@@ -26,7 +27,8 @@ import {
   Heart,
   Check,
   Shield,
-  List
+  List,
+  RefreshCw
 } from "lucide-react";
 import { useLanguage } from "../../i18n";
 import { mockTicketForms } from "../../data/mockInbox";
@@ -188,6 +190,81 @@ const LENA_PROFILE: MemberProfile = {
     }
   ],
   children: []
+};
+
+// ==========================================
+// PATRICK'S PROFILE (ADMIN WHO IS ALSO MEMBER)
+// ==========================================
+const PATRICK_PROFILE: MemberProfile = {
+  id: "patrick_steuble",
+  firstName: "Patrick",
+  lastName: "Steuble",
+  email: "patrick.steuble@sfb.de",
+  avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+  clubId: "sfb",
+  clubName: "Sportfreunde Burkhardsfelden",
+  memberships: [
+    { 
+      departmentId: "dept_football", 
+      departmentName: "Fußball", 
+      role: "active" as const, 
+      teamName: "Männer Ü40", 
+      icon: "⚽",
+      coachName: "Trainer Klaus",
+      coachAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face"
+    },
+    { 
+      departmentId: "dept_admin", 
+      departmentName: "Vorstand", 
+      role: "active" as const, 
+      teamName: "Vereinsvorstand", 
+      icon: "🛡️"
+    }
+  ],
+  stats: {
+    termine: 6,
+    nachrichten: 12,
+    rechnungen: 0,
+  },
+  events: [
+    {
+      id: "evt_patrick_1",
+      title: "Training Männer Ü40",
+      date: "2026-01-28",
+      time: "19:30 - 21:00",
+      location: "Sportplatz Burkhardsfelden",
+      type: "training",
+      teamIcon: "⚽",
+      status: "confirmed"
+    },
+    {
+      id: "evt_patrick_2",
+      title: "Vorstandssitzung",
+      date: "2026-01-29",
+      time: "18:00 - 20:00",
+      location: "Vereinsheim",
+      type: "event",
+      teamIcon: "🛡️",
+      status: "confirmed"
+    },
+    {
+      id: "evt_patrick_3",
+      title: "Freundschaftsspiel vs. TSV Holzkirchen",
+      date: "2026-02-01",
+      time: "15:00",
+      location: "Sportplatz Holzkirchen",
+      type: "match",
+      teamIcon: "⚽",
+      status: "unconfirmed"
+    }
+  ],
+  children: []
+};
+
+// Profile Map for route-based switching
+const PROFILE_MAP: Record<string, MemberProfile> = {
+  lena: LENA_PROFILE,
+  patrick: PATRICK_PROFILE
 };
 
 // Mock Enhanced Events for Lena
@@ -356,6 +433,175 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
   }
 ];
 
+// Mock Enhanced Events for Patrick
+const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
+  {
+    id: "evt_patrick_1",
+    title: "Training Männer Ü40",
+    description: "Wöchentliches Mannschaftstraining. Heute: Spieltaktik und Kondition.",
+    date: "2026-01-28",
+    startTime: "19:30",
+    endTime: "21:00",
+    location: "Sportplatz Burkhardsfelden",
+    type: "training",
+    teamIcon: "⚽",
+    scope: "team",
+    department: "Fußball",
+    team: "Männer Ü40",
+    bannerImage: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop",
+    rsvp: {
+      status: "confirmed",
+      required: true,
+      confirmed: 14,
+      declined: 2,
+      pending: 2,
+      total: 18
+    },
+    organizer: {
+      name: "Klaus Werner",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
+      role: "Trainer"
+    }
+  },
+  {
+    id: "evt_patrick_2",
+    title: "Vorstandssitzung",
+    description: "Monatliche Vorstandssitzung. Tagesordnung: Jahresplanung 2026, Finanzbericht, Vereinsfest.",
+    date: "2026-01-29",
+    startTime: "18:00",
+    endTime: "20:00",
+    location: "Vereinsheim - Sitzungszimmer",
+    type: "event",
+    scope: "club",
+    bannerImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop",
+    isAllDay: false,
+    rsvp: {
+      status: "confirmed",
+      required: true,
+      confirmed: 6,
+      declined: 1,
+      pending: 1,
+      total: 8
+    },
+    organizer: {
+      name: "Vorstand",
+      role: "Vereinsleitung"
+    }
+  },
+  {
+    id: "evt_patrick_3",
+    title: "Freundschaftsspiel vs. TSV Holzkirchen",
+    description: "Auswärtsspiel gegen TSV Holzkirchen. Treffpunkt: 14:00 am Vereinsheim (Fahrgemeinschaften).",
+    date: "2026-02-01",
+    startTime: "15:00",
+    endTime: "17:00",
+    location: "Sportplatz Holzkirchen",
+    type: "match",
+    teamIcon: "⚽",
+    scope: "team",
+    department: "Fußball",
+    team: "Männer Ü40",
+    bannerImage: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&h=400&fit=crop",
+    rsvp: {
+      status: "pending",
+      deadline: "2026-01-30",
+      required: true,
+      confirmed: 12,
+      declined: 3,
+      pending: 3,
+      total: 18
+    },
+    organizer: {
+      name: "Klaus Werner",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
+      role: "Trainer"
+    }
+  },
+  {
+    id: "evt_patrick_4",
+    title: "Vereinsversammlung 2026",
+    description: "Jährliche Mitgliederversammlung mit Berichten des Vorstands und Wahlen.",
+    date: "2026-02-15",
+    startTime: "18:00",
+    endTime: "20:00",
+    location: "Vereinsheim - Großer Saal",
+    type: "event",
+    scope: "club",
+    bannerImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop",
+    rsvp: {
+      status: "confirmed",
+      deadline: "2026-02-10",
+      required: false,
+      confirmed: 67,
+      declined: 23,
+      pending: 304,
+      total: 394
+    },
+    organizer: {
+      name: "Patrick Steuble",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
+      role: "Vereinsvorstand"
+    }
+  },
+  {
+    id: "evt_patrick_5",
+    title: "Vereinsfasching 2026",
+    description: "Großer Vereinsfasching für die ganze Familie! Mit DJ, Kinderprogramm, Tombola und Buffet. 🎭🎉",
+    date: "2026-02-22",
+    startTime: "15:00",
+    endTime: "22:00",
+    location: "Vereinsheim - Großer Saal",
+    type: "event",
+    scope: "club",
+    bannerImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&h=400&fit=crop",
+    rsvp: {
+      status: "pending",
+      deadline: "2026-02-18",
+      required: true,
+      confirmed: 89,
+      declined: 45,
+      pending: 260,
+      total: 394
+    },
+    organizer: {
+      name: "OK Fasching",
+      role: "Organisationskomitee"
+    }
+  },
+  {
+    id: "evt_patrick_6",
+    title: "Frühjahrs-Arbeitseinsatz",
+    description: "Gemeinsamer Arbeitseinsatz zur Pflege der Vereinsanlagen. Werkzeug wird gestellt, Verpflegung inklusive.",
+    date: "2026-03-14",
+    startTime: "09:00",
+    endTime: "14:00",
+    location: "Vereinsgelände",
+    type: "event",
+    scope: "club",
+    isAllDay: false,
+    bannerImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop",
+    rsvp: {
+      status: "pending",
+      deadline: "2026-03-10",
+      required: true,
+      confirmed: 23,
+      declined: 8,
+      pending: 120,
+      total: 151
+    },
+    organizer: {
+      name: "Platzwart Team",
+      role: "Vereinsanlage"
+    }
+  }
+];
+
+// Events map for profile-based access
+const EVENTS_MAP: Record<string, EnhancedEvent[]> = {
+  lena: MOCK_LENA_EVENTS,
+  patrick: MOCK_PATRICK_EVENTS
+};
+
 // Mock Club News for Lena
 const MOCK_CLUB_NEWS = [
   {
@@ -390,12 +636,13 @@ const MOCK_CLUB_NEWS = [
   }
 ];
 
-// Filter chats for Lena
-const getLenaChats = () => {
+// Filter chats for a profile
+const getProfileChats = (profileKey: string) => {
+  const profile = PROFILE_MAP[profileKey] || LENA_PROFILE;
   return mockChats.filter(chat => {
-    // Check if Lena is a participant or can see this chat
-    return chat.visibleToProfiles?.includes("lena") || 
-           chat.participants.some(p => p.id === LENA_PROFILE.id);
+    // Check if profile is a participant or can see this chat
+    return chat.visibleToProfiles?.includes(profileKey) || 
+           chat.participants.some(p => p.id === profile.id);
   });
 };
 
@@ -424,10 +671,13 @@ interface MemberSidebarProps {
   onNavigate: (view: ViewState) => void;
   profile: MemberProfile;
   unreadMessages: number;
+  currentProfileKey: string;
+  onProfileSwitch: (profileKey: string) => void;
 }
 
-function MemberSidebar({ activeView, onNavigate, profile, unreadMessages }: MemberSidebarProps) {
+function MemberSidebar({ activeView, onNavigate, profile, unreadMessages, currentProfileKey, onProfileSwitch }: MemberSidebarProps) {
   const { t } = useLanguage();
+  const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
   
   const navItems = [
     { id: "home" as ViewState, icon: Home, label: t("nav.home"), badge: 0 },
@@ -517,22 +767,78 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages }: Memb
         </div>
       </nav>
 
-      {/* User Profile */}
-      <div className="p-4 border-t border-neutral-200">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-neutral-100 cursor-pointer transition-colors">
+      {/* User Profile with Profile Switcher */}
+      <div className="p-4 border-t border-neutral-200 relative">
+        <button 
+          onClick={() => setShowProfileSwitcher(!showProfileSwitcher)}
+          className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-neutral-100 cursor-pointer transition-colors"
+        >
           <img 
             src={profile.avatar} 
             alt={profile.firstName}
             className="w-9 h-9 rounded-full object-cover"
           />
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 text-left">
             <p className="text-sm font-medium text-neutral-900 truncate">
               {profile.firstName} {profile.lastName}
             </p>
-            <p className="text-xs text-neutral-500">Mitglied</p>
+            <p className="text-xs text-neutral-500">
+              {currentProfileKey === "patrick" ? "Admin & Mitglied" : "Mitglied"}
+            </p>
           </div>
-          <LogOut className="w-4 h-4 text-neutral-400" />
-        </div>
+          <RefreshCw className="w-4 h-4 text-neutral-400" />
+        </button>
+
+        {/* Profile Switcher Dropdown */}
+        {showProfileSwitcher && (
+          <>
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setShowProfileSwitcher(false)} 
+            />
+            <div className="absolute bottom-full left-4 right-4 mb-2 bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden z-50">
+              <div className="p-2">
+                <p className="px-3 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                  Demo: Profil wechseln
+                </p>
+                {Object.entries(PROFILE_MAP).map(([key, p]) => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      onProfileSwitch(key);
+                      setShowProfileSwitcher(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
+                      currentProfileKey === key 
+                        ? "bg-teal-50 text-teal-700" 
+                        : "hover:bg-neutral-50"
+                    }`}
+                  >
+                    <img 
+                      src={p.avatar} 
+                      alt={p.firstName}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{p.firstName} {p.lastName}</p>
+                      <p className="text-xs text-neutral-500">
+                        {key === "patrick" ? "Admin & Mitglied" : "Mitglied"}
+                      </p>
+                    </div>
+                    {currentProfileKey === key && (
+                      <Check className="w-4 h-4 text-teal-600" />
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="px-4 py-3 bg-neutral-50 border-t border-neutral-200">
+                <p className="text-xs text-neutral-500">
+                  💡 Demo: Wechsle zwischen Profilen, um verschiedene Mitglieder-Ansichten zu testen.
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </aside>
   );
@@ -544,6 +850,8 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages }: Memb
 export function MemberWebPortal() {
   // i18n
   const { t, lang, getWeekday } = useLanguage();
+  const { profile: profileParam } = useParams<{ profile?: string }>();
+  const navigate = useNavigate();
   
   const [view, setView] = useState<ViewState>("home");
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
@@ -553,17 +861,24 @@ export function MemberWebPortal() {
   const [searchTerm, setSearchTerm] = useState("");
   const [chatTab, setChatTab] = useState<"announcements" | "team" | "direct" | "requests">("announcements");
   
-  const profile = LENA_PROFILE;
+  // Get profile based on route param (default to Lena)
+  const profileKey = profileParam || "lena";
+  const profile = PROFILE_MAP[profileKey] || LENA_PROFILE;
+
+  // Get events for current profile
+  const profileEvents = useMemo(() => {
+    return EVENTS_MAP[profileKey] || MOCK_LENA_EVENTS;
+  }, [profileKey]);
 
   // Calculate unread messages
   const unreadMessages = useMemo(() => {
-    const chats = getLenaChats();
+    const chats = getProfileChats(profileKey);
     return chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
-  }, []);
+  }, [profileKey]);
 
   // Filter chats based on tab
   const filteredChats = useMemo(() => {
-    const chats = getLenaChats();
+    const chats = getProfileChats(profileKey);
     const filtered = chats.filter(chat => {
       switch (chatTab) {
         case "announcements":
@@ -700,7 +1015,7 @@ export function MemberWebPortal() {
           </button>
         </div>
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {MOCK_LENA_EVENTS.slice(0, 3).map((event) => (
+          {profileEvents.slice(0, 3).map((event) => (
             <div
               key={event.id}
               onClick={() => {
@@ -820,7 +1135,7 @@ export function MemberWebPortal() {
       { key: "later", label: "Später", bgColor: "bg-neutral-400", events: [] }
     ];
     
-    const sortedEvents = [...MOCK_LENA_EVENTS].sort((a, b) => 
+    const sortedEvents = [...profileEvents].sort((a, b) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     
@@ -855,14 +1170,14 @@ export function MemberWebPortal() {
       for (let i = startPadding - 1; i >= 0; i--) {
         const d = new Date(year, month, -i);
         const dateStr = d.toISOString().split("T")[0];
-        days.push({ date: d, isCurrentMonth: false, events: MOCK_LENA_EVENTS.filter(e => e.date === dateStr) });
+        days.push({ date: d, isCurrentMonth: false, events: profileEvents.filter(e => e.date === dateStr) });
       }
       
       // Current month
       for (let i = 1; i <= lastDay.getDate(); i++) {
         const d = new Date(year, month, i);
         const dateStr = d.toISOString().split("T")[0];
-        days.push({ date: d, isCurrentMonth: true, events: MOCK_LENA_EVENTS.filter(e => e.date === dateStr) });
+        days.push({ date: d, isCurrentMonth: true, events: profileEvents.filter(e => e.date === dateStr) });
       }
       
       // Next month padding
@@ -870,7 +1185,7 @@ export function MemberWebPortal() {
       for (let i = 1; i <= remaining; i++) {
         const d = new Date(year, month + 1, i);
         const dateStr = d.toISOString().split("T")[0];
-        days.push({ date: d, isCurrentMonth: false, events: MOCK_LENA_EVENTS.filter(e => e.date === dateStr) });
+        days.push({ date: d, isCurrentMonth: false, events: profileEvents.filter(e => e.date === dateStr) });
       }
       
       return days;
@@ -882,7 +1197,7 @@ export function MemberWebPortal() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-bold text-neutral-900">{t("nav.events")}</h1>
-            <p className="text-sm text-neutral-500 mt-0.5">{MOCK_LENA_EVENTS.length} {t("nav.events")}</p>
+            <p className="text-sm text-neutral-500 mt-0.5">{profileEvents.length} {t("nav.events")}</p>
           </div>
           
           {/* View Toggle */}
@@ -951,7 +1266,7 @@ export function MemberWebPortal() {
                     <X className="w-3 h-3" />
                   </button>
                 ) : (
-                  <span className="text-xs text-neutral-500">{MOCK_LENA_EVENTS.length} {t("nav.events")}</span>
+                  <span className="text-xs text-neutral-500">{profileEvents.length} {t("nav.events")}</span>
                 )}
               </div>
               
@@ -976,7 +1291,7 @@ export function MemberWebPortal() {
                   return days.map((day, i) => {
                     const dateStr = day.toISOString().split("T")[0];
                     const isToday = day.toDateString() === todayDate.toDateString();
-                    const dayEvents = MOCK_LENA_EVENTS.filter(e => e.date === dateStr);
+                    const dayEvents = profileEvents.filter(e => e.date === dateStr);
                     const hasEvents = dayEvents.length > 0;
                     const isSelected = selectedEventDate === dateStr;
                     
@@ -1014,8 +1329,8 @@ export function MemberWebPortal() {
             <div className="flex-1 overflow-y-auto">
               {(() => {
                 const displayEvents = selectedEventDate 
-                  ? MOCK_LENA_EVENTS.filter(e => e.date === selectedEventDate)
-                  : MOCK_LENA_EVENTS;
+                  ? profileEvents.filter(e => e.date === selectedEventDate)
+                  : profileEvents;
                   
                 if (displayEvents.length === 0) {
                   return (
@@ -1887,6 +2202,11 @@ export function MemberWebPortal() {
     }
   };
 
+  // Handle profile switching
+  const handleProfileSwitch = (newProfileKey: string) => {
+    navigate(`/member/${newProfileKey}`);
+  };
+
   return (
     <div className="flex min-h-screen bg-neutral-50">
       <MemberSidebar 
@@ -1894,6 +2214,8 @@ export function MemberWebPortal() {
         onNavigate={setView}
         profile={profile}
         unreadMessages={unreadMessages}
+        currentProfileKey={profileKey}
+        onProfileSwitch={handleProfileSwitch}
       />
       <main className="flex-1 overflow-y-auto">
         {renderContent()}
