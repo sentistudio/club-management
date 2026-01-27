@@ -13,7 +13,6 @@ export { Matches } from "./Matches";
 export { PlayerPasses } from "./PlayerPasses";
 
 // Veranstaltungen
-export { Events } from "./Events";
 export { ClubEvents } from "./ClubEvents";
 export { Volunteering } from "./Volunteering";
 
