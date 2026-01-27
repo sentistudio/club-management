@@ -1,2 +1,2 @@
-export { RoleProvider, useRole, RoleSwitcher } from "./RoleContext";
+export { RoleProvider, useRole, RoleSwitcher, RoleRouteSync } from "./RoleContext";
 export type { UserRole } from "./RoleContext";

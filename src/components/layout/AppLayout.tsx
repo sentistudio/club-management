@@ -4,6 +4,7 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { Button } from "../ui/Button";
 import { Plus, ExternalLink } from "lucide-react";
+import { RoleRouteSync } from "../../contexts";
 
 // Page-specific actions
 const pageActions: Record<string, React.ReactNode> = {
@@ -42,6 +43,9 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-screen bg-neutral-100">
+      {/* Sync role with current route */}
+      <RoleRouteSync />
+      
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 

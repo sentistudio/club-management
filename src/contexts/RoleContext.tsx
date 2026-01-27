@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export type UserRole = "admin" | "member";
@@ -67,6 +67,23 @@ export function useRole() {
   return context;
 }
 
+// Component to sync role with route (auto-switch based on URL)
+export function RoleRouteSync() {
+  const { setActiveRole } = useRole();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Auto-set role based on current route
+    if (location.pathname.startsWith("/member")) {
+      setActiveRole("member");
+    } else {
+      setActiveRole("admin");
+    }
+  }, [location.pathname, setActiveRole]);
+
+  return null;
+}
+
 // Role switcher component for the Topbar
 export function RoleSwitcher({ className = "" }: { className?: string }) {
   const { user, activeRole, setActiveRole, canSwitchRoles } = useRole();
@@ -102,8 +119,8 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
     
     // Navigate based on role selection
     if (role === "member" && !isInMemberPortal) {
-      // Switch to member portal as Patrick
-      navigate("/member/patrick");
+      // Switch to member portal
+      navigate("/member");
     } else if (role === "admin" && isInMemberPortal) {
       // Switch to admin dashboard
       navigate("/dashboard");

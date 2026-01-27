@@ -13,10 +13,14 @@ import {
   FolderOpen,
   MessageSquare,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Home,
+  Newspaper,
+  User
 } from "lucide-react";
 import { useState } from "react";
 import { mockTickets, CURRENT_STAFF_ID } from "../../data/mockInbox";
+import { useRole } from "../../contexts";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -26,6 +30,8 @@ interface SidebarProps {
 interface NavSection {
   title?: string;
   items: NavItem[];
+  adminOnly?: boolean;
+  memberOnly?: boolean;
 }
 
 interface NavItem {
@@ -34,6 +40,8 @@ interface NavItem {
   label: string;
   badge?: number;
   children?: { to: string; label: string; badge?: number }[];
+  adminOnly?: boolean;
+  memberOnly?: boolean;
 }
 
 // Calculate badge for inbox
@@ -41,7 +49,8 @@ const myOpenTickets = mockTickets.filter(
   t => t.assignedToId === CURRENT_STAFF_ID && (t.status === "open" || t.status === "pending")
 ).length;
 
-const navSections: NavSection[] = [
+// Admin navigation sections
+const adminNavSections: NavSection[] = [
   {
     items: [
       { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -120,10 +129,32 @@ const navSections: NavSection[] = [
   }
 ];
 
+// Member navigation sections
+const memberNavSections: NavSection[] = [
+  {
+    items: [
+      { to: "/member", icon: Home, label: "Startseite" },
+      { to: "/member/calendar", icon: Calendar, label: "Termine" },
+      { to: "/member/chats", icon: MessageSquare, label: "Nachrichten" },
+      { to: "/member/news", icon: Newspaper, label: "Neuigkeiten" },
+    ]
+  },
+  {
+    items: [
+      { to: "/member/profile", icon: User, label: "Mein Profil" },
+      { to: "/member/settings", icon: Settings, label: "Einstellungen" },
+    ]
+  }
+];
+
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { user, activeRole } = useRole();
   
-  // Member Portal path
+  // Select navigation based on active role
+  const navSections = activeRole === "admin" ? adminNavSections : memberNavSections;
+  
+  // Member Portal path (for external links in admin view)
   const memberPortalPath = "pilot/member-portal";
 
   const toggleExpand = (label: string) => {
@@ -159,6 +190,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center">
               <span className="text-white font-bold text-lg">cb</span>
             </div>
+            {activeRole === "member" && (
+              <span className="text-sm font-medium text-neutral-600">Mitglieder-Portal</span>
+            )}
           </div>
           <button 
             onClick={onClose}
@@ -171,12 +205,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Club Logo/Avatar */}
         <div className="px-4 py-5 border-b border-neutral-200">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-neutral-900 flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">cb</span>
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
+              <span className="text-white font-bold text-xl">SfB</span>
             </div>
-            <button className="p-1 hover:bg-neutral-100 rounded-lg">
-              <ChevronRight className="w-4 h-4 text-neutral-400" />
-            </button>
+            <div className="flex-1">
+              <p className="font-semibold text-neutral-900 text-sm">Sportfreunde Burkhardsfelden</p>
+              <p className="text-xs text-neutral-500">
+                {activeRole === "admin" ? "Admin-Portal" : "Mitglieder-Portal"}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -206,9 +243,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <item.icon className="w-5 h-5" />
                             <span>{item.label}</span>
                           </div>
-                          <ChevronRight className={`w-4 h-4 text-neutral-400 transition-transform ${
-                            expandedItems.includes(item.label) ? "rotate-90" : ""
-                          }`} />
+                          <div className="flex items-center gap-2">
+                            {item.badge && item.badge > 0 && (
+                              <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center">
+                                {item.badge}
+                              </span>
+                            )}
+                            <ChevronRight className={`w-4 h-4 text-neutral-400 transition-transform ${
+                              expandedItems.includes(item.label) ? "rotate-90" : ""
+                            }`} />
+                          </div>
                         </button>
                         {expandedItems.includes(item.label) && (
                           <div className="ml-8 mt-1 space-y-0.5">
@@ -268,38 +312,38 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           ))}
         </nav>
 
-        {/* Member Portal Links */}
-        <div className="px-4 pb-2 space-y-1">
-          <p className="px-3 pt-2 pb-1 text-xs font-medium text-neutral-400 uppercase tracking-wide">
-            Mitglieder-Ansicht
-          </p>
-          <a
-            href={`${import.meta.env.BASE_URL}${memberPortalPath}`}
-            target="_blank"
-            className="flex items-center gap-3 px-3 py-2 text-sm text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
-          >
-            <ExternalLink className="w-4 h-4" />
-            <span>Mobile App</span>
-          </a>
-          <a
-            href={`${import.meta.env.BASE_URL}member/patrick`}
-            target="_blank"
-            className="flex items-center gap-3 px-3 py-2 text-sm text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
-          >
-            <ExternalLink className="w-4 h-4" />
-            <span>Desktop Portal</span>
-          </a>
-        </div>
+        {/* External Links (Admin only) */}
+        {activeRole === "admin" && (
+          <div className="px-4 pb-2 space-y-1">
+            <p className="px-3 pt-2 pb-1 text-xs font-medium text-neutral-400 uppercase tracking-wide">
+              Mitglieder-Ansicht
+            </p>
+            <a
+              href={`${import.meta.env.BASE_URL}${memberPortalPath}`}
+              target="_blank"
+              className="flex items-center gap-3 px-3 py-2 text-sm text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Mobile App</span>
+            </a>
+          </div>
+        )}
 
         {/* User Profile */}
         <div className="p-4 border-t border-neutral-200">
           <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-neutral-100 cursor-pointer transition-colors">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
-              <span className="text-white text-sm font-medium">PS</span>
-            </div>
+            <img 
+              src={user.avatar}
+              alt={user.firstName}
+              className="w-9 h-9 rounded-full object-cover"
+            />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-neutral-900 truncate">Patrick Steuble</p>
-              <p className="text-xs text-neutral-500">Administrator</p>
+              <p className="text-sm font-medium text-neutral-900 truncate">
+                {user.firstName} {user.lastName}
+              </p>
+              <p className="text-xs text-neutral-500">
+                {activeRole === "admin" ? "Administrator" : "Mitglied"}
+              </p>
             </div>
           </div>
         </div>

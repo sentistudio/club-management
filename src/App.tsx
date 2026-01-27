@@ -24,7 +24,15 @@ import { Matches } from "./routes/Matches";
 import { Documents } from "./routes/Documents";
 import { Inbox } from "./routes/Inbox";
 import { ClubNews } from "./routes/ClubNews";
-import { PilotInbox, PilotMemberPortal, ChatModeration, MemberWebPortal } from "./routes/pilot";
+import { PilotInbox, PilotMemberPortal, ChatModeration } from "./routes/pilot";
+import { 
+  MemberHome, 
+  MemberCalendar, 
+  MemberChats, 
+  MemberNews, 
+  MemberProfile, 
+  MemberSettings 
+} from "./routes/member";
 
 function App() {
   const basename = import.meta.env.BASE_URL;
@@ -34,9 +42,19 @@ function App() {
       <RoleProvider>
         <BrowserRouter basename={basename}>
           <Routes>
-            {/* Admin Portal with AppLayout */}
+            {/* 
+              Unified AppLayout for both Admin and Member portals.
+              The Sidebar automatically shows different menu items based on the route.
+              - /member/* routes → Member menu items
+              - Other routes → Admin menu items
+            */}
             <Route path="/" element={<AppLayout />}>
+              {/* Default redirect */}
               <Route index element={<Navigate to="/dashboard" replace />} />
+              
+              {/* ==========================================
+                  ADMIN ROUTES
+                  ========================================== */}
               <Route path="dashboard" element={<Dashboard />} />
               
               {/* Vereinsverwaltung */}
@@ -73,24 +91,34 @@ function App() {
               {/* Verwaltung */}
               <Route path="documents" element={<Documents />} />
               <Route path="settings" element={<Settings />} />
+              
+              {/* Pilot Admin Routes (inside AppLayout) */}
+              <Route path="pilot/inbox" element={<PilotInbox />} />
+              <Route path="pilot/chat-moderation" element={<ChatModeration />} />
+              <Route path="pilot/club-news" element={<ClubNews />} />
+
+              {/* ==========================================
+                  MEMBER ROUTES (Desktop Portal)
+                  Same layout, different menu items based on role
+                  ========================================== */}
+              <Route path="member" element={<MemberHome />} />
+              <Route path="member/calendar" element={<MemberCalendar />} />
+              <Route path="member/chats" element={<MemberChats />} />
+              <Route path="member/news" element={<MemberNews />} />
+              <Route path="member/profile" element={<MemberProfile />} />
+              <Route path="member/settings" element={<MemberSettings />} />
+              
+              {/* Legacy member routes - redirect to new paths */}
+              <Route path="member/patrick" element={<Navigate to="/member" replace />} />
+              <Route path="member/lena" element={<Navigate to="/member" replace />} />
             </Route>
             
-            {/* Mobile Member Portal */}
+            {/* ==========================================
+                MOBILE MEMBER PORTAL (Standalone - different layout)
+                ========================================== */}
             <Route path="member-portal" element={<Navigate to="/pilot/member-portal" replace />} />
             <Route path="pilot/member-portal" element={<Navigate to="/pilot/member-portal/lena" replace />} />
             <Route path="pilot/member-portal/:profileSlug" element={<PilotMemberPortal />} />
-            
-            {/* Pilot Admin Routes */}
-            <Route path="pilot" element={<AppLayout />}>
-              <Route index element={<Navigate to="/pilot/inbox" replace />} />
-              <Route path="inbox" element={<PilotInbox />} />
-              <Route path="chat-moderation" element={<ChatModeration />} />
-              <Route path="club-news" element={<ClubNews />} />
-            </Route>
-            
-            {/* Member Web Portal (Desktop) - supports profile param for Patrick/Lena */}
-            <Route path="member" element={<MemberWebPortal />} />
-            <Route path="member/:profile" element={<MemberWebPortal />} />
           </Routes>
         </BrowserRouter>
       </RoleProvider>
