@@ -5,7 +5,7 @@
  * The sidebar automatically shows member-specific menu items when on /member/* routes.
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Calendar,
@@ -491,18 +491,42 @@ export function MemberHome() {
 // ==========================================
 // MEMBER CALENDAR
 // ==========================================
+type MemberViewMode = "list" | "calendar";
+type EventTypeFilter = "all" | "training" | "match" | "event";
+
 export function MemberCalendar() {
   const { user } = useRole();
-  const [selectedDate] = useState<string | null>(null);
+  const { t, lang, getWeekday, getMonth } = useLanguage();
   
+  // State
+  const [viewMode, setViewMode] = useState<MemberViewMode>("list");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<EventTypeFilter>("all");
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [selectedEvent, setSelectedEvent] = useState<EnhancedEvent | null>(null);
+  
+  // Get user events
   const allEvents = getUserEvents(user.id);
-  const sortedEvents = [...allEvents].sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  
+  // Filter events
+  const filteredEvents = useMemo(() => {
+    let events = [...allEvents];
+    
+    // Type filter
+    if (typeFilter !== "all") {
+      events = events.filter(e => e.type === typeFilter);
+    }
+    
+    // Sort by date
+    events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    return events;
+  }, [allEvents, typeFilter]);
 
+  // Display events (filtered by selected date if applicable)
   const displayEvents = selectedDate 
-    ? sortedEvents.filter(e => e.date === selectedDate)
-    : sortedEvents;
+    ? filteredEvents.filter(e => e.date === selectedDate)
+    : filteredEvents;
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
@@ -516,93 +540,517 @@ export function MemberCalendar() {
   const getEventTypeLabel = (type: string) => {
     switch (type) {
       case "training": return "Training";
-      case "match": return "Spiel";
+      case "match": return lang === "de" ? "Spiel" : "Match";
       case "event": return "Event";
       default: return type;
     }
   };
 
+  const getRsvpStatusLabel = (status: string) => {
+    switch (status) {
+      case "confirmed": return lang === "de" ? "✓ Zugesagt" : "✓ Confirmed";
+      case "declined": return lang === "de" ? "✗ Abgesagt" : "✗ Declined";
+      case "pending": return lang === "de" ? "Ausstehend" : "Pending";
+      default: return status;
+    }
+  };
+
+  // Calendar helpers
+  const getCalendarDays = () => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startOffset = (firstDay.getDay() + 6) % 7;
+    
+    const days: { date: Date; isCurrentMonth: boolean; events: EnhancedEvent[] }[] = [];
+    
+    for (let i = startOffset - 1; i >= 0; i--) {
+      const date = new Date(year, month, -i);
+      days.push({ date, isCurrentMonth: false, events: [] });
+    }
+    
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      const date = new Date(year, month, i);
+      const dateStr = date.toISOString().split("T")[0];
+      const dayEvents = filteredEvents.filter(e => e.date === dateStr);
+      days.push({ date, isCurrentMonth: true, events: dayEvents });
+    }
+    
+    const remaining = 42 - days.length;
+    for (let i = 1; i <= remaining; i++) {
+      const date = new Date(year, month + 1, i);
+      days.push({ date, isCurrentMonth: false, events: [] });
+    }
+    
+    return days;
+  };
+
+  // Event detail modal
+  const renderEventDetail = () => {
+    if (!selectedEvent) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedEvent(null)}>
+        <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
+          {/* Banner */}
+          {selectedEvent.bannerImage && (
+            <div className="relative h-48">
+              <img 
+                src={selectedEvent.bannerImage} 
+                alt={selectedEvent.title}
+                className="w-full h-full object-cover"
+              />
+              <button 
+                onClick={() => setSelectedEvent(null)}
+                className="absolute top-3 left-3 p-2 bg-white/90 backdrop-blur rounded-full hover:bg-white"
+              >
+                <ChevronRight className="w-5 h-5 rotate-180" />
+              </button>
+            </div>
+          )}
+          
+          <div className="p-6">
+            {/* Type Badge */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getEventTypeColor(selectedEvent.type)}`}>
+                {selectedEvent.teamIcon} {getEventTypeLabel(selectedEvent.type)}
+              </span>
+              {selectedEvent.rsvp && (
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  selectedEvent.rsvp.status === "confirmed" ? "bg-green-100 text-green-700" :
+                  selectedEvent.rsvp.status === "declined" ? "bg-red-100 text-red-700" :
+                  "bg-amber-100 text-amber-700"
+                }`}>
+                  {getRsvpStatusLabel(selectedEvent.rsvp.status)}
+                </span>
+              )}
+            </div>
+            
+            {/* Title */}
+            <h2 className="text-2xl font-bold text-neutral-900 mb-4">{selectedEvent.title}</h2>
+            
+            {/* Details */}
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-3 text-neutral-600">
+                <Calendar className="w-5 h-5 text-neutral-400" />
+                <span>
+                  {new Date(selectedEvent.date).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { 
+                    weekday: "long", 
+                    day: "numeric", 
+                    month: "long", 
+                    year: "numeric" 
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-neutral-600">
+                <Clock className="w-5 h-5 text-neutral-400" />
+                <span>
+                  {selectedEvent.isAllDay 
+                    ? (lang === "de" ? "Ganztägig" : "All Day")
+                    : `${selectedEvent.startTime} - ${selectedEvent.endTime}`
+                  }
+                </span>
+              </div>
+              {selectedEvent.location && (
+                <div className="flex items-center gap-3 text-neutral-600">
+                  <MapPin className="w-5 h-5 text-neutral-400" />
+                  <span>{selectedEvent.location}</span>
+                </div>
+              )}
+              {selectedEvent.team && (
+                <div className="flex items-center gap-3 text-neutral-600">
+                  <span className="w-5 h-5 text-center">{selectedEvent.teamIcon}</span>
+                  <span>{selectedEvent.team}</span>
+                </div>
+              )}
+            </div>
+            
+            {/* Description */}
+            {selectedEvent.description && (
+              <p className="text-neutral-600 mb-6">{selectedEvent.description}</p>
+            )}
+            
+            {/* RSVP Section */}
+            {selectedEvent.rsvp && (
+              <div className="border-t border-neutral-200 pt-4">
+                <div className="flex items-center justify-between text-sm text-neutral-500 mb-3">
+                  <span>{selectedEvent.rsvp.confirmed}/{selectedEvent.rsvp.total} {lang === "de" ? "Zusagen" : "Confirmed"}</span>
+                  {selectedEvent.rsvp.deadline && (
+                    <span>{lang === "de" ? "Frist:" : "Deadline:"} {new Date(selectedEvent.rsvp.deadline).toLocaleDateString(lang === "de" ? "de-DE" : "en-US")}</span>
+                  )}
+                </div>
+                <div className="h-2 bg-neutral-100 rounded-full overflow-hidden mb-4">
+                  <div 
+                    className="h-full bg-teal-500 rounded-full"
+                    style={{ width: `${(selectedEvent.rsvp.confirmed / selectedEvent.rsvp.total) * 100}%` }}
+                  />
+                </div>
+                
+                {/* RSVP Actions */}
+                {selectedEvent.rsvp.required && selectedEvent.rsvp.status === "pending" && (
+                  <div className="flex gap-2">
+                    <Button className="flex-1" onClick={() => setSelectedEvent(null)}>
+                      {lang === "de" ? "Zusagen" : "Confirm"}
+                    </Button>
+                    <Button variant="outline" className="flex-1" onClick={() => setSelectedEvent(null)}>
+                      {lang === "de" ? "Absagen" : "Decline"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Termine</h1>
-        <p className="text-neutral-500">{displayEvents.length} anstehende Termine</p>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900">{t("nav.calendar")}</h1>
+          <p className="text-neutral-500 mt-1">
+            <span className="font-semibold text-neutral-800">{filteredEvents.length}</span> {lang === "de" ? "anstehende Termine" : "upcoming events"}
+          </p>
+        </div>
       </div>
 
-      {/* Events List */}
-      <div className="space-y-4">
-        {displayEvents.map((event) => (
-          <Card key={event.id} hover className="overflow-hidden">
-            {event.bannerImage && (
-              <img 
-                src={event.bannerImage} 
-                alt={event.title}
-                className="w-full h-32 object-cover"
-              />
-            )}
-            <div className="p-4">
-              <div className="flex items-start gap-3">
-                {/* Date Badge */}
-                <div className="flex-shrink-0 w-12 text-center">
-                  <div className="bg-teal-500 text-white rounded-t text-[10px] font-medium py-0.5">
-                    {new Date(event.date).toLocaleDateString("de-DE", { month: "short" })}
-                  </div>
-                  <div className="bg-white border border-t-0 border-neutral-200 rounded-b py-1">
-                    <p className="text-lg font-bold text-neutral-900">
-                      {new Date(event.date).getDate()}
-                    </p>
-                  </div>
-                </div>
-                {/* Event Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${getEventTypeColor(event.type)}`}>
-                      {event.teamIcon} {getEventTypeLabel(event.type)}
-                    </span>
-                    {event.rsvp && (
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        event.rsvp.status === "confirmed" ? "bg-green-100 text-green-700" :
-                        "bg-amber-100 text-amber-700"
-                      }`}>
-                        {event.rsvp.status === "confirmed" ? "✓ Zugesagt" : "Ausstehend"}
-                      </span>
-                    )}
-                  </div>
-                  <p className="font-semibold text-neutral-900">{event.title}</p>
-                  {event.description && (
-                    <p className="text-sm text-neutral-500 mt-1 line-clamp-2">{event.description}</p>
-                  )}
-                  <div className="flex items-center gap-4 mt-2 text-sm text-neutral-500">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {event.startTime} {event.endTime && `- ${event.endTime}`}
-                    </span>
-                    {event.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {event.location}
-                      </span>
-                    )}
-                  </div>
-                  {event.rsvp && (
-                    <div className="flex items-center gap-2 mt-3">
-                      <span className="text-xs text-neutral-500">
-                        {event.rsvp.confirmed}/{event.rsvp.total} Zusagen
-                      </span>
-                      <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-teal-500 rounded-full"
-                          style={{ width: `${(event.rsvp.confirmed / event.rsvp.total) * 100}%` }}
-                        />
+      {/* Toolbar */}
+      <Card className="!p-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Type Filter */}
+          <div className="flex gap-1">
+            {(["all", "training", "match", "event"] as EventTypeFilter[]).map((type) => (
+              <button
+                key={type}
+                onClick={() => setTypeFilter(type)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  typeFilter === type 
+                    ? "bg-teal-500 text-white" 
+                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                }`}
+              >
+                {type === "all" ? (lang === "de" ? "Alle" : "All") : getEventTypeLabel(type)}
+              </button>
+            ))}
+          </div>
+          
+          {/* View Toggle */}
+          <div className="flex border border-neutral-200 rounded-lg overflow-hidden sm:ml-auto">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`px-3 py-1.5 flex items-center gap-1.5 text-sm ${
+                viewMode === "list" ? "bg-teal-500 text-white" : "bg-white text-neutral-600 hover:bg-neutral-50"
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+              {t("views.list")}
+            </button>
+            <button
+              onClick={() => setViewMode("calendar")}
+              className={`px-3 py-1.5 flex items-center gap-1.5 text-sm ${
+                viewMode === "calendar" ? "bg-teal-500 text-white" : "bg-white text-neutral-600 hover:bg-neutral-50"
+              }`}
+            >
+              <Calendar className="w-4 h-4" />
+              {t("views.calendar")}
+            </button>
+          </div>
+        </div>
+      </Card>
+
+      {/* LIST VIEW */}
+      {viewMode === "list" && (
+        <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+          {/* Week Navigator */}
+          <div className="border-b border-neutral-200 p-3 bg-neutral-50">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    const newDate = new Date(calendarMonth);
+                    newDate.setDate(newDate.getDate() - 7);
+                    setCalendarMonth(newDate);
+                  }}
+                  className="p-1 hover:bg-white rounded"
+                >
+                  <ChevronRight className="w-4 h-4 text-neutral-500 rotate-180" />
+                </button>
+                <span className="text-sm font-medium text-neutral-700 min-w-[120px] text-center">
+                  {calendarMonth.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}
+                </span>
+                <button
+                  onClick={() => {
+                    const newDate = new Date(calendarMonth);
+                    newDate.setDate(newDate.getDate() + 7);
+                    setCalendarMonth(newDate);
+                  }}
+                  className="p-1 hover:bg-white rounded"
+                >
+                  <ChevronRight className="w-4 h-4 text-neutral-500" />
+                </button>
+                <button
+                  onClick={() => { setCalendarMonth(new Date()); setSelectedDate(null); }}
+                  className="ml-2 text-xs px-2 py-1 text-teal-600 hover:bg-teal-50 rounded"
+                >
+                  {t("common.today")}
+                </button>
+              </div>
+              
+              {selectedDate ? (
+                <button
+                  onClick={() => setSelectedDate(null)}
+                  className="text-xs px-2 py-1 bg-teal-500 text-white rounded flex items-center gap-1"
+                >
+                  {new Date(selectedDate).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
+                  <span className="ml-1">✕</span>
+                </button>
+              ) : (
+                <span className="text-xs text-neutral-500">{displayEvents.length} {lang === "de" ? "Termine" : "events"}</span>
+              )}
+            </div>
+            
+            {/* Week Strip */}
+            <div className="flex gap-1">
+              {(() => {
+                const startOfWeek = new Date(calendarMonth);
+                const dayOfWeek = startOfWeek.getDay();
+                const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                startOfWeek.setDate(startOfWeek.getDate() + diff);
+                
+                const days = [];
+                for (let i = 0; i < 7; i++) {
+                  const d = new Date(startOfWeek);
+                  d.setDate(d.getDate() + i);
+                  days.push(d);
+                }
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                return days.map((day, i) => {
+                  const dateStr = day.toISOString().split("T")[0];
+                  const isToday = day.toDateString() === today.toDateString();
+                  const dayEvents = filteredEvents.filter(e => e.date === dateStr);
+                  const hasEvents = dayEvents.length > 0;
+                  const isSelected = selectedDate === dateStr;
+                  
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedDate(isSelected ? null : dateStr)}
+                      className={`flex-1 py-1.5 rounded text-center transition-all ${
+                        isSelected 
+                          ? "bg-teal-500 text-white" 
+                          : isToday 
+                          ? "bg-teal-100 text-teal-700" 
+                          : hasEvents
+                          ? "bg-white hover:bg-neutral-100"
+                          : "hover:bg-white"
+                      }`}
+                    >
+                      <p className={`text-[10px] uppercase ${isSelected ? "text-white/70" : "text-neutral-400"}`}>
+                        {getWeekday(day)}
+                      </p>
+                      <p className={`text-sm font-bold ${isSelected ? "text-white" : isToday ? "text-teal-700" : "text-neutral-700"}`}>
+                        {day.getDate()}
+                      </p>
+                      {hasEvents && (
+                        <div className={`w-1 h-1 rounded-full mx-auto mt-0.5 ${isSelected ? "bg-white" : "bg-teal-500"}`} />
+                      )}
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+          
+          {/* Events List */}
+          <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 320px)" }}>
+            {displayEvents.length === 0 ? (
+              <div className="text-center py-16 px-4">
+                <Calendar className="w-12 h-12 text-neutral-200 mx-auto mb-3" />
+                <h3 className="text-base font-medium text-neutral-600">
+                  {selectedDate 
+                    ? (lang === "de" ? "Keine Termine an diesem Tag" : "No events on this day")
+                    : (lang === "de" ? "Keine Termine" : "No events")
+                  }
+                </h3>
+                <p className="text-sm text-neutral-400 mt-1">
+                  {selectedDate 
+                    ? (lang === "de" ? "Wähle einen anderen Tag" : "Select another day")
+                    : (lang === "de" ? "Alle Termine werden hier angezeigt" : "Your events will appear here")
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-neutral-100">
+                {displayEvents.map(event => (
+                  <div
+                    key={event.id}
+                    onClick={() => setSelectedEvent(event)}
+                    className="p-4 hover:bg-neutral-50 transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Date Badge */}
+                      <div className="flex-shrink-0 w-11 h-11 bg-teal-500 rounded-lg flex flex-col items-center justify-center text-white">
+                        <span className="text-[9px] font-medium leading-none opacity-80">
+                          {getMonth(new Date(event.date)).toUpperCase()}
+                        </span>
+                        <span className="text-lg font-bold leading-none">
+                          {new Date(event.date).getDate()}
+                        </span>
                       </div>
+                      
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        {/* Title + Type Row */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 ${getEventTypeColor(event.type)}`}>
+                              {event.teamIcon} {getEventTypeLabel(event.type)}
+                            </span>
+                            <h3 className="font-semibold text-neutral-800 group-hover:text-teal-600 transition-colors truncate">
+                              {event.title}
+                            </h3>
+                          </div>
+                          {/* RSVP Status */}
+                          {event.rsvp && (
+                            <span className={`flex-shrink-0 w-2 h-2 rounded-full ${
+                              event.rsvp.status === "confirmed" ? "bg-green-500" :
+                              event.rsvp.status === "declined" ? "bg-red-500" :
+                              "bg-amber-500"
+                            }`} title={getRsvpStatusLabel(event.rsvp.status)} />
+                          )}
+                        </div>
+                        
+                        {/* Meta Row */}
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-neutral-500">
+                          <span>
+                            {event.isAllDay 
+                              ? (lang === "de" ? "Ganztägig" : "All Day")
+                              : `${event.startTime} - ${event.endTime}`
+                            }
+                          </span>
+                          {event.location && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5" />
+                              <span className="truncate max-w-[180px]">{event.location}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Arrow */}
+                      <ChevronRight className="w-5 h-5 text-neutral-300 group-hover:text-neutral-500 flex-shrink-0" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* CALENDAR VIEW */}
+      {viewMode === "calendar" && (
+        <Card>
+          {/* Calendar Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}
+                className="p-2 hover:bg-neutral-100 rounded-lg"
+              >
+                <ChevronRight className="w-5 h-5 text-neutral-600 rotate-180" />
+              </button>
+              <h2 className="text-lg font-semibold text-neutral-800 min-w-[180px] text-center">
+                {calendarMonth.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}
+              </h2>
+              <button
+                onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))}
+                className="p-2 hover:bg-neutral-100 rounded-lg"
+              >
+                <ChevronRight className="w-5 h-5 text-neutral-600" />
+              </button>
+            </div>
+            <button
+              onClick={() => setCalendarMonth(new Date())}
+              className="text-sm px-3 py-1.5 text-teal-600 hover:bg-teal-50 rounded-lg"
+            >
+              {t("common.today")}
+            </button>
+          </div>
+          
+          {/* Weekday Headers */}
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {[lang === "de" ? "Mo" : "Mon", lang === "de" ? "Di" : "Tue", lang === "de" ? "Mi" : "Wed", lang === "de" ? "Do" : "Thu", lang === "de" ? "Fr" : "Fri", lang === "de" ? "Sa" : "Sat", lang === "de" ? "So" : "Sun"].map((day) => (
+              <div key={day} className="text-center text-xs font-medium text-neutral-500 py-2">
+                {day}
+              </div>
+            ))}
+          </div>
+          
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-1">
+            {getCalendarDays().map((day, idx) => {
+              const isToday = day.date.toDateString() === new Date().toDateString();
+              const dateStr = day.date.toISOString().split("T")[0];
+              const hasEvents = day.events.length > 0;
+              
+              return (
+                <div
+                  key={idx}
+                  onClick={() => setSelectedDate(dateStr)}
+                  className={`min-h-[80px] p-1 border rounded-lg cursor-pointer transition-colors ${
+                    day.isCurrentMonth 
+                      ? isToday 
+                        ? "bg-teal-50 border-teal-200" 
+                        : "bg-white border-neutral-200 hover:bg-neutral-50"
+                      : "bg-neutral-50 border-neutral-100"
+                  }`}
+                >
+                  <span className={`text-sm font-medium ${
+                    day.isCurrentMonth 
+                      ? isToday 
+                        ? "text-teal-700" 
+                        : "text-neutral-800"
+                      : "text-neutral-400"
+                  }`}>
+                    {day.date.getDate()}
+                  </span>
+                  {hasEvents && (
+                    <div className="mt-1 space-y-0.5">
+                      {day.events.slice(0, 2).map((event) => (
+                        <div
+                          key={event.id}
+                          onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); }}
+                          className={`text-[10px] px-1 py-0.5 rounded truncate ${getEventTypeColor(event.type)} cursor-pointer`}
+                        >
+                          {event.teamIcon} {event.title}
+                        </div>
+                      ))}
+                      {day.events.length > 2 && (
+                        <p className="text-[10px] text-neutral-400 pl-1">
+                          +{day.events.length - 2} {lang === "de" ? "mehr" : "more"}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+
+      {/* Event Detail Modal */}
+      {renderEventDetail()}
     </div>
   );
 }
