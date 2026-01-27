@@ -794,6 +794,7 @@ export function MemberWebPortal() {
   // ==========================================
   const [calendarViewMode, setCalendarViewMode] = useState<"list" | "calendar">("list");
   const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [selectedEventDate, setSelectedEventDate] = useState<string | null>(null);
   
   const renderCalendar = () => {
     // Group events by time sections
@@ -874,9 +875,12 @@ export function MemberWebPortal() {
     
     return (
       <div className="p-6 flex flex-col h-full">
-        {/* Header - Fixed */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-neutral-900">Kalender</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-neutral-900">Termine</h1>
+            <p className="text-sm text-neutral-500 mt-0.5">{MOCK_LENA_EVENTS.length} Termine</p>
+          </div>
           
           {/* View Toggle */}
           <div className="flex border border-neutral-200 rounded-lg overflow-hidden text-sm">
@@ -897,104 +901,201 @@ export function MemberWebPortal() {
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto">
-        
-        {/* LIST VIEW */}
+        {/* LIST VIEW - Clean Design */}
         {calendarViewMode === "list" && (
-          <div className="space-y-8">
-            {sections.filter(s => s.events.length > 0).map(section => (
-              <div key={section.key} className="space-y-4">
-                {/* Section Header - Subtle */}
-                <div className="flex items-center gap-2 mb-3">
-                  <span className={`w-2 h-2 rounded-full ${section.bgColor}`} />
-                  <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">{section.label}</span>
-                  <span className="text-xs text-neutral-400">({section.events.length})</span>
+          <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden flex-1 flex flex-col">
+            {/* Integrated Week Navigator */}
+            <div className="border-b border-neutral-200 p-3 bg-neutral-50">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      const newDate = new Date(calendarMonth);
+                      newDate.setDate(newDate.getDate() - 7);
+                      setCalendarMonth(newDate);
+                    }}
+                    className="p-1 hover:bg-white rounded"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-neutral-500" />
+                  </button>
+                  <span className="text-sm font-medium text-neutral-700 min-w-[100px] text-center">
+                    {calendarMonth.toLocaleDateString("de-DE", { month: "short", year: "numeric" })}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const newDate = new Date(calendarMonth);
+                      newDate.setDate(newDate.getDate() + 7);
+                      setCalendarMonth(newDate);
+                    }}
+                    className="p-1 hover:bg-white rounded"
+                  >
+                    <ChevronRight className="w-4 h-4 text-neutral-500" />
+                  </button>
+                  <button
+                    onClick={() => { setCalendarMonth(new Date()); setSelectedEventDate(null); }}
+                    className="ml-1 text-xs px-2 py-1 text-teal-600 hover:bg-teal-50 rounded"
+                  >
+                    Heute
+                  </button>
                 </div>
                 
-                {/* Events List - Vertical Cards with Calendar Badge */}
-                <div className="space-y-3">
-                  {section.events.map(event => (
-                    <div
-                      key={event.id}
-                      onClick={() => {
-                        setSelectedEvent(event);
-                        setView("event-detail");
-                      }}
-                      className="bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-md transition-all cursor-pointer group"
-                    >
-                      <div className="p-4">
-                        {/* Top Row: Date/Time + Type */}
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2 text-sm text-neutral-600">
-                            {/* Compact Calendar Badge */}
-                            <div className="flex-shrink-0 w-9 h-9 bg-teal-600 rounded-lg flex flex-col items-center justify-center text-white">
-                              <span className="text-[9px] font-medium leading-none">
-                                {new Date(event.date).toLocaleDateString("de-DE", { month: "short" }).toUpperCase()}
-                              </span>
-                              <span className="text-base font-bold leading-none">
-                                {new Date(event.date).getDate()}
+                {selectedEventDate ? (
+                  <button
+                    onClick={() => setSelectedEventDate(null)}
+                    className="text-xs px-2 py-1 bg-teal-600 text-white rounded flex items-center gap-1"
+                  >
+                    {new Date(selectedEventDate).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}
+                    <X className="w-3 h-3" />
+                  </button>
+                ) : (
+                  <span className="text-xs text-neutral-500">{MOCK_LENA_EVENTS.length} Termine</span>
+                )}
+              </div>
+              
+              {/* Compact Week Strip */}
+              <div className="flex gap-1">
+                {(() => {
+                  const startOfWeek = new Date(calendarMonth);
+                  const dayOfWeek = startOfWeek.getDay();
+                  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                  startOfWeek.setDate(startOfWeek.getDate() + diff);
+                  
+                  const days = [];
+                  for (let i = 0; i < 7; i++) {
+                    const d = new Date(startOfWeek);
+                    d.setDate(d.getDate() + i);
+                    days.push(d);
+                  }
+                  
+                  const todayDate = new Date();
+                  todayDate.setHours(0, 0, 0, 0);
+                  
+                  return days.map((day, i) => {
+                    const dateStr = day.toISOString().split("T")[0];
+                    const isToday = day.toDateString() === todayDate.toDateString();
+                    const dayEvents = MOCK_LENA_EVENTS.filter(e => e.date === dateStr);
+                    const hasEvents = dayEvents.length > 0;
+                    const isSelected = selectedEventDate === dateStr;
+                    
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setSelectedEventDate(isSelected ? null : dateStr)}
+                        className={`flex-1 py-1.5 rounded text-center transition-all ${
+                          isSelected 
+                            ? "bg-teal-600 text-white" 
+                            : isToday 
+                            ? "bg-teal-100 text-teal-700" 
+                            : hasEvents
+                            ? "bg-white hover:bg-neutral-100"
+                            : "hover:bg-white"
+                        }`}
+                      >
+                        <p className={`text-[10px] uppercase ${isSelected ? "text-white/70" : "text-neutral-400"}`}>
+                          {day.toLocaleDateString("de-DE", { weekday: "short" })}
+                        </p>
+                        <p className={`text-sm font-bold ${isSelected ? "text-white" : isToday ? "text-teal-700" : "text-neutral-700"}`}>
+                          {day.getDate()}
+                        </p>
+                        {hasEvents && (
+                          <div className={`w-1 h-1 rounded-full mx-auto mt-0.5 ${isSelected ? "bg-white" : "bg-teal-500"}`} />
+                        )}
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+            
+            {/* Events List */}
+            <div className="flex-1 overflow-y-auto">
+              {(() => {
+                const displayEvents = selectedEventDate 
+                  ? MOCK_LENA_EVENTS.filter(e => e.date === selectedEventDate)
+                  : MOCK_LENA_EVENTS;
+                  
+                if (displayEvents.length === 0) {
+                  return (
+                    <div className="text-center py-16 px-4">
+                      <Calendar className="w-12 h-12 text-neutral-200 mx-auto mb-3" />
+                      <p className="text-neutral-600 font-medium">
+                        {selectedEventDate ? "Keine Termine an diesem Tag" : "Keine Termine"}
+                      </p>
+                      <p className="text-sm text-neutral-400 mt-1">
+                        {selectedEventDate ? "Wähle einen anderen Tag" : "Deine Termine erscheinen hier"}
+                      </p>
+                    </div>
+                  );
+                }
+                
+                return (
+                  <div className="divide-y divide-neutral-100">
+                    {displayEvents.map(event => (
+                      <div
+                        key={event.id}
+                        onClick={() => {
+                          setSelectedEvent(event);
+                          setView("event-detail");
+                        }}
+                        className="p-4 hover:bg-neutral-50 transition-colors cursor-pointer group"
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Date Badge */}
+                          <div className="flex-shrink-0 w-10 h-10 bg-teal-600 rounded-lg flex flex-col items-center justify-center text-white">
+                            <span className="text-[9px] font-medium leading-none opacity-80">
+                              {new Date(event.date).toLocaleDateString("de-DE", { month: "short" }).toUpperCase()}
+                            </span>
+                            <span className="text-base font-bold leading-none">
+                              {new Date(event.date).getDate()}
+                            </span>
+                          </div>
+                          
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            {/* Title + Type */}
+                            <div className="flex items-center justify-between gap-2">
+                              <h3 className="font-semibold text-neutral-800 group-hover:text-teal-700 transition-colors truncate">
+                                {event.title}
+                              </h3>
+                              <span className={`flex-shrink-0 px-2 py-0.5 rounded text-xs font-medium ${getEventTypeColor(event.type)}`}>
+                                {getEventTypeLabel(event.type)}
                               </span>
                             </div>
                             
-                            <span className="font-medium">
-                              {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}.
-                            </span>
-                            {event.isAllDay ? (
-                              <span className="text-amber-600 font-medium">Ganztägig</span>
-                            ) : (
-                              <span className="text-neutral-500">{event.startTime} - {event.endTime}</span>
+                            {/* Meta */}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-neutral-500">
+                              <span>
+                                {event.isAllDay ? "Ganztägig" : `${event.startTime} - ${event.endTime}`}
+                              </span>
+                              {event.location && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-3.5 h-3.5" />
+                                  <span className="truncate max-w-[150px]">{event.location}</span>
+                                </span>
+                              )}
+                            </div>
+                            
+                            {/* RSVP - Subtle */}
+                            {event.rsvp && (
+                              <div className="flex items-center gap-2 mt-1 text-xs text-neutral-400">
+                                <span>{event.rsvp.confirmed}/{event.rsvp.total} bestätigt</span>
+                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                  event.rsvp.status === "confirmed" ? "bg-green-500" :
+                                  event.rsvp.status === "declined" ? "bg-red-500" : "bg-amber-400"
+                                }`} />
+                              </div>
                             )}
                           </div>
                           
-                          <span className={`flex-shrink-0 px-2 py-1 rounded-full text-xs font-medium ${getEventTypeColor(event.type)}`}>
-                            {getEventTypeLabel(event.type)}
-                          </span>
+                          {/* Arrow */}
+                          <ChevronRight className="w-5 h-5 text-neutral-300 group-hover:text-neutral-500 flex-shrink-0" />
                         </div>
-                        
-                        {/* Title */}
-                        <h3 className="font-semibold text-neutral-900 group-hover:text-teal-700 transition-colors">
-                          {event.title}
-                        </h3>
-                        <p className="text-sm text-neutral-500 mt-0.5">{event.team || event.department || "Vereinsweit"}</p>
-                        
-                        {/* Location */}
-                        {event.location && (
-                          <div className="flex items-center gap-1 text-sm text-neutral-500 mt-2">
-                            <MapPin className="w-3.5 h-3.5" />
-                            <span>{event.location}</span>
-                          </div>
-                        )}
-                        
-                        {/* RSVP Status - Subtle */}
-                        {event.rsvp && (
-                          <div className="flex items-center gap-2 mt-2 text-xs text-neutral-400">
-                            <span>{event.rsvp.confirmed}/{event.rsvp.total}</span>
-                            {event.rsvp.total > 0 && (
-                              <div className="w-16 h-1 bg-neutral-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-teal-400" style={{ width: `${(event.rsvp.confirmed / event.rsvp.total) * 100}%` }} />
-                              </div>
-                            )}
-                            <span className={`w-1.5 h-1.5 rounded-full ${
-                              event.rsvp.status === "confirmed" ? "bg-green-500" :
-                              event.rsvp.status === "declined" ? "bg-red-500" : "bg-amber-400"
-                            }`} />
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-            
-            {MOCK_LENA_EVENTS.length === 0 && (
-              <div className="text-center py-12 bg-white rounded-xl border border-neutral-200">
-                <Calendar className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-                <p className="text-neutral-600 font-medium">Keine Termine</p>
-                <p className="text-sm text-neutral-400 mt-1">Deine Termine erscheinen hier</p>
-              </div>
-            )}
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
           </div>
         )}
         
@@ -1069,7 +1170,6 @@ export function MemberWebPortal() {
             </div>
           </div>
         )}
-        </div>
       </div>
     );
   };
