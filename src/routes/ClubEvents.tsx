@@ -22,12 +22,16 @@ import {
   getStatusColor,
   createStatusHistoryEntry
 } from "../utils/eventUtils";
+import { useLanguage, LanguageToggle } from "../i18n";
 
 type ViewMode = "list" | "calendar";
 type TimeFilter = "upcoming" | "past" | "all";
 type CalendarViewMode = "day" | "week" | "month";
 
 export function ClubEvents() {
+  // i18n
+  const { t, lang, getMonth, getWeekday } = useLanguage();
+  
   // State
   const [events, setEvents] = useState<ClubEvent[]>(mockClubEvents);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -256,21 +260,24 @@ export function ClubEvents() {
       {/* Header with Stats Summary */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Vereinstermine</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-slate-800">{t("nav.clubEvents")}</h1>
+            <LanguageToggle />
+          </div>
           <div className="flex items-center gap-4 mt-2 text-sm">
             <span className="text-slate-500">
-              <span className="font-semibold text-slate-800">{stats.total}</span> Gesamt
+              <span className="font-semibold text-slate-800">{stats.total}</span> {t("events.total")}
             </span>
             <span className="text-[#004941]">
-              <span className="font-semibold">{stats.upcoming}</span> Anstehend
+              <span className="font-semibold">{stats.upcoming}</span> {t("events.upcoming")}
             </span>
             <span className="text-slate-500">
-              <span className="font-semibold text-slate-600">{stats.draft}</span> Entwürfe
+              <span className="font-semibold text-slate-600">{stats.draft}</span> {t("events.drafts")}
             </span>
           </div>
         </div>
         <Button icon={<Plus className="w-4 h-4" />} onClick={() => handleOpenCreate()}>
-          Neue Veranstaltung
+          {t("events.newEvent")}
         </Button>
       </div>
 
@@ -282,7 +289,7 @@ export function ClubEvents() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Suchen..."
+              placeholder={`${t("common.search")}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941] focus:border-transparent"
@@ -296,10 +303,10 @@ export function ClubEvents() {
               onChange={(e) => setStatusFilter(e.target.value as EventStatus | "")}
               className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
             >
-              <option value="">Alle Status</option>
-              <option value="draft">Entwurf</option>
-              <option value="published">Veröffentlicht</option>
-              <option value="cancelled">Abgesagt</option>
+              <option value="">{t("events.allStatus")}</option>
+              <option value="draft">{t("events.draft")}</option>
+              <option value="published">{t("events.published")}</option>
+              <option value="cancelled">{t("events.cancelled")}</option>
             </select>
             
             <select
@@ -307,9 +314,9 @@ export function ClubEvents() {
               onChange={(e) => setVisibilityFilter(e.target.value as EventVisibility | "")}
               className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
             >
-              <option value="">Sichtbarkeit</option>
-              <option value="public">Öffentlich</option>
-              <option value="private">Privat</option>
+              <option value="">{t("events.visibility")}</option>
+              <option value="public">{t("events.public")}</option>
+              <option value="private">{t("events.private")}</option>
             </select>
 
             {/* View Toggle */}
@@ -321,7 +328,7 @@ export function ClubEvents() {
                 }`}
               >
                 <List className="w-4 h-4" />
-                Liste
+                {t("views.list")}
               </button>
               <button
                 onClick={() => setViewMode("calendar")}
@@ -330,7 +337,7 @@ export function ClubEvents() {
                 }`}
               >
                 <Grid3X3 className="w-4 h-4" />
-                Kalender
+                {t("views.calendar")}
               </button>
             </div>
           </div>
@@ -355,7 +362,7 @@ export function ClubEvents() {
                   <ChevronLeft className="w-4 h-4 text-slate-500" />
                 </button>
                 <span className="text-sm font-medium text-slate-700 min-w-[120px] text-center">
-                  {calendarMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}
+                  {calendarMonth.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}
                 </span>
                 <button
                   onClick={() => {
@@ -371,7 +378,7 @@ export function ClubEvents() {
                   onClick={() => { setCalendarMonth(new Date()); setSelectedDate(null); }}
                   className="ml-2 text-xs px-2 py-1 text-[#004941] hover:bg-[#C8F2E0] rounded"
                 >
-                  Heute
+                  {t("common.today")}
                 </button>
               </div>
               
@@ -380,11 +387,11 @@ export function ClubEvents() {
                   onClick={() => setSelectedDate(null)}
                   className="text-xs px-2 py-1 bg-[#004941] text-white rounded flex items-center gap-1"
                 >
-                  {new Date(selectedDate).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}
+                  {new Date(selectedDate).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
                   <XCircle className="w-3 h-3" />
                 </button>
               ) : (
-                <span className="text-xs text-slate-500">{filteredEvents.length} Events</span>
+                <span className="text-xs text-slate-500">{filteredEvents.length} {t("nav.events")}</span>
               )}
             </div>
             
@@ -428,7 +435,7 @@ export function ClubEvents() {
                       }`}
                     >
                       <p className={`text-[10px] uppercase ${isSelected ? "text-white/70" : "text-slate-400"}`}>
-                        {day.toLocaleDateString("de-DE", { weekday: "short" })}
+                        {getWeekday(day)}
                       </p>
                       <p className={`text-sm font-bold ${isSelected ? "text-white" : isToday ? "text-[#004941]" : "text-slate-700"}`}>
                         {day.getDate()}
@@ -455,7 +462,7 @@ export function ClubEvents() {
                   <div className="text-center py-16 px-4">
                     <CalendarIcon className="w-12 h-12 text-slate-200 mx-auto mb-3" />
                     <h3 className="text-base font-medium text-slate-600">
-                      {selectedDate ? "Keine Events an diesem Tag" : "Keine Events gefunden"}
+                      {selectedDate ? t("events.noEventsOnDay") : t("events.noEvents")}
                     </h3>
                     <p className="text-sm text-slate-400 mt-1 mb-4">
                       {selectedDate 
@@ -484,7 +491,7 @@ export function ClubEvents() {
                           {/* Date Badge */}
                           <div className="flex-shrink-0 w-11 h-11 bg-[#004941] rounded-lg flex flex-col items-center justify-center text-white">
                             <span className="text-[9px] font-medium leading-none opacity-80">
-                              {new Date(event.date).toLocaleDateString("de-DE", { month: "short" }).toUpperCase()}
+                              {getMonth(new Date(event.date)).toUpperCase()}
                             </span>
                             <span className="text-lg font-bold leading-none">
                               {new Date(event.date).getDate()}
@@ -508,7 +515,7 @@ export function ClubEvents() {
                             {/* Meta Row */}
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-500">
                               <span>
-                                {event.isAllDay ? "Ganztägig" : `${event.startTime} - ${event.endTime}`}
+                                {event.isAllDay ? t("common.allDay") : `${event.startTime} - ${event.endTime}`}
                               </span>
                               {event.location && (
                                 <span className="flex items-center gap-1">
@@ -522,7 +529,7 @@ export function ClubEvents() {
                               </span>
                               {event.rsvpRequired && event.rsvpStats && event.rsvpStats.invited > 0 && (
                                 <span className="text-xs text-slate-400">
-                                  {event.rsvpStats.confirmed}/{event.rsvpStats.invited} bestätigt
+                                  {event.rsvpStats.confirmed}/{event.rsvpStats.invited} {t("common.confirmed")}
                                 </span>
                               )}
                             </div>
@@ -538,14 +545,14 @@ export function ClubEvents() {
                             <button
                               onClick={(e) => { e.stopPropagation(); handleEdit(event); }}
                               className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded"
-                              title="Bearbeiten"
+                              title={t("common.edit")}
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleDuplicate(event); }}
                               className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded"
-                              title="Kopieren"
+                              title={t("events.duplicate")}
                             >
                               <Copy className="w-4 h-4" />
                             </button>
@@ -553,7 +560,7 @@ export function ClubEvents() {
                               <button
                                 onClick={(e) => { e.stopPropagation(); handlePublish(event); }}
                                 className="p-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-100 rounded"
-                                title="Veröffentlichen"
+                                title={t("events.publish")}
                               >
                                 <Send className="w-4 h-4" />
                               </button>
@@ -591,10 +598,10 @@ export function ClubEvents() {
               </button>
               <h2 className="text-lg font-semibold text-slate-800 min-w-[200px] text-center">
                 {calendarViewMode === "day" 
-                  ? calendarMonth.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+                  ? calendarMonth.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
                   : calendarViewMode === "week"
-                  ? `KW ${Math.ceil((calendarMonth.getDate() - calendarMonth.getDay() + 1) / 7)} - ${calendarMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}`
-                  : calendarMonth.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}
+                  ? `${lang === "de" ? "KW" : "W"} ${Math.ceil((calendarMonth.getDate() - calendarMonth.getDay() + 1) / 7)} - ${calendarMonth.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}`
+                  : calendarMonth.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}
               </h2>
               <button
                 onClick={() => {
@@ -618,19 +625,19 @@ export function ClubEvents() {
                 onClick={() => setCalendarViewMode("day")}
                 className={`px-3 py-1.5 ${calendarViewMode === "day" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
               >
-                Tag
+                {t("views.day")}
               </button>
               <button
                 onClick={() => setCalendarViewMode("week")}
                 className={`px-3 py-1.5 ${calendarViewMode === "week" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
               >
-                Woche
+                {t("views.week")}
               </button>
               <button
                 onClick={() => setCalendarViewMode("month")}
                 className={`px-3 py-1.5 ${calendarViewMode === "month" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
               >
-                Monat
+                {t("views.month")}
               </button>
             </div>
           </div>
@@ -639,7 +646,7 @@ export function ClubEvents() {
           {calendarViewMode === "month" && (
           <div className="grid grid-cols-7 gap-px bg-slate-200 rounded-lg overflow-hidden">
             {/* Weekday Headers */}
-            {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(day => (
+            {[t("weekdays.mon"), t("weekdays.tue"), t("weekdays.wed"), t("weekdays.thu"), t("weekdays.fri"), t("weekdays.sat"), t("weekdays.sun")].map(day => (
               <div key={day} className="bg-slate-50 p-2 text-center text-sm font-medium text-slate-600">
                 {day}
               </div>
@@ -718,7 +725,7 @@ export function ClubEvents() {
                       className={`min-h-[300px] bg-slate-50 rounded-lg p-2 cursor-pointer hover:bg-[#C8F2E0]/20 ${isToday ? "ring-2 ring-[#004941]" : ""}`}
                     >
                       <div className="text-center mb-2">
-                        <p className="text-xs text-slate-500">{day.date.toLocaleDateString("de-DE", { weekday: "short" })}</p>
+                        <p className="text-xs text-slate-500">{getWeekday(day.date)}</p>
                         <p className={`text-lg font-bold ${isToday ? "text-[#004941]" : "text-slate-700"}`}>{day.date.getDate()}</p>
                       </div>
                       <div className="space-y-1">
@@ -731,7 +738,7 @@ export function ClubEvents() {
                               className={`w-full text-left p-1.5 rounded text-xs ${colors.bg} ${colors.text} hover:opacity-80`}
                             >
                               <p className="font-medium truncate">{event.title}</p>
-                              <p className="opacity-70">{event.isAllDay ? "Ganztägig" : event.startTime}</p>
+                              <p className="opacity-70">{event.isAllDay ? t("common.allDay") : event.startTime}</p>
                             </button>
                           );
                         })}
@@ -755,15 +762,15 @@ export function ClubEvents() {
                 onClick={() => handleOpenCreate(dateStr)}
               >
                 <div className={`text-center mb-4 pb-3 border-b border-slate-200 ${isToday ? "text-[#004941]" : ""}`}>
-                  <p className="text-sm text-slate-500">{calendarMonth.toLocaleDateString("de-DE", { weekday: "long" })}</p>
+                  <p className="text-sm text-slate-500">{calendarMonth.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "long" })}</p>
                   <p className="text-3xl font-bold">{calendarMonth.getDate()}</p>
                 </div>
                 
                 {dayEvents.length === 0 ? (
                   <div className="text-center py-8 text-slate-400">
                     <CalendarIcon className="w-8 h-8 mx-auto mb-2" />
-                    <p>Keine Termine</p>
-                    <p className="text-xs mt-1">Klicken zum Erstellen</p>
+                    <p>{t("events.noEvents")}</p>
+                    <p className="text-xs mt-1">{lang === "de" ? "Klicken zum Erstellen" : "Click to create"}</p>
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-[400px] overflow-y-auto">
@@ -783,7 +790,7 @@ export function ClubEvents() {
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold truncate">{event.title}</p>
                               <p className="text-sm opacity-70">
-                                {event.isAllDay ? "Ganztägig" : `${event.startTime} - ${event.endTime}`}
+                                {event.isAllDay ? t("common.allDay") : `${event.startTime} - ${event.endTime}`}
                                 {event.location && ` · ${event.location}`}
                               </p>
                             </div>

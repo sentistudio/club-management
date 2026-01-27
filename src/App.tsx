@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "./components/layout";
+import { LanguageProvider } from "./i18n";
 import { 
   Dashboard, 
   Members, 
@@ -31,8 +32,9 @@ function App() {
   const basename = import.meta.env.BASE_URL;
   
   return (
-    <BrowserRouter basename={basename}>
-      <Routes>
+    <LanguageProvider>
+      <BrowserRouter basename={basename}>
+        <Routes>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
@@ -91,7 +93,8 @@ function App() {
         {/* Member Web Portal (Desktop version for members like Lena) */}
         <Route path="member" element={<MemberWebPortal />} />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </LanguageProvider>
   );
 }
 

@@ -28,6 +28,7 @@ import {
   Shield,
   List
 } from "lucide-react";
+import { useLanguage, LanguageToggle } from "../../i18n";
 import { mockTicketForms } from "../../data/mockInbox";
 import { 
   getChatMessages, 
@@ -426,12 +427,14 @@ interface MemberSidebarProps {
 }
 
 function MemberSidebar({ activeView, onNavigate, profile, unreadMessages }: MemberSidebarProps) {
+  const { t } = useLanguage();
+  
   const navItems = [
-    { id: "home" as ViewState, icon: Home, label: "Übersicht" },
-    { id: "calendar" as ViewState, icon: Calendar, label: "Kalender" },
-    { id: "chats" as ViewState, icon: MessageSquare, label: "Nachrichten", badge: unreadMessages },
-    { id: "news" as ViewState, icon: Newspaper, label: "Club News" },
-    { id: "profile" as ViewState, icon: User, label: "Mein Profil" },
+    { id: "home" as ViewState, icon: Home, label: t("nav.home"), badge: 0 },
+    { id: "calendar" as ViewState, icon: Calendar, label: t("nav.events"), badge: 0 },
+    { id: "chats" as ViewState, icon: MessageSquare, label: t("nav.chats"), badge: unreadMessages },
+    { id: "news" as ViewState, icon: Newspaper, label: t("nav.news"), badge: 0 },
+    { id: "profile" as ViewState, icon: User, label: t("memberPortal.myProfile"), badge: 0 },
   ];
 
   return (
@@ -442,7 +445,7 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages }: Memb
           <span className="text-white font-bold text-lg">cb</span>
         </div>
         <div>
-          <p className="text-sm font-medium text-neutral-900">Mitglieder-Portal</p>
+          <p className="text-sm font-medium text-neutral-900">{t("nav.memberPortal")}</p>
           <p className="text-xs text-neutral-500">Sportfreunde Burkhardsfelden</p>
         </div>
       </div>
@@ -509,8 +512,9 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages }: Memb
             `}
           >
             <Settings className="w-5 h-5" />
-            <span>Einstellungen</span>
+            <span>{t("nav.settings")}</span>
           </button>
+          <LanguageToggle className="mt-2 justify-center" />
         </div>
       </nav>
 
@@ -539,6 +543,9 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages }: Memb
 // MAIN COMPONENT
 // ==========================================
 export function MemberWebPortal() {
+  // i18n
+  const { t, lang, getWeekday } = useLanguage();
+  
   const [view, setView] = useState<ViewState>("home");
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [selectedForm, setSelectedForm] = useState<typeof mockTicketForms[0] | null>(null);
@@ -620,7 +627,7 @@ export function MemberWebPortal() {
           />
           <div>
             <h1 className="text-2xl font-bold">Hallo, {profile.firstName}!</h1>
-            <p className="text-teal-100">Willkommen bei {profile.clubName}</p>
+            <p className="text-teal-100">{t("memberPortal.welcome")} {profile.clubName}</p>
           </div>
         </div>
       </div>
@@ -634,7 +641,7 @@ export function MemberWebPortal() {
             </div>
             <div>
               <p className="text-2xl font-bold text-neutral-900">{profile.stats.termine}</p>
-              <p className="text-sm text-neutral-500">Termine</p>
+              <p className="text-sm text-neutral-500">{t("nav.events")}</p>
             </div>
           </div>
         </div>
@@ -645,7 +652,7 @@ export function MemberWebPortal() {
             </div>
             <div>
               <p className="text-2xl font-bold text-neutral-900">{profile.stats.nachrichten}</p>
-              <p className="text-sm text-neutral-500">Nachrichten</p>
+              <p className="text-sm text-neutral-500">{t("nav.chats")}</p>
             </div>
           </div>
         </div>
@@ -688,7 +695,7 @@ export function MemberWebPortal() {
       {/* Upcoming Events */}
       <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
         <div className="p-4 border-b border-neutral-200 flex items-center justify-between">
-          <h2 className="font-semibold text-neutral-900">Nächste Termine</h2>
+          <h2 className="font-semibold text-neutral-900">{t("memberPortal.upcomingEvents")}</h2>
           <button 
             onClick={() => setView("calendar")}
             className="text-sm text-teal-600 hover:text-teal-700 font-medium"
@@ -719,7 +726,7 @@ export function MemberWebPortal() {
               <div className="p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-teal-700">
-                    {new Date(event.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}
+                    {new Date(event.date).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
                   </span>
                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${getEventTypeColor(event.type)}`}>
                     {getEventTypeLabel(event.type)}
@@ -728,7 +735,7 @@ export function MemberWebPortal() {
                 <p className="font-medium text-neutral-900 truncate text-sm">{event.title}</p>
                 <div className="flex items-center gap-2 mt-1.5 text-xs text-neutral-500">
                   <Clock className="w-3 h-3" />
-                  <span>{event.isAllDay ? "Ganztägig" : event.startTime}</span>
+                  <span>{event.isAllDay ? t("common.allDay") : event.startTime}</span>
                   {event.location && (
                     <>
                       <span>•</span>
@@ -878,8 +885,8 @@ export function MemberWebPortal() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-neutral-900">Termine</h1>
-            <p className="text-sm text-neutral-500 mt-0.5">{MOCK_LENA_EVENTS.length} Termine</p>
+            <h1 className="text-2xl font-bold text-neutral-900">{t("nav.events")}</h1>
+            <p className="text-sm text-neutral-500 mt-0.5">{MOCK_LENA_EVENTS.length} {t("nav.events")}</p>
           </div>
           
           {/* View Toggle */}
@@ -889,14 +896,14 @@ export function MemberWebPortal() {
               className={`px-3 py-1.5 flex items-center gap-1.5 ${calendarViewMode === "list" ? "bg-teal-600 text-white" : "bg-white text-neutral-600 hover:bg-neutral-50"}`}
             >
               <List className="w-4 h-4" />
-              Liste
+              {t("views.list")}
             </button>
             <button
               onClick={() => setCalendarViewMode("calendar")}
               className={`px-3 py-1.5 flex items-center gap-1.5 ${calendarViewMode === "calendar" ? "bg-teal-600 text-white" : "bg-white text-neutral-600 hover:bg-neutral-50"}`}
             >
               <Calendar className="w-4 h-4" />
-              Kalender
+              {t("views.calendar")}
             </button>
           </div>
         </div>
@@ -919,7 +926,7 @@ export function MemberWebPortal() {
                     <ChevronLeft className="w-4 h-4 text-neutral-500" />
                   </button>
                   <span className="text-sm font-medium text-neutral-700 min-w-[100px] text-center">
-                    {calendarMonth.toLocaleDateString("de-DE", { month: "short", year: "numeric" })}
+                    {calendarMonth.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "short", year: "numeric" })}
                   </span>
                   <button
                     onClick={() => {
@@ -935,7 +942,7 @@ export function MemberWebPortal() {
                     onClick={() => { setCalendarMonth(new Date()); setSelectedEventDate(null); }}
                     className="ml-1 text-xs px-2 py-1 text-teal-600 hover:bg-teal-50 rounded"
                   >
-                    Heute
+                    {t("common.today")}
                   </button>
                 </div>
                 
@@ -944,11 +951,11 @@ export function MemberWebPortal() {
                     onClick={() => setSelectedEventDate(null)}
                     className="text-xs px-2 py-1 bg-teal-600 text-white rounded flex items-center gap-1"
                   >
-                    {new Date(selectedEventDate).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}
+                    {new Date(selectedEventDate).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
                     <X className="w-3 h-3" />
                   </button>
                 ) : (
-                  <span className="text-xs text-neutral-500">{MOCK_LENA_EVENTS.length} Termine</span>
+                  <span className="text-xs text-neutral-500">{MOCK_LENA_EVENTS.length} {t("nav.events")}</span>
                 )}
               </div>
               
@@ -992,7 +999,7 @@ export function MemberWebPortal() {
                         }`}
                       >
                         <p className={`text-[10px] uppercase ${isSelected ? "text-white/70" : "text-neutral-400"}`}>
-                          {day.toLocaleDateString("de-DE", { weekday: "short" })}
+                          {getWeekday(day)}
                         </p>
                         <p className={`text-sm font-bold ${isSelected ? "text-white" : isToday ? "text-teal-700" : "text-neutral-700"}`}>
                           {day.getDate()}
@@ -1019,10 +1026,10 @@ export function MemberWebPortal() {
                     <div className="text-center py-16 px-4">
                       <Calendar className="w-12 h-12 text-neutral-200 mx-auto mb-3" />
                       <p className="text-neutral-600 font-medium">
-                        {selectedEventDate ? "Keine Termine an diesem Tag" : "Keine Termine"}
+                        {selectedEventDate ? t("events.noEventsOnDay") : t("events.noEvents")}
                       </p>
                       <p className="text-sm text-neutral-400 mt-1">
-                        {selectedEventDate ? "Wähle einen anderen Tag" : "Deine Termine erscheinen hier"}
+                        {selectedEventDate ? t("events.selectAnotherDay") : t("events.noEventsDesc")}
                       </p>
                     </div>
                   );
@@ -1065,7 +1072,7 @@ export function MemberWebPortal() {
                             {/* Meta */}
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-neutral-500">
                               <span>
-                                {event.isAllDay ? "Ganztägig" : `${event.startTime} - ${event.endTime}`}
+                                {event.isAllDay ? t("common.allDay") : `${event.startTime} - ${event.endTime}`}
                               </span>
                               {event.location && (
                                 <span className="flex items-center gap-1">
@@ -1078,7 +1085,7 @@ export function MemberWebPortal() {
                             {/* RSVP - Subtle */}
                             {event.rsvp && (
                               <div className="flex items-center gap-2 mt-1 text-xs text-neutral-400">
-                                <span>{event.rsvp.confirmed}/{event.rsvp.total} bestätigt</span>
+                                <span>{event.rsvp.confirmed}/{event.rsvp.total} {t("common.confirmed")}</span>
                                 <span className={`w-1.5 h-1.5 rounded-full ${
                                   event.rsvp.status === "confirmed" ? "bg-green-500" :
                                   event.rsvp.status === "declined" ? "bg-red-500" : "bg-amber-400"
@@ -1187,7 +1194,7 @@ export function MemberWebPortal() {
           className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Zurück zum Kalender</span>
+          <span>{t("memberPortal.backToCalendar")}</span>
         </button>
 
         <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
@@ -1215,7 +1222,7 @@ export function MemberWebPortal() {
                   </span>
                   {selectedEvent.isAllDay && (
                     <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
-                      Ganztägig
+                      {t("common.allDay")}
                     </span>
                   )}
                 </div>
@@ -1231,7 +1238,7 @@ export function MemberWebPortal() {
               <Calendar className="w-5 h-5 text-neutral-400" />
               <div>
                 <p className="font-medium text-neutral-900">
-                  {new Date(selectedEvent.date).toLocaleDateString("de-DE", { 
+                  {new Date(selectedEvent.date).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { 
                     weekday: "long", 
                     day: "numeric", 
                     month: "long", 
@@ -1330,7 +1337,7 @@ export function MemberWebPortal() {
   const renderChats = () => (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-neutral-900">Nachrichten</h1>
+        <h1 className="text-2xl font-bold text-neutral-900">{t("nav.chats")}</h1>
         <button 
           onClick={() => setView("new-request")}
           className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
@@ -1355,10 +1362,10 @@ export function MemberWebPortal() {
       {/* Tabs */}
       <div className="flex gap-2 p-1 bg-neutral-100 rounded-xl">
         {[
-          { id: "announcements", label: "Ankündigungen" },
-          { id: "team", label: "Team-Chats" },
-          { id: "direct", label: "Direktnachrichten" },
-          { id: "requests", label: "Anfragen" }
+          { id: "announcements", label: t("memberPortal.announcements") },
+          { id: "team", label: t("memberPortal.teamChats") },
+          { id: "direct", label: t("memberPortal.directMessages") },
+          { id: "requests", label: t("memberPortal.requests") }
         ].map((tab) => (
           <button
             key={tab.id}
@@ -1379,7 +1386,7 @@ export function MemberWebPortal() {
         {chatTab === "requests" ? (
           <div className="p-8 text-center">
             <MessageSquare className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-            <p className="text-neutral-600 font-medium">Keine offenen Anfragen</p>
+            <p className="text-neutral-600 font-medium">{lang === "de" ? "Keine offenen Anfragen" : "No open requests"}</p>
             <p className="text-sm text-neutral-400 mt-1">Erstelle eine neue Anfrage an den Verein</p>
             <button 
               onClick={() => setView("new-request")}
