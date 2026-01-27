@@ -767,6 +767,20 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages, curren
         </div>
       </nav>
 
+      {/* Admin Portal Link (for Patrick) */}
+      {currentProfileKey === "patrick" && (
+        <div className="px-4 pb-2">
+          <a
+            href={`${import.meta.env.BASE_URL}dashboard`}
+            className="flex items-center gap-3 px-3 py-2.5 text-sm text-teal-600 hover:bg-teal-50 rounded-lg transition-colors border border-teal-200"
+          >
+            <Shield className="w-4 h-4" />
+            <span className="font-medium">Zur Admin-Ansicht</span>
+            <ChevronRight className="w-4 h-4 ml-auto" />
+          </a>
+        </div>
+      )}
+
       {/* User Profile with Profile Switcher */}
       <div className="p-4 border-t border-neutral-200 relative">
         <button 
@@ -789,7 +803,7 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages, curren
           <RefreshCw className="w-4 h-4 text-neutral-400" />
         </button>
 
-        {/* Profile Switcher Dropdown */}
+        {/* Profile Switcher Dropdown (Demo) */}
         {showProfileSwitcher && (
           <>
             <div 

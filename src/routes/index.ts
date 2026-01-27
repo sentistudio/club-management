@@ -1,6 +1,5 @@
 // Dashboard
 export { Dashboard } from "./Dashboard";
-export { UnifiedDashboard } from "./UnifiedDashboard";
 
 // Vereinsverwaltung
 export { Members } from "./Members";

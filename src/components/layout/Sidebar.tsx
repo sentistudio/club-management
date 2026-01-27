@@ -268,10 +268,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           ))}
         </nav>
 
-        {/* Member Portal & Demo Links */}
+        {/* Member Portal Links */}
         <div className="px-4 pb-2 space-y-1">
           <p className="px-3 pt-2 pb-1 text-xs font-medium text-neutral-400 uppercase tracking-wide">
-            Mitglieder-Portale
+            Mitglieder-Ansicht
           </p>
           <a
             href={`${import.meta.env.BASE_URL}${memberPortalPath}`}
@@ -279,43 +279,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             className="flex items-center gap-3 px-3 py-2 text-sm text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
-            <span>Mobile App (Lena)</span>
-          </a>
-          <a
-            href={`${import.meta.env.BASE_URL}member`}
-            target="_blank"
-            className="flex items-center gap-3 px-3 py-2 text-sm text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
-          >
-            <ExternalLink className="w-4 h-4" />
-            <span>Desktop Portal (Lena)</span>
+            <span>Mobile App</span>
           </a>
           <a
             href={`${import.meta.env.BASE_URL}member/patrick`}
             target="_blank"
-            className="flex items-center gap-3 px-3 py-2 text-sm text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+            className="flex items-center gap-3 px-3 py-2 text-sm text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
-            <span>Desktop Portal (Patrick)</span>
+            <span>Desktop Portal</span>
           </a>
-          
-          <p className="px-3 pt-3 pb-1 text-xs font-medium text-neutral-400 uppercase tracking-wide">
-            Demo: Dual-Role UX
-          </p>
-          <NavLink
-            to="/unified-dashboard"
-            className={({ isActive }) => `
-              flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors
-              ${isActive 
-                ? "bg-gradient-to-r from-teal-50 to-violet-50 text-teal-700 font-medium" 
-                : "text-neutral-600 hover:bg-neutral-100"
-              }
-            `}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-            </svg>
-            <span>Unified Dashboard</span>
-          </NavLink>
         </div>
 
         {/* User Profile */}

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export type UserRole = "admin" | "member";
 
@@ -70,21 +71,42 @@ export function useRole() {
 export function RoleSwitcher({ className = "" }: { className?: string }) {
   const { user, activeRole, setActiveRole, canSwitchRoles } = useRole();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   if (!canSwitchRoles) return null;
+
+  // Check if we're in the member portal
+  const isInMemberPortal = location.pathname.startsWith("/member");
 
   const roleConfig = {
     admin: { 
       label: "Administrator", 
       labelEn: "Administrator",
       icon: "🛡️",
-      color: "bg-teal-600"
+      description: "Vereinsverwaltung & alle Funktionen",
+      descriptionEn: "Club management & all features"
     },
     member: { 
       label: "Mitglied", 
       labelEn: "Member",
       icon: "👤",
-      color: "bg-violet-600"
+      description: "Persönliche Termine & Nachrichten",
+      descriptionEn: "Personal events & messages"
+    }
+  };
+
+  const handleRoleSwitch = (role: UserRole) => {
+    setActiveRole(role);
+    setIsOpen(false);
+    
+    // Navigate based on role selection
+    if (role === "member" && !isInMemberPortal) {
+      // Switch to member portal as Patrick
+      navigate("/member/patrick");
+    } else if (role === "admin" && isInMemberPortal) {
+      // Switch to admin dashboard
+      navigate("/dashboard");
     }
   };
 
@@ -109,7 +131,7 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)} 
           />
-          <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden z-50">
+          <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden z-50">
             {/* Header */}
             <div className="px-4 py-3 bg-neutral-50 border-b border-neutral-200">
               <div className="flex items-center gap-3">
@@ -127,16 +149,13 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
 
             {/* Role Options */}
             <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-neutral-500 uppercase tracking-wide">
+              <p className="px-2 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wide">
                 Ansicht wechseln
               </p>
               {(Object.keys(roleConfig) as UserRole[]).map((role) => (
                 <button
                   key={role}
-                  onClick={() => {
-                    setActiveRole(role);
-                    setIsOpen(false);
-                  }}
+                  onClick={() => handleRoleSwitch(role)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
                     activeRole === role 
                       ? "bg-teal-50 text-teal-700" 
@@ -147,10 +166,7 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
                   <div className="flex-1">
                     <p className="font-medium">{roleConfig[role].label}</p>
                     <p className="text-xs text-neutral-500">
-                      {role === "admin" 
-                        ? "Vereinsverwaltung & alle Funktionen" 
-                        : "Persönliche Termine & Nachrichten"
-                      }
+                      {roleConfig[role].description}
                     </p>
                   </div>
                   {activeRole === role && (
@@ -160,6 +176,13 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
                   )}
                 </button>
               ))}
+            </div>
+
+            {/* Info Footer */}
+            <div className="px-4 py-3 bg-neutral-50 border-t border-neutral-200">
+              <p className="text-xs text-neutral-500">
+                💡 Als Admin & Mitglied kannst du zwischen beiden Ansichten wechseln.
+              </p>
             </div>
           </div>
         </>

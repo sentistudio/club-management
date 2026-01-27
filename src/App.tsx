@@ -24,7 +24,6 @@ import { Matches } from "./routes/Matches";
 import { Documents } from "./routes/Documents";
 import { Inbox } from "./routes/Inbox";
 import { ClubNews } from "./routes/ClubNews";
-import { UnifiedDashboard } from "./routes/UnifiedDashboard";
 import { PilotInbox, PilotMemberPortal, ChatModeration, MemberWebPortal } from "./routes/pilot";
 
 function App() {
@@ -39,9 +38,6 @@ function App() {
             <Route path="/" element={<AppLayout />}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
-              
-              {/* Demo: Unified Dashboard (Role-Based Sections) */}
-              <Route path="unified-dashboard" element={<UnifiedDashboard />} />
               
               {/* Vereinsverwaltung */}
               <Route path="members" element={<Members />} />
