@@ -279,6 +279,21 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
                     </div>
                   </div>
                 )}
+                
+                {/* Recurrence - Right after date/time for better context */}
+                <RecurrenceEditor
+                  enabled={formData.recurrenceEnabled}
+                  frequency={formData.recurrenceFrequency}
+                  weekdays={formData.recurrenceWeekdays}
+                  until={formData.recurrenceUntil}
+                  startDate={formData.date}
+                  startTime={formData.startTime}
+                  endTime={formData.endTime}
+                  onEnabledChange={(val) => setFormData({ ...formData, recurrenceEnabled: val })}
+                  onFrequencyChange={(val) => setFormData({ ...formData, recurrenceFrequency: val })}
+                  onWeekdaysChange={(val) => setFormData({ ...formData, recurrenceWeekdays: val })}
+                  onUntilChange={(val) => setFormData({ ...formData, recurrenceUntil: val })}
+                />
               </div>
             </div>
 
@@ -395,29 +410,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
               />
             </div>
 
-            {/* Divider */}
-            <hr className="border-slate-200" />
-
-            {/* Recurrence Section */}
-            <div>
-              <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wide mb-4">
-                Wiederholung
-              </h3>
-              <RecurrenceEditor
-                enabled={formData.recurrenceEnabled}
-                frequency={formData.recurrenceFrequency}
-                weekdays={formData.recurrenceWeekdays}
-                until={formData.recurrenceUntil}
-                startDate={formData.date}
-                startTime={formData.startTime}
-                endTime={formData.endTime}
-                onEnabledChange={(val) => setFormData({ ...formData, recurrenceEnabled: val })}
-                onFrequencyChange={(val) => setFormData({ ...formData, recurrenceFrequency: val })}
-                onWeekdaysChange={(val) => setFormData({ ...formData, recurrenceWeekdays: val })}
-                onUntilChange={(val) => setFormData({ ...formData, recurrenceUntil: val })}
-              />
-            </div>
-          </div>
+                      </div>
         </div>
 
         {/* Footer */}
