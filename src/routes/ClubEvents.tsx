@@ -7,7 +7,7 @@ import {
   Plus, Search, Calendar as CalendarIcon, List, Grid3X3,
   Edit2, Copy, Send, XCircle,
   ChevronLeft, ChevronRight, Users, MapPin,
-  Lock, Globe, RefreshCw, Filter, Eye
+  Lock, RefreshCw
 } from "lucide-react";
 import { Card, Button } from "../components/ui";
 import { EventDetailDrawer, EventFormDrawer } from "../components/events";
@@ -32,12 +32,12 @@ export function ClubEvents() {
   const [events, setEvents] = useState<ClubEvent[]>(mockClubEvents);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchTerm, setSearchTerm] = useState("");
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>("upcoming");
+  const [timeFilter] = useState<TimeFilter>("upcoming");
   const [statusFilter, setStatusFilter] = useState<EventStatus | "">("");
   const [visibilityFilter, setVisibilityFilter] = useState<EventVisibility | "">("");
-  const [audienceFilter, setAudienceFilter] = useState<AudienceMode | "">("");
-  const [departmentFilter, setDepartmentFilter] = useState("");
-  const [groupFilter, setGroupFilter] = useState("");
+  const [audienceFilter] = useState<AudienceMode | "">("");
+  const [departmentFilter] = useState("");
+  const [groupFilter] = useState("");
   
   // Calendar state
   const [calendarMonth, setCalendarMonth] = useState(new Date());
@@ -566,7 +566,6 @@ export function ClubEvents() {
                 );
               })()}
             </div>
-          </div>
         </div>
       )}
 
