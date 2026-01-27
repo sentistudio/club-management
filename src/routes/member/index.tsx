@@ -48,6 +48,7 @@ interface EnhancedEvent {
     deadline?: string;
     required: boolean;
     confirmed: number;
+    maybe: number;
     declined: number;
     pending: number;
     total: number;
@@ -78,8 +79,9 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
       status: "confirmed",
       required: true,
       confirmed: 14,
+      maybe: 1,
       declined: 2,
-      pending: 2,
+      pending: 1,
       total: 18
     },
     organizer: {
@@ -100,9 +102,10 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
     scope: "club",
     bannerImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop",
     rsvp: {
-      status: "confirmed",
+      status: "maybe",
       required: true,
-      confirmed: 6,
+      confirmed: 5,
+      maybe: 1,
       declined: 1,
       pending: 1,
       total: 8
@@ -130,9 +133,10 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
       status: "pending",
       deadline: "2026-01-30",
       required: true,
-      confirmed: 12,
+      confirmed: 11,
+      maybe: 2,
       declined: 3,
-      pending: 3,
+      pending: 2,
       total: 18
     },
     organizer: {
@@ -157,8 +161,9 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
       deadline: "2026-02-10",
       required: false,
       confirmed: 67,
+      maybe: 42,
       declined: 23,
-      pending: 304,
+      pending: 262,
       total: 394
     }
   }
@@ -183,7 +188,8 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     rsvp: {
       status: "confirmed",
       required: true,
-      confirmed: 12,
+      confirmed: 11,
+      maybe: 1,
       declined: 2,
       pending: 1,
       total: 15
@@ -212,9 +218,10 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
       status: "pending",
       deadline: "2026-01-28",
       required: true,
-      confirmed: 8,
+      confirmed: 7,
+      maybe: 2,
       declined: 3,
-      pending: 5,
+      pending: 4,
       total: 16
     },
     organizer: {
@@ -240,7 +247,8 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     rsvp: {
       status: "confirmed",
       required: true,
-      confirmed: 14,
+      confirmed: 13,
+      maybe: 1,
       declined: 1,
       pending: 1,
       total: 16
@@ -258,12 +266,13 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     scope: "club",
     bannerImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop",
     rsvp: {
-      status: "pending",
+      status: "maybe",
       deadline: "2026-02-10",
       required: false,
       confirmed: 67,
+      maybe: 42,
       declined: 23,
-      pending: 304,
+      pending: 262,
       total: 394
     }
   }
@@ -550,6 +559,7 @@ export function MemberCalendar() {
     switch (status) {
       case "confirmed": return lang === "de" ? "✓ Zugesagt" : "✓ Confirmed";
       case "declined": return lang === "de" ? "✗ Abgesagt" : "✗ Declined";
+      case "maybe": return lang === "de" ? "? Vielleicht" : "? Maybe";
       case "pending": return lang === "de" ? "Ausstehend" : "Pending";
       default: return status;
     }
@@ -620,6 +630,7 @@ export function MemberCalendar() {
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                   selectedEvent.rsvp.status === "confirmed" ? "bg-green-100 text-green-700" :
                   selectedEvent.rsvp.status === "declined" ? "bg-red-100 text-red-700" :
+                  selectedEvent.rsvp.status === "maybe" ? "bg-violet-100 text-violet-700" :
                   "bg-amber-100 text-amber-700"
                 }`}>
                   {getRsvpStatusLabel(selectedEvent.rsvp.status)}
@@ -688,14 +699,40 @@ export function MemberCalendar() {
                 </div>
                 
                 {/* RSVP Actions */}
-                {selectedEvent.rsvp.required && selectedEvent.rsvp.status === "pending" && (
-                  <div className="flex gap-2">
-                    <Button className="flex-1" onClick={() => setSelectedEvent(null)}>
-                      {lang === "de" ? "Zusagen" : "Confirm"}
-                    </Button>
-                    <Button variant="outline" className="flex-1" onClick={() => setSelectedEvent(null)}>
-                      {lang === "de" ? "Absagen" : "Decline"}
-                    </Button>
+                {selectedEvent.rsvp.required && (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <button 
+                        className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${
+                          selectedEvent.rsvp.status === "confirmed" 
+                            ? "bg-green-600 text-white" 
+                            : "bg-neutral-100 text-neutral-700 hover:bg-green-100"
+                        }`}
+                        onClick={() => setSelectedEvent(null)}
+                      >
+                        {lang === "de" ? "Zusagen" : "Confirm"}
+                      </button>
+                      <button 
+                        className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${
+                          selectedEvent.rsvp.status === "maybe" 
+                            ? "bg-violet-600 text-white" 
+                            : "bg-neutral-100 text-neutral-700 hover:bg-violet-100"
+                        }`}
+                        onClick={() => setSelectedEvent(null)}
+                      >
+                        {lang === "de" ? "Vielleicht" : "Maybe"}
+                      </button>
+                      <button 
+                        className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${
+                          selectedEvent.rsvp.status === "declined" 
+                            ? "bg-red-600 text-white" 
+                            : "bg-neutral-100 text-neutral-700 hover:bg-red-100"
+                        }`}
+                        onClick={() => setSelectedEvent(null)}
+                      >
+                        {lang === "de" ? "Absagen" : "Decline"}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -924,6 +961,7 @@ export function MemberCalendar() {
                             <span className={`flex-shrink-0 w-2 h-2 rounded-full ${
                               event.rsvp.status === "confirmed" ? "bg-green-500" :
                               event.rsvp.status === "declined" ? "bg-red-500" :
+                              event.rsvp.status === "maybe" ? "bg-violet-500" :
                               "bg-amber-500"
                             }`} title={getRsvpStatusLabel(event.rsvp.status)} />
                           )}

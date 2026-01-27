@@ -101,6 +101,7 @@ interface EnhancedEvent {
     deadline?: string;
     required: boolean;
     confirmed: number;
+    maybe: number;
     declined: number;
     pending: number;
     total: number;
@@ -286,7 +287,8 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     rsvp: {
       status: "confirmed",
       required: true,
-      confirmed: 12,
+      confirmed: 11,
+      maybe: 1,
       declined: 2,
       pending: 1,
       total: 15
@@ -312,12 +314,13 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     team: "Frauen Ü40",
     bannerImage: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop",
     rsvp: {
-      status: "pending",
+      status: "maybe",
       deadline: "2026-01-27",
       required: true,
-      confirmed: 8,
+      confirmed: 7,
+      maybe: 2,
       declined: 3,
-      pending: 5,
+      pending: 4,
       total: 16
     },
     organizer: {
@@ -343,7 +346,8 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     rsvp: {
       status: "confirmed",
       required: true,
-      confirmed: 14,
+      confirmed: 13,
+      maybe: 1,
       declined: 1,
       pending: 1,
       total: 16
@@ -370,8 +374,9 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
       deadline: "2026-02-10",
       required: false,
       confirmed: 67,
+      maybe: 42,
       declined: 23,
-      pending: 304,
+      pending: 262,
       total: 394
     },
     organizer: {
@@ -396,8 +401,9 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
       deadline: "2026-02-18",
       required: true,
       confirmed: 89,
+      maybe: 35,
       declined: 45,
-      pending: 260,
+      pending: 225,
       total: 394
     },
     organizer: {
@@ -422,8 +428,9 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
       deadline: "2026-01-28",
       required: true,
       confirmed: 34,
+      maybe: 15,
       declined: 12,
-      pending: 110,
+      pending: 95,
       total: 156
     },
     organizer: {
@@ -453,8 +460,9 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
       status: "confirmed",
       required: true,
       confirmed: 14,
+      maybe: 1,
       declined: 2,
-      pending: 2,
+      pending: 1,
       total: 18
     },
     organizer: {
@@ -479,6 +487,7 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
       status: "confirmed",
       required: true,
       confirmed: 6,
+      maybe: 0,
       declined: 1,
       pending: 1,
       total: 8
@@ -506,9 +515,10 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
       status: "pending",
       deadline: "2026-01-30",
       required: true,
-      confirmed: 12,
+      confirmed: 11,
+      maybe: 2,
       declined: 3,
-      pending: 3,
+      pending: 2,
       total: 18
     },
     organizer: {
@@ -533,8 +543,9 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
       deadline: "2026-02-10",
       required: false,
       confirmed: 67,
+      maybe: 42,
       declined: 23,
-      pending: 304,
+      pending: 262,
       total: 394
     },
     organizer: {
@@ -559,8 +570,9 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
       deadline: "2026-02-18",
       required: true,
       confirmed: 89,
+      maybe: 35,
       declined: 45,
-      pending: 260,
+      pending: 225,
       total: 394
     },
     organizer: {
@@ -585,8 +597,9 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
       deadline: "2026-03-10",
       required: true,
       confirmed: 23,
+      maybe: 12,
       declined: 8,
-      pending: 120,
+      pending: 108,
       total: 151
     },
     organizer: {
@@ -1074,7 +1087,8 @@ export function MemberWebPortal() {
                     <span>{event.rsvp.confirmed}/{event.rsvp.total}</span>
                     <span className={`w-1.5 h-1.5 rounded-full ${
                       event.rsvp.status === "confirmed" ? "bg-green-500" :
-                      event.rsvp.status === "declined" ? "bg-red-500" : "bg-amber-400"
+                      event.rsvp.status === "declined" ? "bg-red-500" :
+                      event.rsvp.status === "maybe" ? "bg-violet-500" : "bg-amber-400"
                     }`} />
                   </div>
                 )}
@@ -1413,7 +1427,8 @@ export function MemberWebPortal() {
                                 <span>{event.rsvp.confirmed}/{event.rsvp.total} {t("common.confirmed")}</span>
                                 <span className={`w-1.5 h-1.5 rounded-full ${
                                   event.rsvp.status === "confirmed" ? "bg-green-500" :
-                                  event.rsvp.status === "declined" ? "bg-red-500" : "bg-amber-400"
+                                  event.rsvp.status === "declined" ? "bg-red-500" :
+                                  event.rsvp.status === "maybe" ? "bg-violet-500" : "bg-amber-400"
                                 }`} />
                               </div>
                             )}
@@ -1615,36 +1630,48 @@ export function MemberWebPortal() {
             {selectedEvent.rsvp && selectedEvent.rsvp.required && (
               <div className="pt-4 border-t border-neutral-200">
                 <h3 className="font-medium text-neutral-900 mb-3">Teilnahme</h3>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex-1 bg-neutral-100 rounded-lg p-3 text-center">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex-1 bg-neutral-100 rounded-lg p-2 text-center">
                     <p className="text-lg font-bold text-green-600">{selectedEvent.rsvp.confirmed}</p>
-                    <p className="text-xs text-neutral-500">Zugesagt</p>
+                    <p className="text-[10px] text-neutral-500">Zugesagt</p>
                   </div>
-                  <div className="flex-1 bg-neutral-100 rounded-lg p-3 text-center">
+                  <div className="flex-1 bg-neutral-100 rounded-lg p-2 text-center">
+                    <p className="text-lg font-bold text-violet-600">{selectedEvent.rsvp.maybe || 0}</p>
+                    <p className="text-[10px] text-neutral-500">Vielleicht</p>
+                  </div>
+                  <div className="flex-1 bg-neutral-100 rounded-lg p-2 text-center">
                     <p className="text-lg font-bold text-red-600">{selectedEvent.rsvp.declined}</p>
-                    <p className="text-xs text-neutral-500">Abgesagt</p>
+                    <p className="text-[10px] text-neutral-500">Abgesagt</p>
                   </div>
-                  <div className="flex-1 bg-neutral-100 rounded-lg p-3 text-center">
+                  <div className="flex-1 bg-neutral-100 rounded-lg p-2 text-center">
                     <p className="text-lg font-bold text-amber-600">{selectedEvent.rsvp.pending}</p>
-                    <p className="text-xs text-neutral-500">Ausstehend</p>
+                    <p className="text-[10px] text-neutral-500">Ausstehend</p>
                   </div>
                 </div>
                 
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <button className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${
                     selectedEvent.rsvp.status === "confirmed" 
                       ? "bg-green-600 text-white" 
                       : "bg-neutral-100 text-neutral-700 hover:bg-green-100"
                   }`}>
-                    <Check className="w-4 h-4 inline mr-2" />
+                    <Check className="w-4 h-4 inline mr-1" />
                     Zusagen
+                  </button>
+                  <button className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${
+                    selectedEvent.rsvp.status === "maybe" 
+                      ? "bg-violet-600 text-white" 
+                      : "bg-neutral-100 text-neutral-700 hover:bg-violet-100"
+                  }`}>
+                    <span className="inline mr-1">?</span>
+                    Vielleicht
                   </button>
                   <button className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${
                     selectedEvent.rsvp.status === "declined" 
                       ? "bg-red-600 text-white" 
                       : "bg-neutral-100 text-neutral-700 hover:bg-red-100"
                   }`}>
-                    <X className="w-4 h-4 inline mr-2" />
+                    <X className="w-4 h-4 inline mr-1" />
                     Absagen
                   </button>
                 </div>
