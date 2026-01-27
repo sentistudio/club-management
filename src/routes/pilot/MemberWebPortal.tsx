@@ -67,7 +67,7 @@ interface MemberProfile {
     date: string;
     time: string;
     location?: string;
-    type: "training" | "match" | "event" | "course";
+    type: "training" | "match" | "event";
     teamIcon?: string;
     status?: "confirmed" | "unconfirmed" | "booked" | "free_spots";
     attendees?: number;
@@ -87,7 +87,7 @@ interface EnhancedEvent {
   startTime: string;
   endTime?: string;
   location?: string;
-  type: "training" | "match" | "event" | "course" | "meeting" | "tournament";
+  type: "training" | "match" | "event";
   teamIcon?: string;
   scope: "team" | "department" | "club";
   department?: string;
@@ -285,7 +285,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     startTime: "18:00",
     endTime: "20:00",
     location: "Vereinsheim - Großer Saal",
-    type: "meeting",
+    type: "event",
     scope: "club",
     bannerImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop",
     rsvp: {
@@ -337,7 +337,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     startTime: "19:00",
     endTime: "21:00",
     location: "Vereinsheim - Sitzungszimmer",
-    type: "meeting",
+    type: "event",
     scope: "department",
     department: "Fußball",
     rsvp: {
@@ -589,13 +589,12 @@ export function MemberWebPortal() {
   }, [chatTab, searchTerm]);
 
   // Event helpers
+  // Types: training (from team schedule), match (from team schedule), event (from admin-created club events)
   const getEventTypeColor = (type: string) => {
     switch (type) {
       case "training": return "bg-teal-100 text-teal-700";
       case "match": return "bg-orange-100 text-orange-700";
       case "event": return "bg-violet-100 text-violet-700";
-      case "meeting": return "bg-blue-100 text-blue-700";
-      case "course": return "bg-amber-100 text-amber-700";
       default: return "bg-neutral-100 text-neutral-700";
     }
   };
@@ -603,10 +602,8 @@ export function MemberWebPortal() {
   const getEventTypeLabel = (type: string) => {
     switch (type) {
       case "training": return "Training";
-      case "match": return "Spiel";
+      case "match": return lang === "de" ? "Spiel" : "Match";
       case "event": return "Event";
-      case "meeting": return "Versammlung";
-      case "course": return "Kurs";
       default: return type;
     }
   };
