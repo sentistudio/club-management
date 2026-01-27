@@ -22,7 +22,7 @@ import {
   getStatusColor,
   createStatusHistoryEntry
 } from "../utils/eventUtils";
-import { useLanguage, LanguageToggle } from "../i18n";
+import { useLanguage } from "../i18n";
 
 type ViewMode = "list" | "calendar";
 type TimeFilter = "upcoming" | "past" | "all";
@@ -262,7 +262,6 @@ export function ClubEvents() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-slate-800">{t("nav.clubEvents")}</h1>
-            <LanguageToggle />
           </div>
           <div className="flex items-center gap-4 mt-2 text-sm">
             <span className="text-slate-500">

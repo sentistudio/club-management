@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Menu, Globe, Bell, Inbox, Clock, CheckCircle, X, Check } from "lucide-react";
+import { Menu, Bell, Inbox, Clock, CheckCircle, X, Check } from "lucide-react";
 import { SearchInput } from "../ui/Input";
 import { mockNotifications } from "../../data/mockInbox";
 import type { Notification } from "../../data/mockInbox";
+import { useLanguage } from "../../i18n";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -10,6 +11,7 @@ interface TopbarProps {
 }
 
 export function Topbar({ onMenuClick, actions }: TopbarProps) {
+  const { lang, setLang } = useLanguage();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -72,10 +74,24 @@ export function Topbar({ onMenuClick, actions }: TopbarProps) {
         {actions}
 
         {/* Language Selector */}
-        <button className="flex items-center gap-1.5 px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors">
-          <Globe className="w-4 h-4" />
-          <span className="hidden sm:inline">DE</span>
-        </button>
+        <div className="flex items-center border border-neutral-200 rounded-lg overflow-hidden">
+          <button
+            onClick={() => setLang("de")}
+            className={`px-2 py-1.5 text-xs font-medium transition-colors ${
+              lang === "de" ? "bg-[#004941] text-white" : "text-neutral-500 hover:bg-neutral-100"
+            }`}
+          >
+            DE
+          </button>
+          <button
+            onClick={() => setLang("en")}
+            className={`px-2 py-1.5 text-xs font-medium transition-colors ${
+              lang === "en" ? "bg-[#004941] text-white" : "text-neutral-500 hover:bg-neutral-100"
+            }`}
+          >
+            EN
+          </button>
+        </div>
 
         {/* Notifications */}
         <div className="relative" ref={notifRef}>

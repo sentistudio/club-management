@@ -28,7 +28,7 @@ import {
   Shield,
   List
 } from "lucide-react";
-import { useLanguage, LanguageToggle } from "../../i18n";
+import { useLanguage } from "../../i18n";
 import { mockTicketForms } from "../../data/mockInbox";
 import { 
   getChatMessages, 
@@ -514,7 +514,6 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages }: Memb
             <Settings className="w-5 h-5" />
             <span>{t("nav.settings")}</span>
           </button>
-          <LanguageToggle className="mt-2 justify-center" />
         </div>
       </nav>
 
@@ -1788,9 +1787,11 @@ export function MemberWebPortal() {
   // ==========================================
   // RENDER: SETTINGS VIEW
   // ==========================================
+  const { lang: currentLang, setLang } = useLanguage();
+  
   const renderSettings = () => (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-neutral-900">Einstellungen</h1>
+      <h1 className="text-2xl font-bold text-neutral-900">{t("nav.settings")}</h1>
 
       <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
         <div className="divide-y divide-neutral-100">
@@ -1798,11 +1799,28 @@ export function MemberWebPortal() {
             <div className="flex items-center gap-3">
               <Globe className="w-5 h-5 text-neutral-400" />
               <div>
-                <p className="font-medium text-neutral-900">Sprache</p>
-                <p className="text-sm text-neutral-500">Deutsch</p>
+                <p className="font-medium text-neutral-900">{currentLang === "de" ? "Sprache" : "Language"}</p>
+                <p className="text-sm text-neutral-500">{currentLang === "de" ? "Deutsch / English" : "German / English"}</p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-neutral-400" />
+            <div className="flex items-center border border-neutral-200 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setLang("de")}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                  currentLang === "de" ? "bg-teal-600 text-white" : "text-neutral-500 hover:bg-neutral-100"
+                }`}
+              >
+                DE
+              </button>
+              <button
+                onClick={() => setLang("en")}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                  currentLang === "en" ? "bg-teal-600 text-white" : "text-neutral-500 hover:bg-neutral-100"
+                }`}
+              >
+                EN
+              </button>
+            </div>
           </div>
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
