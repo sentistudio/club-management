@@ -149,7 +149,7 @@ const memberNavSections: NavSection[] = [
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const { user, activeRole } = useRole();
+  const { activeRole } = useRole();
   
   // Select navigation based on active role
   const navSections = activeRole === "admin" ? adminNavSections : memberNavSections;

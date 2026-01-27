@@ -322,7 +322,6 @@ export function MemberHome() {
   const navigate = useNavigate();
 
   const upcomingEvents = getUserEvents(user.id).slice(0, 3);
-  const memberships = getUserMemberships(user.id);
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
