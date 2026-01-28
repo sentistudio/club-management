@@ -134,19 +134,20 @@ const adminNavSections: NavSection[] = [
 ];
 
 // Member navigation sections
+// Use consistent labels with admin nav for shared features
 const memberNavSections: NavSection[] = [
   {
     items: [
       { to: "/member", icon: Home, label: "Startseite" },
-      { to: "/member/calendar", icon: Calendar, label: "Termine" },
+      { to: "/member/calendar", icon: Calendar, label: "Veranstaltungen" }, // Matches admin "Veranstaltungen"
       { to: "/member/chats", icon: MessageSquare, label: "Nachrichten" },
-      { to: "/member/news", icon: Newspaper, label: "Neuigkeiten" },
+      { to: "/member/news", icon: Newspaper, label: "Club News" }, // Matches admin "Club News"
     ]
   },
   {
     items: [
       { to: "/member/profile", icon: User, label: "Mein Profil" },
-      { to: "/member/settings", icon: Settings, label: "Einstellungen" },
+      { to: "/member/settings", icon: Settings, label: "Einstellungen" }, // Matches admin "Einstellungen"
     ]
   }
 ];

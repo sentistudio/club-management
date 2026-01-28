@@ -328,6 +328,7 @@ const MOCK_CLUB_NEWS = [
 // ==========================================
 export function MemberHome() {
   const { user } = useRole();
+  const { t, lang } = useLanguage();
   const navigate = useNavigate();
 
   const upcomingEvents = getUserEvents(user.id).slice(0, 3);
@@ -344,7 +345,7 @@ export function MemberHome() {
   const getEventTypeLabel = (type: string) => {
     switch (type) {
       case "training": return "Training";
-      case "match": return "Spiel";
+      case "match": return lang === "de" ? "Spiel" : "Match";
       case "event": return "Event";
       default: return type;
     }
@@ -361,8 +362,8 @@ export function MemberHome() {
             className="w-16 h-16 rounded-full border-2 border-white/30"
           />
           <div>
-            <h1 className="text-2xl font-bold">Hallo, {user.firstName}!</h1>
-            <p className="text-teal-100">Willkommen im Mitglieder-Portal</p>
+            <h1 className="text-2xl font-bold">{lang === "de" ? `Hallo, ${user.firstName}!` : `Hello, ${user.firstName}!`}</h1>
+            <p className="text-teal-100">{lang === "de" ? "Willkommen im Mitglieder-Portal" : "Welcome to the Member Portal"}</p>
           </div>
         </div>
       </div>
@@ -372,17 +373,17 @@ export function MemberHome() {
         <Card className="text-center">
           <Calendar className="w-8 h-8 text-teal-500 mx-auto mb-2" />
           <p className="text-2xl font-bold text-neutral-900">{upcomingEvents.length}</p>
-          <p className="text-sm text-neutral-500">Termine</p>
+          <p className="text-sm text-neutral-500">{t("nav.events")}</p>
         </Card>
         <Card className="text-center">
           <MessageSquare className="w-8 h-8 text-blue-500 mx-auto mb-2" />
           <p className="text-2xl font-bold text-neutral-900">3</p>
-          <p className="text-sm text-neutral-500">Nachrichten</p>
+          <p className="text-sm text-neutral-500">{t("nav.chats")}</p>
         </Card>
         <Card className="text-center">
           <Shield className="w-8 h-8 text-violet-500 mx-auto mb-2" />
           <p className="text-2xl font-bold text-neutral-900">2</p>
-          <p className="text-sm text-neutral-500">Teams</p>
+          <p className="text-sm text-neutral-500">{t("nav.teams")}</p>
         </Card>
       </div>
 
@@ -390,9 +391,9 @@ export function MemberHome() {
       <Card padding="none">
         <div className="p-5 border-b border-neutral-100">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-neutral-900">Nächste Termine</h2>
+            <h2 className="font-semibold text-neutral-900">{t("memberPortal.upcomingEvents")}</h2>
             <Button variant="ghost" size="sm" onClick={() => navigate("/member/calendar")}>
-              Alle anzeigen
+              {t("common.showAll")}
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
@@ -1097,18 +1098,19 @@ export function MemberCalendar() {
 // MEMBER CHATS (Placeholder)
 // ==========================================
 export function MemberChats() {
+  const { t, lang } = useLanguage();
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Nachrichten</h1>
-        <p className="text-neutral-500">Team-Chats und Direktnachrichten</p>
+        <h1 className="text-2xl font-bold text-neutral-900">{t("nav.chats")}</h1>
+        <p className="text-neutral-500">{lang === "de" ? "Team-Chats und Direktnachrichten" : "Team chats and direct messages"}</p>
       </div>
       
       <Card className="p-12 text-center">
         <MessageSquare className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
-        <p className="text-neutral-500">Nachrichten-Funktionalität wird hier angezeigt</p>
+        <p className="text-neutral-500">{lang === "de" ? "Nachrichten-Funktionalität wird hier angezeigt" : "Messages functionality will be shown here"}</p>
         <p className="text-sm text-neutral-400 mt-2">
-          Team-Ankündigungen, Gruppen-Chats und Direktnachrichten
+          {lang === "de" ? "Team-Ankündigungen, Gruppen-Chats und Direktnachrichten" : "Team announcements, group chats and direct messages"}
         </p>
       </Card>
     </div>
@@ -1119,11 +1121,12 @@ export function MemberChats() {
 // MEMBER NEWS
 // ==========================================
 export function MemberNews() {
+  const { t, lang } = useLanguage();
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Neuigkeiten</h1>
-        <p className="text-neutral-500">Aktuelle Vereinsnachrichten</p>
+        <h1 className="text-2xl font-bold text-neutral-900">{t("nav.news")}</h1>
+        <p className="text-neutral-500">{lang === "de" ? "Aktuelle Vereinsnachrichten" : "Latest club news"}</p>
       </div>
 
       <div className="grid gap-4">
@@ -1162,11 +1165,12 @@ export function MemberNews() {
 // ==========================================
 export function MemberProfile() {
   const { user } = useRole();
+  const { t, lang } = useLanguage();
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Mein Profil</h1>
+        <h1 className="text-2xl font-bold text-neutral-900">{t("nav.profile")}</h1>
       </div>
 
       {/* Profile Card */}
@@ -1183,7 +1187,7 @@ export function MemberProfile() {
             </h2>
             <p className="text-neutral-500">{user.email}</p>
             <div className="flex items-center gap-2 mt-2">
-              <Badge variant="teal">Aktives Mitglied</Badge>
+              <Badge variant="teal">{lang === "de" ? "Aktives Mitglied" : "Active Member"}</Badge>
               {user.roles.includes("admin") && <Badge variant="info">Admin</Badge>}
             </div>
           </div>
@@ -1193,7 +1197,7 @@ export function MemberProfile() {
       {/* Memberships */}
       <Card padding="none">
         <div className="p-5 border-b border-neutral-100">
-          <h3 className="font-semibold text-neutral-900">Meine Mitgliedschaften</h3>
+          <h3 className="font-semibold text-neutral-900">{lang === "de" ? "Meine Mitgliedschaften" : "My Memberships"}</h3>
         </div>
         <div className="divide-y divide-neutral-100">
           {getUserMemberships(user.id).map((membership, idx) => (
@@ -1214,12 +1218,12 @@ export function MemberProfile() {
       {/* Quick Actions */}
       <Card padding="none">
         <div className="p-5 border-b border-neutral-100">
-          <h3 className="font-semibold text-neutral-900">Schnellzugriff</h3>
+          <h3 className="font-semibold text-neutral-900">{t("memberPortal.quickActions")}</h3>
         </div>
         <div className="divide-y divide-neutral-100">
           <button className="w-full p-4 flex items-center gap-4 hover:bg-neutral-50 transition-colors text-left">
             <CreditCard className="w-5 h-5 text-neutral-400" />
-            <span className="flex-1">Mitgliedsausweis</span>
+            <span className="flex-1">{t("memberPortal.memberCard")}</span>
             <ChevronRight className="w-5 h-5 text-neutral-400" />
           </button>
           <button className="w-full p-4 flex items-center gap-4 hover:bg-neutral-50 transition-colors text-left">
@@ -1237,18 +1241,18 @@ export function MemberProfile() {
 // MEMBER SETTINGS
 // ==========================================
 export function MemberSettings() {
-  const { lang, setLang } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Einstellungen</h1>
+        <h1 className="text-2xl font-bold text-neutral-900">{t("nav.settings")}</h1>
       </div>
 
       {/* Language */}
       <Card padding="none">
         <div className="p-5 border-b border-neutral-100">
-          <h3 className="font-semibold text-neutral-900">Sprache</h3>
+          <h3 className="font-semibold text-neutral-900">{lang === "de" ? "Sprache" : "Language"}</h3>
         </div>
         <div className="p-4">
           <div className="flex gap-2">
@@ -1281,20 +1285,20 @@ export function MemberSettings() {
       {/* Notifications */}
       <Card padding="none">
         <div className="p-5 border-b border-neutral-100">
-          <h3 className="font-semibold text-neutral-900">Benachrichtigungen</h3>
+          <h3 className="font-semibold text-neutral-900">{lang === "de" ? "Benachrichtigungen" : "Notifications"}</h3>
         </div>
         <div className="divide-y divide-neutral-100">
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-neutral-400" />
-              <span>Push-Benachrichtigungen</span>
+              <span>{lang === "de" ? "Push-Benachrichtigungen" : "Push Notifications"}</span>
             </div>
             <input type="checkbox" defaultChecked className="w-5 h-5 rounded text-teal-500" />
           </div>
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <MessageSquare className="w-5 h-5 text-neutral-400" />
-              <span>E-Mail-Benachrichtigungen</span>
+              <span>{lang === "de" ? "E-Mail-Benachrichtigungen" : "Email Notifications"}</span>
             </div>
             <input type="checkbox" defaultChecked className="w-5 h-5 rounded text-teal-500" />
           </div>

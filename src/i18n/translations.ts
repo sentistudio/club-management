@@ -40,19 +40,20 @@ export const translations = {
   // ==========================================
   nav: {
     home: { de: "Startseite", en: "Home" },
-    calendar: { de: "Kalender", en: "Calendar" },
-    events: { de: "Termine", en: "Events" },
+    // Shared between admin and member - use consistent labels
+    events: { de: "Veranstaltungen", en: "Events" }, // Admin: "Veranstaltungen", Member: same
+    calendar: { de: "Veranstaltungen", en: "Events" }, // Alias for events (calendar view)
     chats: { de: "Nachrichten", en: "Messages" },
-    news: { de: "Neuigkeiten", en: "News" },
-    profile: { de: "Profil", en: "Profile" },
+    news: { de: "Club News", en: "Club News" }, // Admin: "Club News", Member: same
+    profile: { de: "Mein Profil", en: "My Profile" },
     settings: { de: "Einstellungen", en: "Settings" },
     logout: { de: "Abmelden", en: "Logout" },
     members: { de: "Mitglieder", en: "Members" },
     teams: { de: "Teams", en: "Teams" },
     inbox: { de: "Postfach", en: "Inbox" },
-    clubEvents: { de: "Vereinstermine", en: "Club Events" },
-    memberApp: { de: "Mitglieder App", en: "Member App" },
-    memberPortal: { de: "Mitglieder Portal", en: "Member Portal" },
+    clubEvents: { de: "Veranstaltungen", en: "Events" },
+    memberApp: { de: "Mobile App", en: "Mobile App" },
+    memberPortal: { de: "Mitglieder-Portal", en: "Member Portal" },
   },
 
   // ==========================================
