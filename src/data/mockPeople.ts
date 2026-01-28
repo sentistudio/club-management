@@ -409,7 +409,7 @@ export const MOCK_REGISTRATION_FORMS: RegistrationForm[] = [
     orgId: "org_sfb",
     departmentId: "dept_fussball",
     teamId: "team_u12",
-    target: "child",
+    allowedTargets: ["self", "child"],
     allowedRoles: ["player"],
     approvalPolicy: "admin_review",
     paymentPolicy: "none",

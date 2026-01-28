@@ -163,7 +163,7 @@ export interface RegistrationForm {
   orgId: string;
   departmentId?: string;
   teamId?: string;
-  target: IntentTarget;
+  allowedTargets: IntentTarget[]; // Multiple targets allowed
   allowedRoles: MembershipRole[];
   approvalPolicy: ApprovalPolicy;
   paymentPolicy: PaymentPolicy;
@@ -237,7 +237,7 @@ export interface CreateRegistrationFormData {
   orgId: string;
   departmentId?: string;
   teamId?: string;
-  target: IntentTarget;
+  allowedTargets: IntentTarget[];
   allowedRoles: MembershipRole[];
   approvalPolicy: ApprovalPolicy;
   paymentPolicy: PaymentPolicy;

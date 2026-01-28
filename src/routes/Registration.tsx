@@ -160,9 +160,11 @@ export function Registration() {
                   {getDepartmentName(form.departmentId)}
                 </span>
               )}
-              <span className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded">
-                {getTargetLabel(form.target)}
-              </span>
+              {form.allowedTargets.map(t => (
+                <span key={t} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded">
+                  {getTargetLabel(t)}
+                </span>
+              ))}
               <span className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded">
                 {form.allowedRoles.map(r => getRoleLabel(r)).join(", ")}
               </span>
@@ -288,7 +290,7 @@ function FormBuilderWizard({
   const [description, setDescription] = useState(initialData?.description || "");
   const [selectedDepartment, setSelectedDepartment] = useState(initialData?.departmentId || "");
   const [selectedTeam, setSelectedTeam] = useState(initialData?.teamId || "");
-  const [target, setTarget] = useState<IntentTarget>(initialData?.target || "self");
+  const [allowedTargets, setAllowedTargets] = useState<IntentTarget[]>(initialData?.allowedTargets || ["self"]);
   const [allowedRoles, setAllowedRoles] = useState<MembershipRole[]>(initialData?.allowedRoles || ["player"]);
   const [approvalPolicy, setApprovalPolicy] = useState<ApprovalPolicy>(initialData?.approvalPolicy || "admin_review");
   const [paymentPolicy, setPaymentPolicy] = useState<PaymentPolicy>(initialData?.paymentPolicy || "none");
@@ -326,7 +328,7 @@ function FormBuilderWizard({
       orgId: org.id,
       departmentId: selectedDepartment || undefined,
       teamId: selectedTeam || undefined,
-      target,
+      allowedTargets,
       allowedRoles,
       approvalPolicy,
       paymentPolicy,
@@ -338,7 +340,7 @@ function FormBuilderWizard({
   const canProceed = () => {
     switch (step) {
       case 1: return name.length > 0;
-      case 2: return true;
+      case 2: return allowedTargets.length > 0;
       case 3: return allowedRoles.length > 0;
       case 4: return true;
       case 5: return questions.every(q => q.label.length > 0);
@@ -449,35 +451,52 @@ function FormBuilderWizard({
           {step === 2 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-slate-800">Für wen ist diese Registrierung?</h3>
+              <p className="text-sm text-slate-500">Wählen Sie alle zutreffenden Optionen aus. Nutzer können dann bei der Registrierung auswählen.</p>
               <div className="grid gap-3">
                 {[
                   { value: "self", icon: User, label: "Für mich selbst", desc: "Der Nutzer meldet sich selbst an" },
                   { value: "child", icon: Users, label: "Für mein Kind", desc: "Ein Elternteil meldet sein Kind an" },
                   { value: "household", icon: UserPlus, label: "Für meine Familie", desc: "Mehrere Familienmitglieder anmelden" }
-                ].map(({ value, icon: Icon, label, desc }) => (
-                  <button
-                    key={value}
-                    onClick={() => setTarget(value as IntentTarget)}
-                    className={`p-4 border-2 rounded-xl text-left flex items-center gap-4 transition-all ${
-                      target === value 
-                        ? "border-teal-500 bg-teal-50" 
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                      target === value ? "bg-teal-500 text-white" : "bg-slate-100 text-slate-500"
-                    }`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-800">{label}</p>
-                      <p className="text-sm text-slate-500">{desc}</p>
-                    </div>
-                    {target === value && (
-                      <Check className="w-5 h-5 text-teal-500 ml-auto" />
-                    )}
-                  </button>
-                ))}
+                ].map(({ value, icon: Icon, label, desc }) => {
+                  const isSelected = allowedTargets.includes(value as IntentTarget);
+                  return (
+                    <label
+                      key={value}
+                      className={`p-4 border-2 rounded-xl flex items-center gap-4 cursor-pointer transition-all ${
+                        isSelected
+                          ? "border-teal-500 bg-teal-50" 
+                          : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setAllowedTargets([...allowedTargets, value as IntentTarget]);
+                          } else {
+                            setAllowedTargets(allowedTargets.filter(t => t !== value));
+                          }
+                        }}
+                        className="sr-only"
+                      />
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                        isSelected ? "bg-teal-500 text-white" : "bg-slate-100 text-slate-500"
+                      }`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-slate-800">{label}</p>
+                        <p className="text-sm text-slate-500">{desc}</p>
+                      </div>
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                        isSelected ? "bg-teal-500 border-teal-500" : "border-slate-300"
+                      }`}>
+                        {isSelected && <Check className="w-3 h-3 text-white" />}
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -581,7 +600,7 @@ function FormBuilderWizard({
                 </select>
               </div>
 
-              {target === "child" && (
+              {allowedTargets.includes("child") && (
                 <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
                   <input
                     type="checkbox"
@@ -703,10 +722,12 @@ function FormBuilderWizard({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-slate-50 rounded-xl">
-                    <label className="text-xs text-slate-500">Zielgruppe</label>
+                    <label className="text-xs text-slate-500">Zielgruppe(n)</label>
                     <p className="font-medium text-slate-800">
-                      {target === "self" ? "Selbstregistrierung" : 
-                       target === "child" ? "Kind anmelden" : "Familie"}
+                      {allowedTargets.map(t => 
+                        t === "self" ? "Selbstregistrierung" : 
+                        t === "child" ? "Kind anmelden" : "Familie"
+                      ).join(", ")}
                     </p>
                   </div>
                   <div className="p-4 bg-slate-50 rounded-xl">
@@ -773,7 +794,16 @@ function RegistrationPreview({
 }) {
   const { completeRegistration, createIntent, teams, org } = usePeople();
   const [step, setStep] = useState(0);
-  const totalSteps = form.target === "child" ? 7 : 5;
+  
+  // Target selection (if multiple allowed)
+  const [selectedTarget, setSelectedTarget] = useState<IntentTarget>(
+    form.allowedTargets.length === 1 ? form.allowedTargets[0] : "self"
+  );
+  const needsTargetSelection = form.allowedTargets.length > 1;
+  
+  // Calculate total steps based on selected target and whether target selection is needed
+  const baseSteps = selectedTarget === "child" ? 6 : 5; // welcome, auth, profile, [child], questions, confirm
+  const totalSteps = needsTargetSelection ? baseSteps + 1 : baseSteps;
   
   // Form data
   const [authMethod, setAuthMethod] = useState<"dfb" | "email">("email");
@@ -793,6 +823,15 @@ function RegistrationPreview({
     return team?.name || org.name;
   };
 
+  const getTargetLabel = (target: IntentTarget) => {
+    switch (target) {
+      case "self": return "Für mich selbst";
+      case "child": return "Für mein Kind";
+      case "household": return "Für meine Familie";
+      default: return target;
+    }
+  };
+
   const handleComplete = () => {
     // Create intent
     const intent = createIntent({
@@ -801,14 +840,14 @@ function RegistrationPreview({
       departmentId: form.departmentId,
       teamId: form.teamId,
       formId: form.id,
-      target: form.target,
+      target: selectedTarget,
       requestedRole: form.allowedRoles[0],
       approvalPolicy: form.approvalPolicy,
       paymentPolicy: form.paymentPolicy
     });
 
     // Complete registration
-    if (form.target === "child") {
+    if (selectedTarget === "child") {
       completeRegistration(
         intent.id,
         {
@@ -840,6 +879,14 @@ function RegistrationPreview({
 
     setCompleted(true);
   };
+
+  // Calculate actual step for content rendering (accounting for target selection step)
+  const contentStep = needsTargetSelection ? step - 1 : step;
+  
+  // Check if we're on the final step
+  const isFinalStep = selectedTarget === "child" 
+    ? step === (needsTargetSelection ? 6 : 5)
+    : step === (needsTargetSelection ? 5 : 4);
 
   if (completed) {
     return (
@@ -911,10 +958,7 @@ function RegistrationPreview({
                 Willkommen bei {org.name}
               </h3>
               <p className="text-slate-600 mb-4">
-                {form.target === "child" 
-                  ? "Melden Sie Ihr Kind für das Team an"
-                  : "Registrieren Sie sich als Mitglied"
-                }
+                Registrieren Sie sich oder Ihr Kind als Mitglied
               </p>
               <div className="text-left p-4 bg-slate-50 rounded-xl">
                 <p className="text-sm text-slate-500 mb-2">Sie registrieren sich für:</p>
@@ -926,8 +970,47 @@ function RegistrationPreview({
             </div>
           )}
 
-          {/* Step 1: Auth Method */}
-          {step === 1 && (
+          {/* Step 1: Target Selection (only if multiple targets allowed) */}
+          {needsTargetSelection && step === 1 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-800">Wen möchten Sie anmelden?</h3>
+              <div className="grid gap-3">
+                {form.allowedTargets.map(target => (
+                  <button
+                    key={target}
+                    onClick={() => setSelectedTarget(target)}
+                    className={`p-4 border-2 rounded-xl text-left flex items-center gap-4 transition-all ${
+                      selectedTarget === target 
+                        ? "border-teal-500 bg-teal-50" 
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                      selectedTarget === target ? "bg-teal-500 text-white" : "bg-slate-100 text-slate-500"
+                    }`}>
+                      {target === "self" && <User className="w-6 h-6" />}
+                      {target === "child" && <Users className="w-6 h-6" />}
+                      {target === "household" && <UserPlus className="w-6 h-6" />}
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-800">{getTargetLabel(target)}</p>
+                      <p className="text-sm text-slate-500">
+                        {target === "self" && "Sie melden sich selbst an"}
+                        {target === "child" && "Sie melden Ihr Kind an"}
+                        {target === "household" && "Sie melden mehrere Familienmitglieder an"}
+                      </p>
+                    </div>
+                    {selectedTarget === target && (
+                      <Check className="w-5 h-5 text-teal-500 ml-auto" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Auth Method */}
+          {contentStep === 1 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-slate-800">Anmeldung</h3>
               <div className="grid gap-3">
@@ -963,11 +1046,11 @@ function RegistrationPreview({
             </div>
           )}
 
-          {/* Step 2: Guardian/Self Profile */}
-          {step === 2 && (
+          {/* Guardian/Self Profile */}
+          {contentStep === 2 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-slate-800">
-                {form.target === "child" ? "Ihre Daten (Erziehungsberechtigter)" : "Ihre Daten"}
+                {selectedTarget === "child" ? "Ihre Daten (Erziehungsberechtigter)" : "Ihre Daten"}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -1010,8 +1093,8 @@ function RegistrationPreview({
             </div>
           )}
 
-          {/* Step 3: Child Data (if target=child) */}
-          {step === 3 && form.target === "child" && (
+          {/* Child Data (if target=child) */}
+          {contentStep === 3 && selectedTarget === "child" && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-slate-800">Daten des Kindes</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -1046,8 +1129,8 @@ function RegistrationPreview({
             </div>
           )}
 
-          {/* Step 4 (or 3 if self): Custom Questions */}
-          {((step === 4 && form.target === "child") || (step === 3 && form.target !== "child")) && (
+          {/* Custom Questions */}
+          {((contentStep === 4 && selectedTarget === "child") || (contentStep === 3 && selectedTarget !== "child")) && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-slate-800">Zusätzliche Informationen</h3>
               {form.questions.length === 0 ? (
@@ -1104,11 +1187,11 @@ function RegistrationPreview({
           )}
 
           {/* Final Step: Confirmation */}
-          {((step === 5 && form.target === "child") || (step === 4 && form.target !== "child")) && (
+          {isFinalStep && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-slate-800">Bestätigung</h3>
               <div className="p-4 bg-slate-50 rounded-xl space-y-3">
-                {form.target === "child" && (
+                {selectedTarget === "child" && (
                   <>
                     <div>
                       <label className="text-xs text-slate-500">Kind</label>
@@ -1120,7 +1203,7 @@ function RegistrationPreview({
                     </div>
                   </>
                 )}
-                {form.target !== "child" && (
+                {selectedTarget !== "child" && (
                   <div>
                     <label className="text-xs text-slate-500">Name</label>
                     <p className="font-medium text-slate-800">{firstName} {lastName}</p>
@@ -1157,7 +1240,7 @@ function RegistrationPreview({
             {step > 0 ? "Zurück" : "Abbrechen"}
           </Button>
           
-          {((step === 5 && form.target === "child") || (step === 4 && form.target !== "child")) ? (
+          {isFinalStep ? (
             <Button onClick={handleComplete}>
               <Check className="w-4 h-4 mr-1" />
               Registrierung abschließen
