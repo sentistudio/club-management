@@ -16,7 +16,9 @@ import {
   ExternalLink,
   Home,
   Newspaper,
-  User
+  User,
+  UserPlus,
+  ClipboardList
 } from "lucide-react";
 import { useState } from "react";
 import { mockTickets, CURRENT_STAFF_ID } from "../../data/mockInbox";
@@ -60,6 +62,8 @@ const adminNavSections: NavSection[] = [
   {
     items: [
       { to: "/members", icon: Users, label: "Mitglieder" },
+      { to: "/contacts", icon: UserPlus, label: "Kontakte" },
+      { to: "/registration", icon: ClipboardList, label: "Registrierung" },
       { 
         to: "/matches", 
         icon: Trophy, 
