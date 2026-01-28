@@ -131,7 +131,10 @@ export function RoleRouteSync() {
 
   useEffect(() => {
     // Auto-set role based on current route (only if user has that role)
-    if (location.pathname.startsWith("/member")) {
+    // Check for exact /member or /member/* paths (not /members which is admin route)
+    const isMemberPortal = location.pathname === "/member" || location.pathname.startsWith("/member/");
+    
+    if (isMemberPortal) {
       if (user.roles.includes("member")) {
         setActiveRole("member");
       }
@@ -163,8 +166,8 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
     );
   }
 
-  // Check if we're in the member portal
-  const isInMemberPortal = location.pathname.startsWith("/member");
+  // Check if we're in the member portal (not /members which is admin route)
+  const isInMemberPortal = location.pathname === "/member" || location.pathname.startsWith("/member/");
 
   const roleConfig = {
     admin: { 
