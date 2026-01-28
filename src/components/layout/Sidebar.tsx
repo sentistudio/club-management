@@ -17,7 +17,6 @@ import {
   Home,
   Newspaper,
   User,
-  UserPlus,
   ClipboardList
 } from "lucide-react";
 import { useState } from "react";
@@ -61,8 +60,7 @@ const adminNavSections: NavSection[] = [
   },
   {
     items: [
-      { to: "/members", icon: Users, label: "Mitglieder" },
-      { to: "/contacts", icon: UserPlus, label: "Kontakte" },
+      { to: "/people", icon: Users, label: "Personen" }, // Unified Members + Contacts
       { to: "/registration", icon: ClipboardList, label: "Registrierung" },
       { 
         to: "/matches", 

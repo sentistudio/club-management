@@ -151,7 +151,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       id: generateId("person"),
       ...data,
       status: "active",
-      hasClaimedIdentity: false,
+      hasClaimedIdentity: data.hasClaimedIdentity ?? false,
       createdAt: now,
       updatedAt: now
     };

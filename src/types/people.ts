@@ -144,7 +144,7 @@ export interface Invite {
 // REGISTRATION FORM
 // ==========================================
 export type QuestionType = "text" | "single_choice" | "multi_choice" | "date" | "upload" | "checkbox";
-export type QuestionScope = "player" | "guardian" | "both";
+export type QuestionScope = "player" | "guardian" | "both" | "all";
 
 export interface FormQuestion {
   id: string;
@@ -204,6 +204,7 @@ export interface CreatePersonData {
   dateOfBirth?: string;
   gender?: Gender;
   kind: PersonKind;
+  hasClaimedIdentity?: boolean;
 }
 
 export interface CreateMembershipData {

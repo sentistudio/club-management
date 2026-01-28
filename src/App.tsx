@@ -4,8 +4,6 @@ import { LanguageProvider } from "./i18n";
 import { RoleProvider, PeopleProvider } from "./contexts";
 import { 
   Dashboard, 
-  Members, 
-  MemberDetail, 
   Committees, 
   Settings,
   Products,
@@ -25,7 +23,7 @@ import { Documents } from "./routes/Documents";
 import { Inbox } from "./routes/Inbox";
 import { ClubNews } from "./routes/ClubNews";
 import { Login } from "./routes/Login";
-import { Contacts } from "./routes/Contacts";
+import { People } from "./routes/People";
 import { Registration } from "./routes/Registration";
 import { PilotInbox, PilotMemberPortal, ChatModeration } from "./routes/pilot";
 import { 
@@ -65,10 +63,13 @@ function App() {
                 <Route path="dashboard" element={<Dashboard />} />
                 
                 {/* Vereinsverwaltung */}
-                <Route path="members" element={<Members />} />
-                <Route path="members/:id" element={<MemberDetail />} />
-                <Route path="contacts" element={<Contacts />} />
-                <Route path="contacts/:id" element={<Contacts />} />
+                <Route path="people" element={<People />} />
+                <Route path="people/:id" element={<People />} />
+                {/* Legacy routes - redirect to unified People page */}
+                <Route path="members" element={<Navigate to="/people" replace />} />
+                <Route path="members/:id" element={<Navigate to="/people" replace />} />
+                <Route path="contacts" element={<Navigate to="/people" replace />} />
+                <Route path="contacts/:id" element={<Navigate to="/people" replace />} />
                 <Route path="teams" element={<Teams />} />
                 <Route path="departments" element={<Departments />} />
                 <Route path="committees" element={<Committees />} />

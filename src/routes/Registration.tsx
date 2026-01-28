@@ -1,40 +1,40 @@
 /**
- * Registrierung (Registration Forms) Page
+ * Registrierung (Registration) Page - Simplified Flow
  * 
- * DEMO STEPS:
- * 1. View list of registration forms
- * 2. Click "Registrierungsformular erstellen" to create new form
- * 3. Follow wizard: Context → Target → Roles → Policies → Questions → Publish
- * 4. Click "Preview" to see the user registration wizard
- * 5. Complete preview to create test person/membership/guardian link
+ * NEW FLOW for User Registration:
+ * 1. Club/Team selection (which club to join)
+ * 2. Authentication (meinDFB or email)
+ * 3. Who are you onboarding? (Self / Child / Family)
+ * 4. Based on that, show relevant questions
+ * 
+ * ADMIN: Creates registration forms with custom questions
+ * USER: Goes through the simplified wizard
  */
 
 import { useState, useMemo } from "react";
 import { 
   Plus, Search, Eye, Edit2, Trash2, Copy,
-  ChevronRight, ChevronLeft, X, Check, Globe, Lock,
-  Users, User, UserPlus, FileText
+  ChevronRight, ChevronLeft, X, Check,
+  Users, User, Home, Building2, Shield, Mail
 } from "lucide-react";
 import { Card, Button, Badge } from "../components/ui";
 import { usePeople } from "../contexts/PeopleContext";
-import { getRoleLabel } from "../data/mockPeople";
 import type { 
   RegistrationForm, 
   FormQuestion, 
-  IntentTarget, 
-  MembershipRole,
-  ApprovalPolicy,
-  PaymentPolicy,
+  IntentTarget,
   QuestionType,
   QuestionScope,
-  CreateRegistrationFormData
+  CreateRegistrationFormData,
+  ApprovalPolicy,
+  PaymentPolicy
 } from "../types/people";
 
 // ==========================================
 // REGISTRATION PAGE
 // ==========================================
 export function Registration() {
-  const { forms, addForm, updateForm, deleteForm, teams, departments } = usePeople();
+  const { forms, addForm, updateForm, deleteForm, teams } = usePeople();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showFormBuilder, setShowFormBuilder] = useState(false);
@@ -81,21 +81,6 @@ export function Registration() {
     return team?.name;
   };
 
-  const getDepartmentName = (deptId?: string) => {
-    if (!deptId) return null;
-    const dept = departments.find(d => d.id === deptId);
-    return dept?.name;
-  };
-
-  const getTargetLabel = (target: IntentTarget) => {
-    switch (target) {
-      case "self": return "Für mich selbst";
-      case "child": return "Für mein Kind";
-      case "household": return "Für meine Familie";
-      default: return target;
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -103,145 +88,133 @@ export function Registration() {
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Registrierung</h1>
           <p className="text-slate-500 mt-1">
-            {forms.length} Registrierungsformulare
+            Anmeldeformulare für neue Mitglieder erstellen und verwalten
           </p>
         </div>
         <Button icon={<Plus className="w-4 h-4" />} onClick={() => setShowFormBuilder(true)}>
-          Registrierungsformular erstellen
+          Neues Formular
         </Button>
       </div>
 
       {/* Search */}
       <Card className="!p-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Formulare durchsuchen..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-          />
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Formulare durchsuchen..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
         </div>
       </Card>
 
-      {/* Forms Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredForms.map(form => (
-          <Card key={form.id} hover className="relative">
-            {/* Status Badge */}
-            <div className="absolute top-4 right-4">
-              <Badge variant={form.isPublished ? "success" : "default"}>
-                {form.isPublished ? (
-                  <><Globe className="w-3 h-3 mr-1" /> Öffentlich</>
-                ) : (
-                  <><Lock className="w-3 h-3 mr-1" /> Entwurf</>
-                )}
-              </Badge>
+      {/* Forms List */}
+      <div className="grid gap-4">
+        {filteredForms.length === 0 ? (
+          <Card className="text-center py-12">
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-slate-400" />
             </div>
-
-            {/* Content */}
-            <div className="pr-20">
-              <h3 className="font-semibold text-slate-800">{form.name}</h3>
-              {form.description && (
-                <p className="text-sm text-slate-500 mt-1 line-clamp-2">{form.description}</p>
-              )}
-            </div>
-
-            {/* Meta */}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {form.teamId && (
-                <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded">
-                  {getTeamName(form.teamId)}
-                </span>
-              )}
-              {form.departmentId && !form.teamId && (
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                  {getDepartmentName(form.departmentId)}
-                </span>
-              )}
-              {form.allowedTargets.map(t => (
-                <span key={t} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded">
-                  {getTargetLabel(t)}
-                </span>
-              ))}
-              <span className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded">
-                {form.allowedRoles.map(r => getRoleLabel(r)).join(", ")}
-              </span>
-            </div>
-
-            {/* Policies */}
-            <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
-              <span>
-                {form.approvalPolicy === "auto" ? "Automatische Genehmigung" : "Admin-Prüfung"}
-              </span>
-              <span>•</span>
-              <span>{form.questions.length} Fragen</span>
-            </div>
-
-            {/* Actions */}
-            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setPreviewForm(form)}
-              >
-                <Eye className="w-4 h-4 mr-1" /> Preview
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => {
-                  setEditingForm(form);
-                  setShowFormBuilder(true);
-                }}
-              >
-                <Edit2 className="w-4 h-4 mr-1" /> Bearbeiten
-              </Button>
-              {form.isPublished ? (
-                <>
-                  <Button variant="ghost" size="sm" onClick={() => copyLink(form)}>
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleUnpublish(form)}>
-                    <Lock className="w-4 h-4" />
-                  </Button>
-                </>
-              ) : (
-                <Button variant="ghost" size="sm" onClick={() => handlePublish(form)}>
-                  <Globe className="w-4 h-4 mr-1" /> Veröffentlichen
-                </Button>
-              )}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                onClick={() => handleDelete(form)}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          </Card>
-        ))}
-
-        {filteredForms.length === 0 && (
-          <Card className="col-span-full text-center py-12">
-            <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-600">Keine Formulare</h3>
-            <p className="text-slate-500 mt-1">
-              Erstellen Sie Ihr erstes Registrierungsformular
+            <p className="text-slate-600 font-medium">Keine Formulare vorhanden</p>
+            <p className="text-sm text-slate-500 mt-1">
+              Erstelle ein neues Anmeldeformular
             </p>
-            <Button className="mt-4" onClick={() => setShowFormBuilder(true)}>
-              <Plus className="w-4 h-4 mr-2" /> Formular erstellen
+            <Button 
+              className="mt-4" 
+              icon={<Plus className="w-4 h-4" />}
+              onClick={() => setShowFormBuilder(true)}
+            >
+              Formular erstellen
             </Button>
           </Card>
+        ) : (
+          filteredForms.map((form) => (
+            <Card key={form.id} className="hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-slate-800">{form.name}</h3>
+                    <Badge variant={form.isPublished ? "success" : "default"}>
+                      {form.isPublished ? "Veröffentlicht" : "Entwurf"}
+                    </Badge>
+                  </div>
+                  {form.description && (
+                    <p className="text-sm text-slate-600 mb-3">{form.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {form.teamId && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                        Team: {getTeamName(form.teamId)}
+                      </span>
+                    )}
+                    <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded">
+                      {form.questions.length} Fragen
+                    </span>
+                    {form.approvalPolicy === "admin_review" && (
+                      <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded">
+                        Genehmigung erforderlich
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPreviewForm(form)}
+                    className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-700"
+                    title="Vorschau"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                  {form.isPublished && (
+                    <button
+                      onClick={() => copyLink(form)}
+                      className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-700"
+                      title="Link kopieren"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setEditingForm(form);
+                      setShowFormBuilder(true);
+                    }}
+                    className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-700"
+                    title="Bearbeiten"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(form)}
+                    className="p-2 hover:bg-red-50 rounded-lg text-slate-500 hover:text-red-600"
+                    title="Löschen"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  {!form.isPublished ? (
+                    <Button size="sm" onClick={() => handlePublish(form)}>
+                      Veröffentlichen
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => handleUnpublish(form)}>
+                      Deaktivieren
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))
         )}
       </div>
 
       {/* Form Builder Modal */}
       {showFormBuilder && (
-        <FormBuilderWizard
-          initialData={editingForm || undefined}
+        <FormBuilderModal
+          editingForm={editingForm}
           onClose={() => {
             setShowFormBuilder(false);
             setEditingForm(null);
@@ -258,7 +231,7 @@ export function Registration() {
         />
       )}
 
-      {/* Preview Modal */}
+      {/* Registration Preview Modal */}
       {previewForm && (
         <RegistrationPreview
           form={previewForm}
@@ -270,323 +243,153 @@ export function Registration() {
 }
 
 // ==========================================
-// FORM BUILDER WIZARD
+// FORM BUILDER MODAL (Admin)
 // ==========================================
-function FormBuilderWizard({
-  initialData,
+function FormBuilderModal({
+  editingForm,
   onClose,
   onSave
 }: {
-  initialData?: RegistrationForm;
+  editingForm: RegistrationForm | null;
   onClose: () => void;
   onSave: (data: CreateRegistrationFormData) => void;
 }) {
-  const { teams, departments, org } = usePeople();
-  const [step, setStep] = useState(1);
-  const totalSteps = 6;
+  const { org, teams } = usePeople();
 
   // Form state
-  const [name, setName] = useState(initialData?.name || "");
-  const [description, setDescription] = useState(initialData?.description || "");
-  const [selectedDepartment, setSelectedDepartment] = useState(initialData?.departmentId || "");
-  const [selectedTeam, setSelectedTeam] = useState(initialData?.teamId || "");
-  const [allowedTargets, setAllowedTargets] = useState<IntentTarget[]>(initialData?.allowedTargets || ["self"]);
-  const [allowedRoles, setAllowedRoles] = useState<MembershipRole[]>(initialData?.allowedRoles || ["player"]);
-  const [approvalPolicy, setApprovalPolicy] = useState<ApprovalPolicy>(initialData?.approvalPolicy || "admin_review");
-  const [paymentPolicy, setPaymentPolicy] = useState<PaymentPolicy>(initialData?.paymentPolicy || "none");
-  const [guardianRequired, setGuardianRequired] = useState(initialData?.guardianRequiredUnderAge ?? true);
-  const [questions, setQuestions] = useState<FormQuestion[]>(initialData?.questions || []);
+  const [name, setName] = useState(editingForm?.name || "");
+  const [description, setDescription] = useState(editingForm?.description || "");
+  const [teamId, setTeamId] = useState(editingForm?.teamId || "");
+  const [approvalPolicy, setApprovalPolicy] = useState<ApprovalPolicy>(editingForm?.approvalPolicy || "auto");
+  const [paymentPolicy, setPaymentPolicy] = useState<PaymentPolicy>(editingForm?.paymentPolicy || "none");
+  const [questions, setQuestions] = useState<FormQuestion[]>(editingForm?.questions || []);
 
-  const filteredTeams = selectedDepartment 
-    ? teams.filter(t => t.departmentId === selectedDepartment)
-    : teams;
-
-  const handleAddQuestion = () => {
-    setQuestions([...questions, {
+  // Add question
+  const addQuestion = () => {
+    const newQuestion: FormQuestion = {
       id: `q_${Date.now()}`,
       type: "text",
       label: "",
       required: false,
-      scope: "both"
-    }]);
+      scope: "all"
+    };
+    setQuestions([...questions, newQuestion]);
   };
 
-  const handleUpdateQuestion = (index: number, data: Partial<FormQuestion>) => {
-    const updated = [...questions];
-    updated[index] = { ...updated[index], ...data };
-    setQuestions(updated);
+  // Update question
+  const updateQuestion = (index: number, updates: Partial<FormQuestion>) => {
+    const newQuestions = [...questions];
+    newQuestions[index] = { ...newQuestions[index], ...updates };
+    setQuestions(newQuestions);
   };
 
-  const handleRemoveQuestion = (index: number) => {
+  // Remove question
+  const removeQuestion = (index: number) => {
     setQuestions(questions.filter((_, i) => i !== index));
   };
 
+  // Handle save
   const handleSave = () => {
+    if (!name) return;
+    
     onSave({
       name,
-      description: description || undefined,
+      description,
       orgId: org.id,
-      departmentId: selectedDepartment || undefined,
-      teamId: selectedTeam || undefined,
-      allowedTargets,
-      allowedRoles,
-      approvalPolicy,
-      paymentPolicy,
-      guardianRequiredUnderAge: guardianRequired,
+      teamId: teamId || undefined,
+      allowedTargets: ["self", "child", "household"], // All targets allowed by default
+      allowedRoles: ["player", "coach", "guardian_contact"], // All roles allowed
+      approvalPolicy: approvalPolicy as "auto" | "admin_review",
+      paymentPolicy: paymentPolicy as "none" | "optional" | "required",
+      guardianRequiredUnderAge: true,
       questions
     });
-  };
-
-  const canProceed = () => {
-    switch (step) {
-      case 1: return name.length > 0;
-      case 2: return allowedTargets.length > 0;
-      case 3: return allowedRoles.length > 0;
-      case 4: return true;
-      case 5: return questions.every(q => q.label.length > 0);
-      case 6: return true;
-      default: return true;
-    }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div 
-        className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-slate-800">
-                {initialData ? "Formular bearbeiten" : "Registrierungsformular erstellen"}
-              </h2>
-              <p className="text-slate-500 mt-1">Schritt {step} von {totalSteps}</p>
-            </div>
+            <h2 className="text-xl font-bold text-slate-800">
+              {editingForm ? "Formular bearbeiten" : "Neues Formular erstellen"}
+            </h2>
             <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg">
               <X className="w-5 h-5 text-slate-500" />
             </button>
           </div>
-          {/* Progress */}
-          <div className="mt-4 flex gap-1">
-            {Array.from({ length: totalSteps }).map((_, i) => (
-              <div 
-                key={i}
-                className={`flex-1 h-1 rounded-full ${
-                  i < step ? "bg-teal-500" : "bg-slate-200"
-                }`}
-              />
-            ))}
-          </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* Step 1: Basic Info */}
-          {step === 1 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">Grundinformationen</h3>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Name des Formulars *
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="z.B. U12 Junioren Anmeldung"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Beschreibung
-                </label>
-                <textarea
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  placeholder="Kurze Beschreibung des Formulars..."
-                  rows={3}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Abteilung
-                </label>
-                <select
-                  value={selectedDepartment}
-                  onChange={e => {
-                    setSelectedDepartment(e.target.value);
-                    setSelectedTeam("");
-                  }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="">Alle Abteilungen</option>
-                  {departments.map(d => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Team
-                </label>
-                <select
-                  value={selectedTeam}
-                  onChange={e => setSelectedTeam(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="">Kein spezifisches Team</option>
-                  {filteredTeams.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-              </div>
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)] space-y-6">
+          {/* Basic Info */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-slate-800">Grundinformationen</h3>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Name des Formulars *
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="z.B. Jugend-Anmeldung 2026"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                autoFocus
+              />
             </div>
-          )}
-
-          {/* Step 2: Target */}
-          {step === 2 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">Für wen ist diese Registrierung?</h3>
-              <p className="text-sm text-slate-500">Wählen Sie alle zutreffenden Optionen aus. Nutzer können dann bei der Registrierung auswählen.</p>
-              <div className="grid gap-3">
-                {[
-                  { value: "self", icon: User, label: "Für mich selbst", desc: "Der Nutzer meldet sich selbst an" },
-                  { value: "child", icon: Users, label: "Für mein Kind", desc: "Ein Elternteil meldet sein Kind an" },
-                  { value: "household", icon: UserPlus, label: "Für meine Familie", desc: "Mehrere Familienmitglieder anmelden" }
-                ].map(({ value, icon: Icon, label, desc }) => {
-                  const isSelected = allowedTargets.includes(value as IntentTarget);
-                  return (
-                    <label
-                      key={value}
-                      className={`p-4 border-2 rounded-xl flex items-center gap-4 cursor-pointer transition-all ${
-                        isSelected
-                          ? "border-teal-500 bg-teal-50" 
-                          : "border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={e => {
-                          if (e.target.checked) {
-                            setAllowedTargets([...allowedTargets, value as IntentTarget]);
-                          } else {
-                            setAllowedTargets(allowedTargets.filter(t => t !== value));
-                          }
-                        }}
-                        className="sr-only"
-                      />
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        isSelected ? "bg-teal-500 text-white" : "bg-slate-100 text-slate-500"
-                      }`}>
-                        <Icon className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-slate-800">{label}</p>
-                        <p className="text-sm text-slate-500">{desc}</p>
-                      </div>
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                        isSelected ? "bg-teal-500 border-teal-500" : "border-slate-300"
-                      }`}>
-                        {isSelected && <Check className="w-3 h-3 text-white" />}
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Beschreibung
+              </label>
+              <textarea
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                placeholder="Optionale Beschreibung..."
+                rows={2}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
             </div>
-          )}
-
-          {/* Step 3: Roles */}
-          {step === 3 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">Welche Rollen können sich registrieren?</h3>
-              <div className="grid gap-3">
-                {[
-                  { value: "player", label: "Spieler", desc: "Aktives Mitglied im Team" },
-                  { value: "coach", label: "Trainer", desc: "Trainiert ein oder mehrere Teams" },
-                  { value: "guardian_contact", label: "Erziehungsberechtigter", desc: "Elternteil eines Spielers" },
-                  { value: "volunteer", label: "Helfer", desc: "Unterstützt bei Veranstaltungen" }
-                ].map(({ value, label, desc }) => (
-                  <label
-                    key={value}
-                    className={`p-4 border-2 rounded-xl flex items-center gap-4 cursor-pointer transition-all ${
-                      allowedRoles.includes(value as MembershipRole) 
-                        ? "border-teal-500 bg-teal-50" 
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={allowedRoles.includes(value as MembershipRole)}
-                      onChange={e => {
-                        if (e.target.checked) {
-                          setAllowedRoles([...allowedRoles, value as MembershipRole]);
-                        } else {
-                          setAllowedRoles(allowedRoles.filter(r => r !== value));
-                        }
-                      }}
-                      className="w-5 h-5 text-teal-500 rounded focus:ring-teal-500"
-                    />
-                    <div>
-                      <p className="font-medium text-slate-800">{label}</p>
-                      <p className="text-sm text-slate-500">{desc}</p>
-                    </div>
-                  </label>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Team (optional)
+              </label>
+              <select
+                value={teamId}
+                onChange={e => setTeamId(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                <option value="">Allgemeine Vereinsanmeldung</option>
+                {teams.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
-              </div>
+              </select>
             </div>
-          )}
+          </div>
 
-          {/* Step 4: Policies */}
-          {step === 4 && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-slate-800">Einstellungen</h3>
-              
+          {/* Policies */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-slate-800">Einstellungen</h3>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
                   Genehmigung
                 </label>
-                <div className="grid gap-3">
-                  <label className={`p-4 border-2 rounded-xl flex items-center gap-4 cursor-pointer ${
-                    approvalPolicy === "auto" ? "border-teal-500 bg-teal-50" : "border-slate-200"
-                  }`}>
-                    <input
-                      type="radio"
-                      name="approval"
-                      checked={approvalPolicy === "auto"}
-                      onChange={() => setApprovalPolicy("auto")}
-                      className="w-5 h-5 text-teal-500"
-                    />
-                    <div>
-                      <p className="font-medium text-slate-800">Automatisch genehmigen</p>
-                      <p className="text-sm text-slate-500">Mitglieder werden sofort aktiv</p>
-                    </div>
-                  </label>
-                  <label className={`p-4 border-2 rounded-xl flex items-center gap-4 cursor-pointer ${
-                    approvalPolicy === "admin_review" ? "border-teal-500 bg-teal-50" : "border-slate-200"
-                  }`}>
-                    <input
-                      type="radio"
-                      name="approval"
-                      checked={approvalPolicy === "admin_review"}
-                      onChange={() => setApprovalPolicy("admin_review")}
-                      className="w-5 h-5 text-teal-500"
-                    />
-                    <div>
-                      <p className="font-medium text-slate-800">Admin-Prüfung erforderlich</p>
-                      <p className="text-sm text-slate-500">Registrierungen müssen freigegeben werden</p>
-                    </div>
-                  </label>
-                </div>
+                <select
+                  value={approvalPolicy}
+                  onChange={e => setApprovalPolicy(e.target.value as ApprovalPolicy)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="auto">Automatisch genehmigen</option>
+                  <option value="admin_review">Admin-Prüfung erforderlich</option>
+                </select>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
                   Zahlung
                 </label>
                 <select
@@ -594,188 +397,95 @@ function FormBuilderWizard({
                   onChange={e => setPaymentPolicy(e.target.value as PaymentPolicy)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
-                  <option value="none">Keine Zahlung erforderlich</option>
+                  <option value="none">Keine Zahlung</option>
                   <option value="optional">Zahlung optional</option>
                   <option value="required">Zahlung erforderlich</option>
                 </select>
               </div>
-
-              {allowedTargets.includes("child") && (
-                <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                  <input
-                    type="checkbox"
-                    checked={guardianRequired}
-                    onChange={e => setGuardianRequired(e.target.checked)}
-                    className="w-5 h-5 text-teal-500 rounded focus:ring-teal-500"
-                  />
-                  <div>
-                    <p className="font-medium text-slate-800">Erziehungsberechtigter erforderlich für Minderjährige</p>
-                    <p className="text-sm text-slate-500">Bei Registrierung unter 18 Jahren</p>
-                  </div>
-                </label>
-              )}
             </div>
-          )}
+          </div>
 
-          {/* Step 5: Questions */}
-          {step === 5 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-800">Zusätzliche Fragen</h3>
-                <Button variant="outline" size="sm" onClick={handleAddQuestion}>
-                  <Plus className="w-4 h-4 mr-1" /> Frage hinzufügen
-                </Button>
+          {/* Custom Questions */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-slate-800">Zusätzliche Fragen</h3>
+              <Button size="sm" variant="outline" onClick={addQuestion}>
+                <Plus className="w-4 h-4 mr-1" /> Frage hinzufügen
+              </Button>
+            </div>
+            
+            {questions.length === 0 ? (
+              <div className="text-center py-8 bg-slate-50 rounded-lg">
+                <p className="text-slate-500 text-sm">
+                  Keine zusätzlichen Fragen. Die Standard-Felder (Name, E-Mail, etc.) werden automatisch abgefragt.
+                </p>
               </div>
-              
-              {questions.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  <FileText className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                  <p>Keine zusätzlichen Fragen</p>
-                  <p className="text-sm">Fügen Sie benutzerdefinierte Fragen hinzu</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {questions.map((q, i) => (
-                    <div key={q.id} className="p-4 border border-slate-200 rounded-xl space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-500">Frage {i + 1}</span>
-                        <button
-                          onClick={() => handleRemoveQuestion(i)}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <input
-                        type="text"
-                        value={q.label}
-                        onChange={e => handleUpdateQuestion(i, { label: e.target.value })}
-                        placeholder="Fragetext"
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                      />
-                      <div className="grid grid-cols-3 gap-2">
-                        <select
-                          value={q.type}
-                          onChange={e => handleUpdateQuestion(i, { type: e.target.value as QuestionType })}
-                          className="px-3 py-2 text-sm border border-slate-200 rounded-lg"
-                        >
-                          <option value="text">Text</option>
-                          <option value="single_choice">Auswahl</option>
-                          <option value="multi_choice">Mehrfachauswahl</option>
-                          <option value="date">Datum</option>
-                          <option value="checkbox">Checkbox</option>
-                        </select>
-                        <select
-                          value={q.scope}
-                          onChange={e => handleUpdateQuestion(i, { scope: e.target.value as QuestionScope })}
-                          className="px-3 py-2 text-sm border border-slate-200 rounded-lg"
-                        >
-                          <option value="both">Alle</option>
-                          <option value="player">Nur Spieler</option>
-                          <option value="guardian">Nur Guardian</option>
-                        </select>
-                        <label className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg">
-                          <input
-                            type="checkbox"
-                            checked={q.required}
-                            onChange={e => handleUpdateQuestion(i, { required: e.target.checked })}
-                            className="w-4 h-4 text-teal-500 rounded"
-                          />
-                          <span className="text-sm">Pflichtfeld</span>
-                        </label>
-                      </div>
-                      {(q.type === "single_choice" || q.type === "multi_choice") && (
+            ) : (
+              <div className="space-y-3">
+                {questions.map((q, index) => (
+                  <div key={q.id} className="p-4 border border-slate-200 rounded-lg">
+                    <div className="flex gap-3">
+                      <div className="flex-1 space-y-3">
                         <input
                           type="text"
-                          value={q.options?.join(", ") || ""}
-                          onChange={e => handleUpdateQuestion(i, { 
-                            options: e.target.value.split(",").map(o => o.trim()).filter(Boolean)
-                          })}
-                          placeholder="Optionen (kommagetrennt)"
-                          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg"
+                          value={q.label}
+                          onChange={e => updateQuestion(index, { label: e.target.value })}
+                          placeholder="Fragetext..."
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
                         />
-                      )}
+                        <div className="flex gap-3">
+                          <select
+                            value={q.type}
+                            onChange={e => updateQuestion(index, { type: e.target.value as QuestionType })}
+                            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm"
+                          >
+                            <option value="text">Text</option>
+                            <option value="single_choice">Einfachauswahl</option>
+                            <option value="multi_choice">Mehrfachauswahl</option>
+                            <option value="date">Datum</option>
+                          </select>
+                          <select
+                            value={q.scope}
+                            onChange={e => updateQuestion(index, { scope: e.target.value as QuestionScope })}
+                            className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm"
+                          >
+                            <option value="all">Für alle</option>
+                            <option value="player">Nur Spieler</option>
+                            <option value="guardian">Nur Eltern</option>
+                          </select>
+                          <label className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={q.required}
+                              onChange={e => updateQuestion(index, { required: e.target.checked })}
+                              className="rounded"
+                            />
+                            Pflichtfeld
+                          </label>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeQuestion(index)}
+                        className="p-2 text-slate-400 hover:text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 6: Review */}
-          {step === 6 && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-slate-800">Zusammenfassung</h3>
-              
-              <div className="space-y-4">
-                <div className="p-4 bg-slate-50 rounded-xl">
-                  <label className="text-xs text-slate-500">Name</label>
-                  <p className="font-medium text-slate-800">{name}</p>
-                </div>
-                
-                {description && (
-                  <div className="p-4 bg-slate-50 rounded-xl">
-                    <label className="text-xs text-slate-500">Beschreibung</label>
-                    <p className="text-slate-800">{description}</p>
                   </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-xl">
-                    <label className="text-xs text-slate-500">Zielgruppe(n)</label>
-                    <p className="font-medium text-slate-800">
-                      {allowedTargets.map(t => 
-                        t === "self" ? "Selbstregistrierung" : 
-                        t === "child" ? "Kind anmelden" : "Familie"
-                      ).join(", ")}
-                    </p>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-xl">
-                    <label className="text-xs text-slate-500">Rollen</label>
-                    <p className="font-medium text-slate-800">
-                      {allowedRoles.map(r => getRoleLabel(r)).join(", ")}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-xl">
-                    <label className="text-xs text-slate-500">Genehmigung</label>
-                    <p className="font-medium text-slate-800">
-                      {approvalPolicy === "auto" ? "Automatisch" : "Admin-Prüfung"}
-                    </p>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-xl">
-                    <label className="text-xs text-slate-500">Fragen</label>
-                    <p className="font-medium text-slate-800">{questions.length} Fragen</p>
-                  </div>
-                </div>
+                ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-200 flex justify-between">
-          <Button 
-            variant="outline" 
-            onClick={() => step > 1 ? setStep(step - 1) : onClose()}
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            {step > 1 ? "Zurück" : "Abbrechen"}
+        <div className="p-4 border-t border-slate-200 flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>
+            Abbrechen
           </Button>
-          
-          {step < totalSteps ? (
-            <Button onClick={() => setStep(step + 1)} disabled={!canProceed()}>
-              Weiter
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          ) : (
-            <Button onClick={handleSave}>
-              <Check className="w-4 h-4 mr-1" />
-              {initialData ? "Speichern" : "Erstellen"}
-            </Button>
-          )}
+          <Button onClick={handleSave} disabled={!name}>
+            {editingForm ? "Speichern" : "Formular erstellen"}
+          </Button>
         </div>
       </div>
     </div>
@@ -783,7 +493,14 @@ function FormBuilderWizard({
 }
 
 // ==========================================
-// REGISTRATION PREVIEW (USER WIZARD)
+// REGISTRATION PREVIEW (User Wizard)
+// New simplified flow:
+// 1. Club/Team info
+// 2. Authentication
+// 3. Who are you onboarding?
+// 4. Personal info
+// 5. Custom questions
+// 6. Confirmation
 // ==========================================
 function RegistrationPreview({
   form,
@@ -792,269 +509,297 @@ function RegistrationPreview({
   form: RegistrationForm;
   onClose: () => void;
 }) {
-  const { completeRegistration, createIntent, teams, org } = usePeople();
-  const [step, setStep] = useState(0);
-  
-  // Target selection (if multiple allowed)
-  const [selectedTarget, setSelectedTarget] = useState<IntentTarget>(
-    form.allowedTargets.length === 1 ? form.allowedTargets[0] : "self"
-  );
-  const needsTargetSelection = form.allowedTargets.length > 1;
-  
-  // Calculate total steps based on selected target and whether target selection is needed
-  const baseSteps = selectedTarget === "child" ? 6 : 5; // welcome, auth, profile, [child], questions, confirm
-  const totalSteps = needsTargetSelection ? baseSteps + 1 : baseSteps;
-  
+  const { org, teams, addPerson, addMembership, addGuardianLink } = usePeople();
+
+  const [step, setStep] = useState(1);
+  const totalSteps = 6;
+
   // Form data
-  const [authMethod, setAuthMethod] = useState<"dfb" | "email">("email");
+  const [authMethod, setAuthMethod] = useState<"dfb" | "email" | null>(null);
+  const [onboardingType, setOnboardingType] = useState<IntentTarget | null>(null);
+  
+  // Person data (for self or guardian)
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [phone, setPhone] = useState("");
+  
+  // Child data (if onboarding child/family)
   const [childFirstName, setChildFirstName] = useState("");
   const [childLastName, setChildLastName] = useState("");
-  const [childDateOfBirth, setChildDateOfBirth] = useState("");
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [completed, setCompleted] = useState(false);
-
-  const getTeamName = () => {
-    if (!form.teamId) return org.name;
-    const team = teams.find(t => t.id === form.teamId);
-    return team?.name || org.name;
-  };
-
-  const getTargetLabel = (target: IntentTarget) => {
-    switch (target) {
-      case "self": return "Für mich selbst";
-      case "child": return "Für mein Kind";
-      case "household": return "Für meine Familie";
-      default: return target;
-    }
-  };
-
-  const handleComplete = () => {
-    // Create intent
-    const intent = createIntent({
-      type: "public_registration",
-      orgId: form.orgId,
-      departmentId: form.departmentId,
-      teamId: form.teamId,
-      formId: form.id,
-      target: selectedTarget,
-      requestedRole: form.allowedRoles[0],
-      approvalPolicy: form.approvalPolicy,
-      paymentPolicy: form.paymentPolicy
-    });
-
-    // Complete registration
-    if (selectedTarget === "child") {
-      completeRegistration(
-        intent.id,
-        {
-          firstName: childFirstName,
-          lastName: childLastName,
-          dateOfBirth: childDateOfBirth,
-          kind: "member"
-        },
-        {
-          firstName,
-          lastName,
-          email,
-          dateOfBirth,
-          kind: "contact"
-        }
-      );
-    } else {
-      completeRegistration(
-        intent.id,
-        {
-          firstName,
-          lastName,
-          email,
-          dateOfBirth,
-          kind: "member"
-        }
-      );
-    }
-
-    setCompleted(true);
-  };
-
-  // Calculate actual step for content rendering (accounting for target selection step)
-  const contentStep = needsTargetSelection ? step - 1 : step;
+  const [childDob, setChildDob] = useState("");
   
-  // Check if we're on the final step
-  const isFinalStep = selectedTarget === "child" 
-    ? step === (needsTargetSelection ? 6 : 5)
-    : step === (needsTargetSelection ? 5 : 4);
+  // Custom question answers
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
-  if (completed) {
-    return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-        <div 
-          className="bg-white rounded-2xl w-full max-w-md text-center p-8"
-          onClick={e => e.stopPropagation()}
-        >
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check className="w-10 h-10 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Registrierung erfolgreich!</h2>
-          <p className="text-slate-600 mb-6">
-            {form.approvalPolicy === "admin_review" 
-              ? "Ihre Registrierung wurde eingereicht und wird von einem Administrator geprüft."
-              : "Sie wurden erfolgreich registriert."
-            }
-          </p>
-          <Badge variant={form.approvalPolicy === "admin_review" ? "warning" : "success"} className="mb-6">
-            {form.approvalPolicy === "admin_review" ? "Ausstehende Genehmigung" : "Aktiv"}
-          </Badge>
-          <Button onClick={onClose} className="w-full">
-            Schließen
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const team = form.teamId ? teams.find(t => t.id === form.teamId) : null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div 
-        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="p-6 border-b border-slate-200 bg-teal-500 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-teal-100 text-sm">Preview: {form.name}</p>
-              <h2 className="text-xl font-bold">{getTeamName()}</h2>
+  // Handle complete
+  const handleComplete = () => {
+    // Create the person(s) based on onboarding type
+    if (onboardingType === "self") {
+      // Just create self as member
+      const person = addPerson({
+        firstName,
+        lastName,
+        email,
+        phone,
+        kind: "member",
+        hasClaimedIdentity: true
+      });
+      addMembership({
+        personId: person.id,
+        orgId: org.id,
+        teamId: form.teamId,
+        role: "player",
+        status: form.approvalPolicy === "auto" ? "active" : "pending"
+      });
+    } else if (onboardingType === "child") {
+      // Create child as member
+      const child = addPerson({
+        firstName: childFirstName,
+        lastName: childLastName,
+        dateOfBirth: childDob,
+        kind: "member"
+      });
+      addMembership({
+        personId: child.id,
+        orgId: org.id,
+        teamId: form.teamId,
+        role: "player",
+        status: form.approvalPolicy === "auto" ? "active" : "pending"
+      });
+      
+      // Create guardian as contact
+      const guardian = addPerson({
+        firstName,
+        lastName,
+        email,
+        phone,
+        kind: "contact",
+        hasClaimedIdentity: true
+      });
+      
+      // Create guardian link
+      addGuardianLink({
+        guardianPersonId: guardian.id,
+        childPersonId: child.id,
+        permissions: {
+          manageRsvp: true,
+          viewComms: true,
+          payFees: true,
+          editProfile: true
+        }
+      });
+    } else if (onboardingType === "household") {
+      // Similar to child but could add multiple children
+      // For demo, we'll do the same as child
+      const child = addPerson({
+        firstName: childFirstName,
+        lastName: childLastName,
+        dateOfBirth: childDob,
+        kind: "member"
+      });
+      addMembership({
+        personId: child.id,
+        orgId: org.id,
+        teamId: form.teamId,
+        role: "player",
+        status: form.approvalPolicy === "auto" ? "active" : "pending"
+      });
+      
+      const guardian = addPerson({
+        firstName,
+        lastName,
+        email,
+        phone,
+        kind: "contact",
+        hasClaimedIdentity: true
+      });
+      
+      addGuardianLink({
+        guardianPersonId: guardian.id,
+        childPersonId: child.id,
+        permissions: {
+          manageRsvp: true,
+          viewComms: true,
+          payFees: true,
+          editProfile: true
+        }
+      });
+    }
+
+    // Move to completion step
+    setStep(totalSteps);
+  };
+
+  // Render step content
+  const renderStep = () => {
+    switch (step) {
+      // Step 1: Club/Team info
+      case 1:
+        return (
+          <div className="text-center py-8">
+            <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Building2 className="w-10 h-10 text-teal-600" />
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-teal-600 rounded-lg">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          {/* Progress */}
-          <div className="mt-4 flex gap-1">
-            {Array.from({ length: totalSteps }).map((_, i) => (
-              <div 
-                key={i}
-                className={`flex-1 h-1 rounded-full ${
-                  i <= step ? "bg-white" : "bg-teal-400"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* Step 0: Welcome */}
-          {step === 0 && (
-            <div className="text-center py-4">
-              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-teal-600" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2">
-                Willkommen bei {org.name}
-              </h3>
-              <p className="text-slate-600 mb-4">
-                Registrieren Sie sich oder Ihr Kind als Mitglied
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+              Willkommen bei {org.name}!
+            </h2>
+            {team && (
+              <p className="text-lg text-slate-600 mb-4">
+                Anmeldung für: <strong>{team.name}</strong>
               </p>
-              <div className="text-left p-4 bg-slate-50 rounded-xl">
-                <p className="text-sm text-slate-500 mb-2">Sie registrieren sich für:</p>
-                <p className="font-medium text-slate-800">{form.name}</p>
-                {form.teamId && (
-                  <p className="text-sm text-teal-600">{getTeamName()}</p>
-                )}
-              </div>
-            </div>
-          )}
+            )}
+            <p className="text-slate-500 max-w-md mx-auto">
+              {form.description || "Wir freuen uns auf deine Anmeldung!"}
+            </p>
+          </div>
+        );
 
-          {/* Step 1: Target Selection (only if multiple targets allowed) */}
-          {needsTargetSelection && step === 1 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">Wen möchten Sie anmelden?</h3>
-              <div className="grid gap-3">
-                {form.allowedTargets.map(target => (
-                  <button
-                    key={target}
-                    onClick={() => setSelectedTarget(target)}
-                    className={`p-4 border-2 rounded-xl text-left flex items-center gap-4 transition-all ${
-                      selectedTarget === target 
-                        ? "border-teal-500 bg-teal-50" 
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                      selectedTarget === target ? "bg-teal-500 text-white" : "bg-slate-100 text-slate-500"
-                    }`}>
-                      {target === "self" && <User className="w-6 h-6" />}
-                      {target === "child" && <Users className="w-6 h-6" />}
-                      {target === "household" && <UserPlus className="w-6 h-6" />}
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-800">{getTargetLabel(target)}</p>
-                      <p className="text-sm text-slate-500">
-                        {target === "self" && "Sie melden sich selbst an"}
-                        {target === "child" && "Sie melden Ihr Kind an"}
-                        {target === "household" && "Sie melden mehrere Familienmitglieder an"}
-                      </p>
-                    </div>
-                    {selectedTarget === target && (
-                      <Check className="w-5 h-5 text-teal-500 ml-auto" />
-                    )}
-                  </button>
-                ))}
-              </div>
+      // Step 2: Authentication
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-slate-800 mb-2">Anmeldung</h2>
+              <p className="text-slate-500">Wie möchtest du dich anmelden?</p>
             </div>
-          )}
-
-          {/* Auth Method */}
-          {contentStep === 1 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">Anmeldung</h3>
-              <div className="grid gap-3">
-                <button
-                  onClick={() => setAuthMethod("dfb")}
-                  className={`p-4 border-2 rounded-xl text-left flex items-center gap-4 ${
-                    authMethod === "dfb" ? "border-teal-500 bg-teal-50" : "border-slate-200"
-                  }`}
-                >
-                  <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold">
-                    DFB
+            <div className="grid gap-4 max-w-md mx-auto">
+              <button
+                onClick={() => setAuthMethod("dfb")}
+                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                  authMethod === "dfb" 
+                    ? "border-teal-500 bg-teal-50" 
+                    : "border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-slate-800">Mit meinDFB anmelden</p>
-                    <p className="text-sm text-slate-500">Schnelle Anmeldung mit DFB-Konto</p>
+                    <p className="font-semibold text-slate-800">meinDFB Login</p>
+                    <p className="text-sm text-slate-500">Mit deinem DFB-Konto anmelden</p>
                   </div>
-                </button>
-                <button
-                  onClick={() => setAuthMethod("email")}
-                  className={`p-4 border-2 rounded-xl text-left flex items-center gap-4 ${
-                    authMethod === "email" ? "border-teal-500 bg-teal-50" : "border-slate-200"
-                  }`}
-                >
-                  <div className="w-12 h-12 bg-slate-500 rounded-lg flex items-center justify-center text-white">
-                    @
+                  {authMethod === "dfb" && <Check className="w-5 h-5 text-teal-500 ml-auto" />}
+                </div>
+              </button>
+              <button
+                onClick={() => setAuthMethod("email")}
+                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                  authMethod === "email" 
+                    ? "border-teal-500 bg-teal-50" 
+                    : "border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Mail className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-slate-800">Mit E-Mail registrieren</p>
-                    <p className="text-sm text-slate-500">Neues Konto erstellen</p>
+                    <p className="font-semibold text-slate-800">E-Mail</p>
+                    <p className="text-sm text-slate-500">Mit E-Mail-Adresse registrieren</p>
                   </div>
-                </button>
-              </div>
+                  {authMethod === "email" && <Check className="w-5 h-5 text-teal-500 ml-auto" />}
+                </div>
+              </button>
             </div>
-          )}
+          </div>
+        );
 
-          {/* Guardian/Self Profile */}
-          {contentStep === 2 && (
+      // Step 3: Who are you onboarding?
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-slate-800 mb-2">Wen möchtest du anmelden?</h2>
+              <p className="text-slate-500">Wähle die passende Option</p>
+            </div>
+            <div className="grid gap-4 max-w-md mx-auto">
+              <button
+                onClick={() => setOnboardingType("self")}
+                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                  onboardingType === "self" 
+                    ? "border-teal-500 bg-teal-50" 
+                    : "border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <User className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800">Mich selbst</p>
+                    <p className="text-sm text-slate-500">Ich melde mich selbst als Mitglied an</p>
+                  </div>
+                  {onboardingType === "self" && <Check className="w-5 h-5 text-teal-500 ml-auto" />}
+                </div>
+              </button>
+              <button
+                onClick={() => setOnboardingType("child")}
+                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                  onboardingType === "child" 
+                    ? "border-teal-500 bg-teal-50" 
+                    : "border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center">
+                    <Users className="w-6 h-6 text-violet-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800">Mein Kind</p>
+                    <p className="text-sm text-slate-500">Ich melde mein Kind als Spieler an</p>
+                  </div>
+                  {onboardingType === "child" && <Check className="w-5 h-5 text-teal-500 ml-auto" />}
+                </div>
+              </button>
+              <button
+                onClick={() => setOnboardingType("household")}
+                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                  onboardingType === "household" 
+                    ? "border-teal-500 bg-teal-50" 
+                    : "border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <Home className="w-6 h-6 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800">Meine Familie</p>
+                    <p className="text-sm text-slate-500">Mehrere Familienmitglieder anmelden</p>
+                  </div>
+                  {onboardingType === "household" && <Check className="w-5 h-5 text-teal-500 ml-auto" />}
+                </div>
+              </button>
+            </div>
+          </div>
+        );
+
+      // Step 4: Personal info
+      case 4:
+        return (
+          <div className="space-y-6 max-w-md mx-auto">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-slate-800 mb-2">
+                {onboardingType === "self" ? "Deine Daten" : "Deine Kontaktdaten"}
+              </h2>
+              <p className="text-slate-500">
+                {onboardingType === "self" 
+                  ? "Bitte gib deine persönlichen Daten ein"
+                  : "Als Erziehungsberechtigter"
+                }
+              </p>
+            </div>
+            
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">
-                {selectedTarget === "child" ? "Ihre Daten (Erziehungsberechtigter)" : "Ihre Daten"}
-              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Vorname</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Vorname *
+                  </label>
                   <input
                     type="text"
                     value={firstName}
@@ -1063,7 +808,9 @@ function RegistrationPreview({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nachname</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Nachname *
+                  </label>
                   <input
                     type="text"
                     value={lastName}
@@ -1073,7 +820,9 @@ function RegistrationPreview({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">E-Mail</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  E-Mail *
+                </label>
                 <input
                   type="email"
                   value={email}
@@ -1082,173 +831,255 @@ function RegistrationPreview({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Geburtsdatum</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Telefon
+                </label>
                 <input
-                  type="date"
-                  value={dateOfBirth}
-                  onChange={e => setDateOfBirth(e.target.value)}
+                  type="tel"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
             </div>
-          )}
 
-          {/* Child Data (if target=child) */}
-          {contentStep === 3 && selectedTarget === "child" && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">Daten des Kindes</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Vorname</label>
-                  <input
-                    type="text"
-                    value={childFirstName}
-                    onChange={e => setChildFirstName(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nachname</label>
-                  <input
-                    type="text"
-                    value={childLastName}
-                    onChange={e => setChildLastName(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Geburtsdatum</label>
-                <input
-                  type="date"
-                  value={childDateOfBirth}
-                  onChange={e => setChildDateOfBirth(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Custom Questions */}
-          {((contentStep === 4 && selectedTarget === "child") || (contentStep === 3 && selectedTarget !== "child")) && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">Zusätzliche Informationen</h3>
-              {form.questions.length === 0 ? (
-                <p className="text-slate-500 text-center py-4">Keine zusätzlichen Fragen</p>
-              ) : (
-                form.questions.map(q => (
-                  <div key={q.id}>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      {q.label} {q.required && "*"}
-                    </label>
-                    {q.type === "text" && (
-                      <input
-                        type="text"
-                        value={answers[q.id] || ""}
-                        onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                      />
-                    )}
-                    {q.type === "checkbox" && (
-                      <label className="flex items-center gap-2">
+            {/* Child data (if applicable) */}
+            {(onboardingType === "child" || onboardingType === "household") && (
+              <>
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="font-semibold text-slate-800 mb-4">Daten des Kindes</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Vorname *
+                        </label>
                         <input
-                          type="checkbox"
-                          checked={answers[q.id] === "true"}
-                          onChange={e => setAnswers({ ...answers, [q.id]: e.target.checked ? "true" : "false" })}
-                          className="w-4 h-4 text-teal-500 rounded"
+                          type="text"
+                          value={childFirstName}
+                          onChange={e => setChildFirstName(e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                         />
-                        <span className="text-sm text-slate-600">Ja</span>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Nachname *
+                        </label>
+                        <input
+                          type="text"
+                          value={childLastName}
+                          onChange={e => setChildLastName(e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        Geburtsdatum *
                       </label>
-                    )}
-                    {q.type === "single_choice" && q.options && (
-                      <select
-                        value={answers[q.id] || ""}
-                        onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                      >
-                        <option value="">Bitte wählen...</option>
-                        {q.options.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    )}
-                    {q.type === "date" && (
                       <input
                         type="date"
-                        value={answers[q.id] || ""}
-                        onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
+                        value={childDob}
+                        onChange={e => setChildDob(e.target.value)}
                         className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
-                    )}
+                    </div>
                   </div>
-                ))
-              )}
-            </div>
-          )}
+                </div>
+              </>
+            )}
+          </div>
+        );
 
-          {/* Final Step: Confirmation */}
-          {isFinalStep && (
+      // Step 5: Custom questions
+      case 5:
+        const relevantQuestions = form.questions.filter(q => {
+          if (q.scope === "all") return true;
+          if (q.scope === "player" && onboardingType === "self") return true;
+          if (q.scope === "guardian" && onboardingType !== "self") return true;
+          return false;
+        });
+
+        if (relevantQuestions.length === 0) {
+          // Skip to confirmation
+          handleComplete();
+          return null;
+        }
+
+        return (
+          <div className="space-y-6 max-w-md mx-auto">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-slate-800 mb-2">Zusätzliche Informationen</h2>
+              <p className="text-slate-500">Bitte beantworte folgende Fragen</p>
+            </div>
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">Bestätigung</h3>
-              <div className="p-4 bg-slate-50 rounded-xl space-y-3">
-                {selectedTarget === "child" && (
+              {relevantQuestions.map(q => (
+                <div key={q.id}>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {q.label} {q.required && "*"}
+                  </label>
+                  {q.type === "text" && (
+                    <input
+                      type="text"
+                      value={answers[q.id] || ""}
+                      onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                  )}
+                  {q.type === "date" && (
+                    <input
+                      type="date"
+                      value={answers[q.id] || ""}
+                      onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                  )}
+                  {(q.type === "single_choice" || q.type === "multi_choice") && q.options && (
+                    <select
+                      value={answers[q.id] || ""}
+                      onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    >
+                      <option value="">Bitte wählen...</option>
+                      {q.options.map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      // Step 6: Confirmation
+      case 6:
+        return (
+          <div className="text-center py-8">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Check className="w-10 h-10 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+              Anmeldung erfolgreich!
+            </h2>
+            <p className="text-slate-600 max-w-md mx-auto mb-6">
+              {form.approvalPolicy === "admin_review" 
+                ? "Deine Anmeldung wird geprüft. Du erhältst eine Bestätigung per E-Mail."
+                : "Willkommen im Verein! Du erhältst eine Bestätigungs-E-Mail."
+              }
+            </p>
+            <div className="bg-slate-50 rounded-lg p-4 max-w-sm mx-auto text-left">
+              <h3 className="font-medium text-slate-800 mb-2">Zusammenfassung:</h3>
+              <ul className="text-sm text-slate-600 space-y-1">
+                {onboardingType === "self" && (
+                  <li>• {firstName} {lastName} als Mitglied registriert</li>
+                )}
+                {(onboardingType === "child" || onboardingType === "household") && (
                   <>
-                    <div>
-                      <label className="text-xs text-slate-500">Kind</label>
-                      <p className="font-medium text-slate-800">{childFirstName} {childLastName}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs text-slate-500">Erziehungsberechtigter</label>
-                      <p className="font-medium text-slate-800">{firstName} {lastName}</p>
-                    </div>
+                    <li>• {childFirstName} {childLastName} als Spieler registriert</li>
+                    <li>• {firstName} {lastName} als Erziehungsberechtigter verknüpft</li>
                   </>
                 )}
-                {selectedTarget !== "child" && (
-                  <div>
-                    <label className="text-xs text-slate-500">Name</label>
-                    <p className="font-medium text-slate-800">{firstName} {lastName}</p>
-                  </div>
-                )}
-                <div>
-                  <label className="text-xs text-slate-500">E-Mail</label>
-                  <p className="text-slate-800">{email}</p>
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500">Rolle</label>
-                  <p className="text-slate-800">{form.allowedRoles.map(r => getRoleLabel(r)).join(", ")}</p>
-                </div>
-              </div>
-              <div className="p-4 bg-amber-50 rounded-xl">
-                <p className="text-sm text-amber-800">
-                  {form.approvalPolicy === "admin_review" 
-                    ? "⚠️ Ihre Registrierung muss von einem Administrator geprüft werden."
-                    : "✓ Ihre Registrierung wird sofort aktiviert."
-                  }
-                </p>
-              </div>
+                {team && <li>• Team: {team.name}</li>}
+              </ul>
+            </div>
+          </div>
+        );
+    }
+  };
+
+  // Can proceed check
+  const canProceed = () => {
+    switch (step) {
+      case 2: return authMethod !== null;
+      case 3: return onboardingType !== null;
+      case 4:
+        if (!firstName || !lastName || !email) return false;
+        if ((onboardingType === "child" || onboardingType === "household") && 
+            (!childFirstName || !childLastName || !childDob)) return false;
+        return true;
+      default: return true;
+    }
+  };
+
+  // Handle next
+  const handleNext = () => {
+    if (step === 4) {
+      // Check if we have custom questions
+      const relevantQuestions = form.questions.filter(q => {
+        if (q.scope === "all") return true;
+        if (q.scope === "player" && onboardingType === "self") return true;
+        if (q.scope === "guardian" && onboardingType !== "self") return true;
+        return false;
+      });
+      
+      if (relevantQuestions.length === 0) {
+        handleComplete();
+        return;
+      }
+    }
+    
+    if (step === 5) {
+      handleComplete();
+      return;
+    }
+    
+    setStep(step + 1);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div 
+        className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-slate-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-800">
+              {step < totalSteps ? "Vorschau: Anmeldeformular" : ""}
+            </h2>
+            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg">
+              <X className="w-5 h-5 text-slate-500" />
+            </button>
+          </div>
+          {/* Progress */}
+          {step < totalSteps && (
+            <div className="flex gap-1">
+              {Array.from({ length: totalSteps - 1 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1 flex-1 rounded-full transition-colors ${
+                    i < step ? "bg-teal-500" : "bg-slate-200"
+                  }`}
+                />
+              ))}
             </div>
           )}
         </div>
 
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+          {renderStep()}
+        </div>
+
         {/* Footer */}
         <div className="p-4 border-t border-slate-200 flex justify-between">
-          <Button 
-            variant="outline" 
-            onClick={() => step > 0 ? setStep(step - 1) : onClose()}
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            {step > 0 ? "Zurück" : "Abbrechen"}
-          </Button>
-          
-          {isFinalStep ? (
-            <Button onClick={handleComplete}>
-              <Check className="w-4 h-4 mr-1" />
-              Registrierung abschließen
+          {step > 1 && step < totalSteps ? (
+            <Button variant="outline" onClick={() => setStep(step - 1)}>
+              <ChevronLeft className="w-4 h-4 mr-1" /> Zurück
             </Button>
           ) : (
-            <Button onClick={() => setStep(step + 1)}>
-              Weiter
+            <div />
+          )}
+          {step < totalSteps ? (
+            <Button onClick={handleNext} disabled={!canProceed()}>
+              {step === 4 || step === 5 ? "Anmeldung abschließen" : "Weiter"} 
               <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          ) : (
+            <Button onClick={onClose}>
+              Schließen
             </Button>
           )}
         </div>
