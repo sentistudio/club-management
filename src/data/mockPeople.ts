@@ -2,9 +2,11 @@
  * Mock People Data
  * 
  * Seed data for the people management system:
- * - 2 adult players, 2 minors
- * - 2 guardians as contacts
- * - 1 guardian link active, 1 pending
+ * - 2 adult players (Patrick, Lena)
+ * - 4 minors: Max, Flurina (with guardian Lena), Tim (guardian pending), Anna (NO guardian!)
+ * - 2 guardians as contacts (Markus, Sandra Weber)
+ * - Guardian links: Lena→Max (active), Lena→Flurina (active), Markus→Tim (pending)
+ * - Anna has NO guardian link - demo case for minor protection features
  * - Teams: U12, U15
  * - Various memberships with active/pending status
  */
@@ -96,7 +98,8 @@ export const MOCK_PERSONS: Person[] = [
     gender: "male",
     status: "active",
     kind: "member",
-    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
+    // Boy playing soccer - matches mobile app
+    avatarUrl: "https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=100&h=100&fit=crop&crop=face",
     hasClaimedIdentity: false,
     createdAt: "2022-08-01T10:00:00Z",
     updatedAt: "2024-01-05T16:00:00Z"
@@ -109,10 +112,29 @@ export const MOCK_PERSONS: Person[] = [
     gender: "female",
     status: "active",
     kind: "member",
-    avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+    // Girl with blonde hair - matches mobile app
+    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
     hasClaimedIdentity: false,
     createdAt: "2023-02-15T10:00:00Z",
     updatedAt: "2024-01-05T16:00:00Z"
+  },
+  // Anna - Minor WITHOUT Guardian (same team as Flurina)
+  // This is a demo case: minor player with no parent/guardian link established
+  {
+    id: "person_anna",
+    firstName: "Anna",
+    lastName: "Berger",
+    email: undefined,
+    phone: undefined,
+    dateOfBirth: "2011-09-15",
+    gender: "female",
+    status: "active",
+    kind: "member",
+    // Young girl - matches mobile app
+    avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=face",
+    hasClaimedIdentity: false,
+    createdAt: "2023-06-01T10:00:00Z",
+    updatedAt: "2024-01-10T10:00:00Z"
   },
   {
     id: "person_tim",
@@ -125,6 +147,21 @@ export const MOCK_PERSONS: Person[] = [
     hasClaimedIdentity: false,
     createdAt: "2023-09-01T10:00:00Z",
     updatedAt: "2024-01-02T10:00:00Z"
+  },
+  // Additional adult player
+  {
+    id: "person_fabio",
+    firstName: "Fabio",
+    lastName: "Senti",
+    email: "fabio.senti@example.com",
+    phone: "+49 175 9998877",
+    dateOfBirth: "1990-02-14",
+    gender: "male",
+    status: "active",
+    kind: "member",
+    hasClaimedIdentity: false,
+    createdAt: "2024-01-05T10:00:00Z",
+    updatedAt: "2024-01-10T10:00:00Z"
   },
   // Guardians (Contacts)
   {
@@ -236,6 +273,18 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
     status: "active",
     joinedAt: "2023-02-15T10:00:00Z"
   },
+  // Anna - U12 Player (NO GUARDIAN LINK!)
+  // This demonstrates a minor member without any parent/guardian established
+  {
+    id: "mem_anna_player",
+    personId: "person_anna",
+    orgId: "org_sfb",
+    departmentId: "dept_fussball",
+    teamId: "team_u12",
+    role: "player",
+    status: "active",
+    joinedAt: "2023-06-01T10:00:00Z"
+  },
   // Tim - U15 Player (pending)
   {
     id: "mem_tim_player",
@@ -266,6 +315,17 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
     role: "coach",
     status: "active",
     joinedAt: "2022-01-15T10:00:00Z"
+  },
+  // Fabio - Player
+  {
+    id: "mem_fabio_player",
+    personId: "person_fabio",
+    orgId: "org_sfb",
+    departmentId: "dept_fussball",
+    teamId: "team_herren1",
+    role: "player",
+    status: "active",
+    joinedAt: "2024-01-05T10:00:00Z"
   }
 ];
 
