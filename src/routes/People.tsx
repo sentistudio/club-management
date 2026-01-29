@@ -28,12 +28,48 @@ import type { Person, MembershipRole } from "../types/people";
 
 // Role options for adding a new person
 type PersonRole = "player" | "coach" | "guardian" | "contact";
+type ResultType = "member" | "contact";
 
-const ROLE_CONFIG: Record<PersonRole, { label: string; icon: React.ReactNode; color: string }> = {
-  player: { label: "Spieler", icon: <Shield className="w-4 h-4" />, color: "bg-blue-100 text-blue-700" },
-  coach: { label: "Trainer", icon: <Users className="w-4 h-4" />, color: "bg-green-100 text-green-700" },
-  guardian: { label: "Erziehungsberechtigter", icon: <Heart className="w-4 h-4" />, color: "bg-violet-100 text-violet-700" },
-  contact: { label: "Allgemeiner Kontakt", icon: <User className="w-4 h-4" />, color: "bg-slate-100 text-slate-700" },
+interface RoleConfig {
+  label: string;
+  shortLabel?: string; // For display in cards
+  icon: React.ReactNode;
+  color: string;
+  resultType: ResultType;
+  description: string;
+}
+
+const ROLE_CONFIG: Record<PersonRole, RoleConfig> = {
+  player: { 
+    label: "Spieler", 
+    icon: <Shield className="w-4 h-4" />, 
+    color: "bg-blue-100 text-blue-700",
+    resultType: "member",
+    description: "Wird als Mitglied hinzugefügt"
+  },
+  coach: { 
+    label: "Trainer", 
+    icon: <Users className="w-4 h-4" />, 
+    color: "bg-green-100 text-green-700",
+    resultType: "member",
+    description: "Wird als Mitglied hinzugefügt"
+  },
+  guardian: { 
+    label: "Erziehungs-berechtigter", 
+    shortLabel: "Elternteil",
+    icon: <Heart className="w-4 h-4" />, 
+    color: "bg-violet-100 text-violet-700",
+    resultType: "contact",
+    description: "Wird als Kontakt hinzugefügt"
+  },
+  contact: { 
+    label: "Allgemeiner Kontakt", 
+    shortLabel: "Kontakt",
+    icon: <User className="w-4 h-4" />, 
+    color: "bg-slate-100 text-slate-700",
+    resultType: "contact",
+    description: "Wird als Kontakt hinzugefügt"
+  },
 };
 
 // ==========================================
@@ -515,36 +551,78 @@ function AddPersonModal({
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Rolle(n) auswählen *
               </label>
-              <p className="text-xs text-slate-500 mb-3">
+              <p className="text-xs text-slate-500 mb-4">
                 Wähle eine oder mehrere Rollen für diese Person
               </p>
-              <div className="grid grid-cols-2 gap-3">
-                {(Object.keys(ROLE_CONFIG) as PersonRole[]).map((role) => {
-                  const config = ROLE_CONFIG[role];
-                  const isSelected = selectedRoles.includes(role);
-                  return (
-                    <button
-                      key={role}
-                      type="button"
-                      onClick={() => toggleRole(role)}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
-                        isSelected 
-                          ? "border-teal-500 bg-teal-50" 
-                          : "border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      <div className={`p-2 rounded-lg ${config.color}`}>
-                        {config.icon}
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-800">{config.label}</p>
-                      </div>
-                      {isSelected && (
-                        <Check className="w-5 h-5 text-teal-500 ml-auto" />
-                      )}
-                    </button>
-                  );
-                })}
+              
+              {/* Members Section */}
+              <div className="mb-4">
+                <p className="text-xs font-medium text-teal-600 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <UserCheck className="w-3 h-3" />
+                  Wird als Mitglied hinzugefügt
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {(["player", "coach"] as PersonRole[]).map((role) => {
+                    const config = ROLE_CONFIG[role];
+                    const isSelected = selectedRoles.includes(role);
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => toggleRole(role)}
+                        className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                          isSelected 
+                            ? "border-teal-500 bg-teal-50" 
+                            : "border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className={`p-2 rounded-lg flex-shrink-0 ${config.color}`}>
+                          {config.icon}
+                        </div>
+                        <p className="font-medium text-slate-800 text-sm">{config.label}</p>
+                        {isSelected && (
+                          <Check className="w-4 h-4 text-teal-500 ml-auto flex-shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Contacts Section */}
+              <div>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  Wird als Kontakt hinzugefügt
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {(["guardian", "contact"] as PersonRole[]).map((role) => {
+                    const config = ROLE_CONFIG[role];
+                    const isSelected = selectedRoles.includes(role);
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => toggleRole(role)}
+                        className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                          isSelected 
+                            ? "border-teal-500 bg-teal-50" 
+                            : "border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className={`p-2 rounded-lg flex-shrink-0 ${config.color}`}>
+                          {config.icon}
+                        </div>
+                        <p className="font-medium text-slate-800 text-sm leading-tight">
+                          {config.shortLabel || config.label}
+                        </p>
+                        {isSelected && (
+                          <Check className="w-4 h-4 text-teal-500 ml-auto flex-shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
