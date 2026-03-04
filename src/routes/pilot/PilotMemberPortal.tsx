@@ -3071,82 +3071,87 @@ export function PilotMemberPortal() {
         </div>
       </div>
 
-      {/* Next Appointment - Merged from all enabled profiles */}
+      {/* ── Meine Termine (carousel, up to 4, my calendar) ── */}
       {mergedEvents.length > 0 && (
-        <div className="px-5 mt-6">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold tracking-wider" style={{ color: isDfb ? COLORS.neutral900 : theme.textMuted }}>{t.nextAppointment}</span>
+        <div className="mt-6">
+          <div className="flex items-center justify-between px-5 mb-3">
+            <span className="text-xs font-semibold tracking-wider" style={{ color: isDfb ? COLORS.neutral900 : theme.textMuted }}>
+              {language === "de" ? "MEINE TERMINE" : "MY SCHEDULE"}
+            </span>
             <button
-              onClick={() => setView("kalender")}
+              onClick={() => { setCalendarViewMode("my"); setView("kalender"); }}
               className="text-xs font-medium flex items-center gap-1"
               style={{ color: isDfb ? COLORS.primary700 : theme.accent }}
             >
               {t.allAppointments} <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-
-          <div
-            className="rounded-2xl shadow-sm p-4"
-            style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
-          >
-            <div className="flex items-start gap-4">
-              <div className="text-center min-w-[40px]">
-                <span className="text-2xl font-bold" style={{ color: theme.textPrimary }}>{mergedEvents[0].dayNumber}</span>
-                <span className="text-sm block" style={{ color: theme.textMuted }}>{mergedEvents[0].dayName}</span>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="text-xl">{allMemberships.find(m => m.teamName === mergedEvents[0].team)?.icon || "📅"}</span>
-                  <h3 className="font-semibold" style={{ color: theme.textPrimary }}>{mergedEvents[0].title}</h3>
-                  {/* Person label – only shown when multiple profiles enabled */}
-                  {enabledProfiles.length > 1 && (
-                    <span
-                      className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                      style={{ backgroundColor: mergedEvents[0].personColor.bg, color: mergedEvents[0].personColor.text }}
-                    >
-                      {mergedEvents[0].personName}
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex gap-3 px-5 pb-2">
+              {mergedEvents.slice(0, 4).map(event => (
+                <div
+                  key={event.id}
+                  className="flex-shrink-0 w-44 rounded-2xl p-3.5"
+                  style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
+                >
+                  {/* Date row + person badge */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold leading-none" style={{ color: theme.textPrimary }}>{event.dayNumber}</span>
+                      <span className="text-xs" style={{ color: theme.textMuted }}>{event.dayName}</span>
+                    </div>
+                    {enabledProfiles.length > 1 && (
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ backgroundColor: event.personColor.bg, color: event.personColor.text }}>
+                        {event.personName}
+                      </span>
+                    )}
+                  </div>
+                  {/* Sport icon + title */}
+                  <div className="flex items-start gap-1.5 mb-2">
+                    <span className="text-base leading-tight flex-shrink-0">{allMemberships.find(m => m.teamName === event.team)?.icon || "📅"}</span>
+                    <h4 className="font-semibold text-sm line-clamp-2 leading-tight" style={{ color: theme.textPrimary }}>{event.title}</h4>
+                  </div>
+                  {/* Time */}
+                  <div className="flex items-center gap-1" style={{ color: theme.textMuted }}>
+                    <Clock className="w-3 h-3" />
+                    <span className="text-xs">{event.time}</span>
+                  </div>
+                  {/* Today/Tomorrow badge */}
+                  {event.isToday && (
+                    <span className="inline-block mt-2 text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: theme.buttonPrimaryBg, color: theme.buttonPrimaryText }}>
+                      {t.today}
+                    </span>
+                  )}
+                  {event.isTomorrow && (
+                    <span className="inline-block mt-2 text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#FFF3CD", color: "#856404" }}>
+                      {t.tomorrow}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-1 text-sm mt-1" style={{ color: theme.textMuted }}>
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{mergedEvents[0].time}</span>
-                </div>
-                <div className="flex items-center gap-1 text-sm mt-0.5" style={{ color: theme.textMuted }}>
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>{mergedEvents[0].location}</span>
-                </div>
-                {mergedEvents[0].isToday && (
-                  <span className="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.mint, color: COLORS.primary }}>
-                    {t.today}
-                  </span>
-                )}
-                {mergedEvents[0].isTomorrow && (
-                  <span className="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#FFF3CD", color: "#856404" }}>
-                    {t.tomorrow}
-                  </span>
-                )}
-              </div>
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* Free Spots - Merged from enabled profiles */}
+      {/* ── Freie Plätze (courses open to join – club calendar) ── */}
       {mergedFreeSpots.length > 0 && (
         <div className="mt-6">
           <div className="flex items-center justify-between px-5 mb-3">
             <span className="text-xs font-semibold tracking-wider" style={{ color: isDfb ? COLORS.neutral900 : theme.textMuted }}>{t.freeSpots}</span>
-            <button className="text-xs font-medium flex items-center gap-1" style={{ color: isDfb ? COLORS.primary700 : theme.accent }}>
+            <button
+              onClick={() => { setCalendarViewMode("club"); setView("kalender"); }}
+              className="text-xs font-medium flex items-center gap-1"
+              style={{ color: isDfb ? COLORS.primary700 : theme.accent }}
+            >
               {t.allCourses} <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-3 px-5 pb-2">
               {mergedFreeSpots.map(spot => (
-                <div 
-                  key={spot.id} 
+                <div
+                  key={spot.id}
                   className="flex-shrink-0 w-40 rounded-2xl shadow-sm overflow-hidden"
                   style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
                 >
@@ -3172,57 +3177,76 @@ export function PilotMemberPortal() {
         </div>
       )}
 
-      {/* More Appointments - Merged from enabled profiles */}
-      {mergedEvents.length > 1 && (
-        <div className="px-5 mt-6 pb-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold tracking-wider" style={{ color: isDfb ? COLORS.neutral900 : theme.textMuted }}>{t.moreAppointments}</span>
-            <button
-              onClick={() => setView("kalender")}
-              className="text-xs font-medium flex items-center gap-1"
-              style={{ color: isDfb ? COLORS.primary700 : theme.accent }}
-            >
-              {t.allAppointments} <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {mergedEvents.slice(1, 3).map(event => (
-              <div
-                key={event.id}
-                className="rounded-2xl shadow-sm p-4"
-                style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
+      {/* ── Vereinstermine (next 4 upcoming club events carousel) ── */}
+      {(() => {
+        const todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0);
+        const upcomingClub = MOCK_ENHANCED_EVENTS
+          .filter(e => e.scope === "club" && new Date(e.date) >= todayDate)
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .slice(0, 4);
+        if (upcomingClub.length === 0) return null;
+        return (
+          <div className="mt-6 pb-4">
+            <div className="flex items-center justify-between px-5 mb-3">
+              <span className="text-xs font-semibold tracking-wider" style={{ color: isDfb ? COLORS.neutral900 : theme.textMuted }}>
+                {language === "de" ? "VEREINSTERMINE" : "CLUB EVENTS"}
+              </span>
+              <button
+                onClick={() => { setCalendarViewMode("club"); setView("kalender"); }}
+                className="text-xs font-medium flex items-center gap-1"
+                style={{ color: isDfb ? COLORS.primary700 : theme.accent }}
               >
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-sm font-medium" style={{ color: theme.textMuted }}>{event.dayName}</span>
-                  <span className="text-lg font-bold" style={{ color: theme.textPrimary }}>{event.dayNumber.replace(".", "")}. Jan.</span>
-                </div>
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="text-sm">{allMemberships.find(m => m.teamName === event.team)?.icon || "📅"}</span>
-                  <h4 className="font-semibold text-sm" style={{ color: theme.textPrimary }}>{event.title}</h4>
-                </div>
-                {/* Person label pill */}
-                {enabledProfiles.length > 1 && (
-                  <span
-                    className="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded-full mb-1"
-                    style={{ backgroundColor: event.personColor.bg, color: event.personColor.text }}
-                  >
-                    {event.personName}
-                  </span>
-                )}
-                <div className="flex items-center gap-1 text-xs mt-0.5" style={{ color: theme.textMuted }}>
-                  <Clock className="w-3 h-3" />
-                  <span>{event.time}</span>
-                </div>
-                <div className="flex items-center gap-1 text-xs mt-0.5" style={{ color: theme.textMuted }}>
-                  <MapPin className="w-3 h-3" />
-                  <span>{event.location}</span>
-                </div>
+                {t.allAppointments} <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-3 px-5 pb-2">
+                {upcomingClub.map(event => {
+                  const d = new Date(event.date);
+                  const dayNum = d.getDate();
+                  const dayName = d.toLocaleDateString(language === "de" ? "de-DE" : "en-US", { weekday: "short" });
+                  return (
+                    <button
+                      key={event.id}
+                      onClick={() => { setSelectedEvent(event); setView("event-detail"); }}
+                      className="flex-shrink-0 w-44 rounded-2xl overflow-hidden text-left"
+                      style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
+                    >
+                      {/* Banner or colored date header */}
+                      {event.bannerImage ? (
+                        <div className="relative h-[72px]">
+                          <img src={event.bannerImage} alt="" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                          <div className="absolute bottom-2 left-3 text-white leading-tight">
+                            <span className="text-xl font-bold">{dayNum}</span>
+                            <span className="text-xs block opacity-90">{dayName}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-14 flex items-center px-3 gap-2" style={{ backgroundColor: "#E0F2FE" }}>
+                          <span className="text-2xl font-bold" style={{ color: "#0369A1" }}>{dayNum}</span>
+                          <span className="text-sm font-medium" style={{ color: "#0369A1" }}>{dayName}</span>
+                        </div>
+                      )}
+                      <div className="p-3">
+                        <h4 className="font-semibold text-sm line-clamp-2 leading-tight mb-1.5" style={{ color: theme.textPrimary }}>{event.title}</h4>
+                        <div className="flex items-center gap-1" style={{ color: theme.textMuted }}>
+                          <Clock className="w-3 h-3" />
+                          <span className="text-xs">{event.isAllDay ? (language === "de" ? "Ganztägig" : "All day") : event.startTime}</span>
+                        </div>
+                        {event.type === "match" && event.team && (
+                          <span className="inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: "#E0F2FE", color: "#0369A1" }}>{event.team}</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
   };
@@ -3338,10 +3362,11 @@ export function PilotMemberPortal() {
           </div>
         </div>
 
-        {/* Events List - Merged from all enabled profiles */}
+        {/* Events List - exclusive per view mode */}
         <div className="px-5 py-4 space-y-4">
-          {/* Helper to render a single event card with person label */}
-          {(() => {
+
+          {/* MY CALENDAR – profile events only */}
+          {calendarViewMode === "my" && (() => {
             const renderEventCard = (event: typeof mergedEvents[0]) => (
               <button
                 key={event.id}
@@ -3358,30 +3383,21 @@ export function PilotMemberPortal() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-lg">{allMemberships.find(m => m.teamName === event.team)?.icon || "📅"}</span>
                       <h3 className="font-semibold" style={{ color: theme.textPrimary }}>{event.title}</h3>
-                      {/* Person label – only when multiple profiles enabled */}
                       {enabledProfiles.length > 1 && (
-                        <span
-                          className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                          style={{ backgroundColor: event.personColor.bg, color: event.personColor.text }}
-                        >
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: event.personColor.bg, color: event.personColor.text }}>
                           {event.personName}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-1 text-sm mt-1" style={{ color: theme.textMuted }}>
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{event.time}</span>
+                      <Clock className="w-3.5 h-3.5" /><span>{event.time}</span>
                     </div>
                     <div className="flex items-center gap-1 text-sm mt-0.5" style={{ color: theme.textMuted }}>
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>{event.location}</span>
+                      <MapPin className="w-3.5 h-3.5" /><span>{event.location}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-3">
                       <EventStatusBadge status={event.status} />
-                      <div
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-                        style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F5F5F5" }}
-                      >
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F5F5F5" }}>
                         {event.teamAvatar && <img src={event.teamAvatar} className="w-4 h-4 rounded-full" alt="" />}
                         <span className="text-xs" style={{ color: theme.textSecondary }}>
                           {event.type === "match" ? t.match : event.type === "training" ? t.training : t.course}
@@ -3398,29 +3414,31 @@ export function PilotMemberPortal() {
             const tomorrowEvents = mergedEvents.filter(e => e.isTomorrow);
             const laterEvents = mergedEvents.filter(e => !e.isToday && !e.isTomorrow);
 
+            if (mergedEvents.length === 0) return (
+              <div className="py-10 text-center">
+                <Calendar className="w-10 h-10 mx-auto mb-3" style={{ color: theme.textMuted }} />
+                <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Keine Termine</p>
+                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>Deine Trainings und Spiele erscheinen hier</p>
+              </div>
+            );
+
             return (
               <>
                 {todayEvents.length > 0 && (
                   <div>
-                    <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>
-                      {language === "de" ? "HEUTE" : "TODAY"}
-                    </span>
+                    <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>{language === "de" ? "HEUTE" : "TODAY"}</span>
                     <div className="mt-2 space-y-3">{todayEvents.map(renderEventCard)}</div>
                   </div>
                 )}
                 {tomorrowEvents.length > 0 && (
                   <div>
-                    <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>
-                      {language === "de" ? "MORGEN" : "TOMORROW"}
-                    </span>
+                    <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>{language === "de" ? "MORGEN" : "TOMORROW"}</span>
                     <div className="mt-2 space-y-3">{tomorrowEvents.map(renderEventCard)}</div>
                   </div>
                 )}
                 {laterEvents.length > 0 && (
                   <div>
-                    <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>
-                      {t.laterThisWeek}
-                    </span>
+                    <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>{t.laterThisWeek}</span>
                     <div className="mt-2 space-y-3">{laterEvents.map(renderEventCard)}</div>
                   </div>
                 )}
@@ -3428,7 +3446,7 @@ export function PilotMemberPortal() {
             );
           })()}
 
-          {/* Club Events (when viewing club calendar) */}
+          {/* CLUB CALENDAR – public club events only */}
           {calendarViewMode === "club" && (
             <div>
               <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>
@@ -3657,16 +3675,15 @@ export function PilotMemberPortal() {
       );
     };
 
-    // Request ticket row
+    // Request ticket row (uses ChatMessage type from mergedChats)
     const requestStatusConfig: Record<string, { label: string; bg: string; text: string }> = {
       open:        { label: "Offen",          bg: "#FEF3C7", text: "#92400E" },
       in_progress: { label: "In Bearbeitung", bg: "#DBEAFE", text: "#1E40AF" },
       resolved:    { label: "Gelöst",         bg: "#D1FAE5", text: "#065F46" },
     };
-    const renderRequestItem = (chat: Chat) => {
+    const renderRequestItem = (chat: ChatMessage) => {
       const status = (chat as { status?: string }).status ?? "open";
       const statusCfg = requestStatusConfig[status] ?? requestStatusConfig.open;
-      const personLabels = chatPersonLabels(chat);
       return (
         <button
           key={chat.id}
@@ -3690,14 +3707,7 @@ export function PilotMemberPortal() {
                 {statusCfg.label}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {personLabels.map(pl => (
-                <span key={pl.name} className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: pl.color.bg, color: pl.color.text }}>{pl.name}</span>
-              ))}
-              <p className="text-xs truncate" style={{ color: theme.textMuted }}>
-                {typeof chat.lastMessage === "string" ? chat.lastMessage : chat.lastMessage?.content ?? ""}
-              </p>
-            </div>
+            <p className="text-xs truncate" style={{ color: theme.textMuted }}>{chat.lastMessage}</p>
           </div>
           <ChevronRight className="w-4 h-4 flex-shrink-0 mt-1" style={{ color: theme.textMuted }} />
         </button>
