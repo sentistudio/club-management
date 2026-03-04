@@ -2213,11 +2213,13 @@ export function PilotMemberPortal() {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [selectedForm, setSelectedForm] = useState<typeof mockTicketForms[0] | null>(null);
   const [replyText, setReplyText] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
   const [calendarWeekOffset, setCalendarWeekOffset] = useState(0);
   const [calendarViewMode, setCalendarViewMode] = useState<"my" | "club">("my");
   const [chatSection, setChatSection] = useState<"messages" | "requests">("messages");
   const [chatFilter, setChatFilter] = useState<"all" | "announcements" | "groups" | "direct">("all");
+  const [chatView, setChatView] = useState<"main" | "search">("main");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EnhancedEvent | null>(null);
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const [language, setLanguage] = useState<Language>("de");
@@ -2359,6 +2361,7 @@ export function PilotMemberPortal() {
   const goBack = () => {
     if (view === "message-detail" || view === "chat-detail") {
       setView("chats");
+      setChatView("main"); // always land on main section, not search
       setSelectedTicket(null);
       setSelectedChat(null);
       setSelectedChatMessage(null);
@@ -3722,6 +3725,204 @@ export function PilotMemberPortal() {
       { id: "direct",        label: "DMs",           count: directChats.length, hidden: isChildProfile },
     ];
 
+    // ── SEARCH VIEW ──────────────────────────────────────────────────────────
+    if (chatView === "search") {
+      // Build search results
+      const q = searchQuery.trim().toLowerCase();
+
+      const chatResults: Chat[] = q
+        ? profileChats.filter(c =>
+            c.name.toLowerCase().includes(q) ||
+            (c.lastMessage?.content ?? "").toLowerCase().includes(q)
+          ).sort((a, b) => {
+            const aT = a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0;
+            const bT = b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0;
+            return bT - aT;
+          })
+        : [];
+
+      const requestResults: ChatMessage[] = q
+        ? requestChats.filter(c =>
+            c.name.toLowerCase().includes(q) ||
+            (c.lastMessage ?? "").toLowerCase().includes(q)
+          )
+        : [];
+
+      const hasResults = chatResults.length > 0 || requestResults.length > 0;
+
+      const saveToHistoryAndNavigate = (query: string, action: () => void) => {
+        if (query.trim()) {
+          setSearchHistory(prev => {
+            const filtered = prev.filter(h => h !== query.trim());
+            return [query.trim(), ...filtered].slice(0, 8);
+          });
+        }
+        action();
+      };
+
+      return (
+        <div className="min-h-full pb-24" style={{ backgroundColor: theme.cardBg }}>
+          {/* Search header */}
+          <div className="px-4 pt-4 pb-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${theme.cardBorder}` }}>
+            <button
+              onClick={() => { setChatView("main"); setSearchQuery(""); }}
+              className="p-2 -ml-1 rounded-xl flex-shrink-0"
+              style={{ color: theme.textSecondary }}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: theme.textMuted }} />
+              <input
+                autoFocus
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Chats und Anfragen durchsuchen…"
+                className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
+                style={{ backgroundColor: theme.inputBg, borderColor: theme.inputBorder, borderWidth: 1, color: theme.textPrimary, ["--tw-ring-color" as string]: theme.accent }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  style={{ color: theme.textMuted }}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Empty state – history */}
+          {!q && (
+            <div className="px-5 pt-4">
+              {searchHistory.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: theme.textMuted }}>Letzte Suchen</p>
+                    <button
+                      onClick={() => setSearchHistory([])}
+                      className="text-xs"
+                      style={{ color: theme.textMuted }}
+                    >
+                      Löschen
+                    </button>
+                  </div>
+                  <div className="space-y-0">
+                    {searchHistory.map(h => (
+                      <button
+                        key={h}
+                        onClick={() => setSearchQuery(h)}
+                        className="w-full flex items-center gap-3 py-3 text-left"
+                        style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
+                      >
+                        <Clock className="w-4 h-4 flex-shrink-0" style={{ color: theme.textMuted }} />
+                        <span className="text-sm" style={{ color: theme.textSecondary }}>{h}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="pt-12 text-center">
+                  <Search className="w-10 h-10 mx-auto mb-3" style={{ color: theme.textMuted }} />
+                  <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Suche starten</p>
+                  <p className="text-xs mt-1" style={{ color: theme.textMuted }}>Suche nach Chats, Gruppen oder Anfragen</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Results */}
+          {q && !hasResults && (
+            <div className="pt-12 text-center px-5">
+              <Search className="w-10 h-10 mx-auto mb-3" style={{ color: theme.textMuted }} />
+              <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Keine Treffer</p>
+              <p className="text-xs mt-1" style={{ color: theme.textMuted }}>Keine Ergebnisse für „{searchQuery}"</p>
+            </div>
+          )}
+
+          {q && chatResults.length > 0 && (
+            <div className="pt-4">
+              <p className="px-5 pb-2 text-xs font-semibold uppercase tracking-wider" style={{ color: theme.textMuted }}>Chats</p>
+              {chatResults.map(chat => {
+                const personLabels = chatPersonLabels(chat);
+                const typeIcon = chat.type === "announcement"
+                  ? <Megaphone className="w-5 h-5" style={{ color: theme.accent }} />
+                  : chat.type === "team_group"
+                  ? <Users className="w-5 h-5" style={{ color: theme.accent }} />
+                  : <MessageSquare className="w-5 h-5" style={{ color: theme.accent }} />;
+                return (
+                  <button
+                    key={chat.id}
+                    onClick={() => saveToHistoryAndNavigate(searchQuery, () => {
+                      setChatSection("messages");
+                      setSelectedChatMessage(chat);
+                      setView("chat-detail");
+                    })}
+                    className="w-full flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+                    style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
+                  >
+                    <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: theme.accentLight }}>
+                      {typeIcon}
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="font-semibold text-sm truncate" style={{ color: theme.textPrimary }}>{chat.name}</p>
+                      <div className="flex items-center gap-1 flex-wrap mt-0.5">
+                        {personLabels.map(pl => (
+                          <span key={pl.name} className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ backgroundColor: pl.color.bg, color: pl.color.text }}>{pl.name}</span>
+                        ))}
+                        {chat.lastMessage && (
+                          <p className="text-xs truncate min-w-0" style={{ color: theme.textMuted }}>{chat.lastMessage.content}</p>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-[11px] flex-shrink-0" style={{ color: theme.textMuted }}>
+                      {chat.lastMessage ? new Date(chat.lastMessage.createdAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) : ""}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {q && requestResults.length > 0 && (
+            <div className="pt-4">
+              <p className="px-5 pb-2 text-xs font-semibold uppercase tracking-wider" style={{ color: theme.textMuted }}>Anfragen</p>
+              {requestResults.map(chat => {
+                const status = (chat as { status?: string }).status ?? "open";
+                const statusCfg = requestStatusConfig[status] ?? requestStatusConfig.open;
+                return (
+                  <button
+                    key={chat.id}
+                    onClick={() => saveToHistoryAndNavigate(searchQuery, () => {
+                      setChatSection("requests");
+                      handleOpenChat(chat);
+                    })}
+                    className="w-full flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
+                    style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
+                  >
+                    <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: "#F3E8FF" }}>
+                      <File className="w-4 h-4" style={{ color: "#7C3AED" }} />
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-sm truncate" style={{ color: theme.textPrimary }}>{chat.name}</p>
+                        <span className="flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: statusCfg.bg, color: statusCfg.text }}>{statusCfg.label}</span>
+                      </div>
+                      <p className="text-xs truncate mt-0.5" style={{ color: theme.textMuted }}>{chat.lastMessage}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: theme.textMuted }} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ── MAIN VIEW ─────────────────────────────────────────────────────────────
     return (
       <div className="min-h-full pb-24" style={{ backgroundColor: theme.cardBg }}>
         {/* ── Header ── */}
@@ -3737,36 +3938,22 @@ export function PilotMemberPortal() {
           )}
         </div>
 
-        {/* ── Search ── */}
-        <div className="px-5 pb-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: theme.textMuted }} />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t.search}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
-              style={{ backgroundColor: theme.inputBg, borderColor: theme.inputBorder, borderWidth: 1, color: theme.textPrimary, ["--tw-ring-color" as string]: theme.accent }}
-            />
-          </div>
-        </div>
-
-        {/* ── Section toggle: Nachrichten | Anfragen ── */}
-        <div className="px-5 pb-4">
+        {/* ── Section pills + Search icon in one row ── */}
+        <div className="px-5 pb-4 flex items-center gap-2">
+          {/* Segment pills */}
           <div
-            className="flex p-1 rounded-2xl"
+            className="flex flex-1 p-1 rounded-2xl"
             style={{ backgroundColor: theme.mode === "dfb" ? theme.accentLight : "#F3F4F6" }}
           >
             {(["messages", "requests"] as const).map(sec => {
               const isActive = chatSection === sec;
-              const label = sec === "messages" ? "Nachrichten" : "Anfragen";
+              const label = sec === "messages" ? "Chats" : "Anfragen";
               const badge = sec === "requests" && !isMinorWithoutGuardian ? requestChats.length : 0;
               return (
                 <button
                   key={sec}
-                  onClick={() => setChatSection(sec)}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                  onClick={() => { setChatSection(sec); setChatView("main"); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold transition-all"
                   style={{
                     backgroundColor: isActive ? theme.cardBg : "transparent",
                     color: isActive ? theme.textPrimary : theme.textMuted,
@@ -3786,6 +3973,14 @@ export function PilotMemberPortal() {
               );
             })}
           </div>
+          {/* Search icon button */}
+          <button
+            onClick={() => { setChatView("search"); setSearchQuery(""); }}
+            className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors"
+            style={{ backgroundColor: theme.mode === "dfb" ? theme.accentLight : "#F3F4F6" }}
+          >
+            <Search className="w-4.5 h-4.5" style={{ color: theme.textSecondary }} />
+          </button>
         </div>
 
         {/* ── Warning banners ── */}
@@ -3878,20 +4073,6 @@ export function PilotMemberPortal() {
                 <p className="text-xs mt-0.5" style={{ color: "#6D28D9" }}>Mitgliedschaft, Beiträge, Abmeldungen und mehr – du bekommst eine Antwort vom Vereinsbüro.</p>
               </div>
             </div>
-
-            {/* New request CTA */}
-            {!isMinorWithoutGuardian && (
-              <div className="px-5 mb-4">
-                <button
-                  onClick={() => setView("new-request")}
-                  className="w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
-                  style={{ backgroundColor: theme.buttonPrimaryBg, color: theme.buttonPrimaryText }}
-                >
-                  <Plus className="w-4 h-4" />
-                  Neue Anfrage stellen
-                </button>
-              </div>
-            )}
 
             {/* Ticket list */}
             {isMinorWithoutGuardian ? (
