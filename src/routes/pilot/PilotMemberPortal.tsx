@@ -2216,7 +2216,8 @@ export function PilotMemberPortal() {
   const [searchTerm, setSearchTerm] = useState("");
   const [calendarWeekOffset, setCalendarWeekOffset] = useState(0);
   const [calendarViewMode, setCalendarViewMode] = useState<"my" | "club">("my");
-  const [chatTab, setChatTab] = useState<"announcements" | "team" | "direct" | "requests">("announcements");
+  const [chatSection, setChatSection] = useState<"messages" | "requests">("messages");
+  const [chatFilter, setChatFilter] = useState<"all" | "announcements" | "groups" | "direct">("all");
   const [selectedEvent, setSelectedEvent] = useState<EnhancedEvent | null>(null);
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const [language, setLanguage] = useState<Language>("de");
@@ -3520,16 +3521,15 @@ export function PilotMemberPortal() {
 
   // Chats/Messages View - Enhanced with Chat Types (Announcement, Team Group, Direct)
   const renderChats = () => {
-    // isChildProfile is true only if a kid is viewing DIRECTLY (not parent viewing child)
     const isChildProfile = isKidDirectView;
-    
-    // Get chats visible to ANY enabled profile (merged global view)
+    const isMinorWithoutGuardian = isKidDirectView && !activeProfile.parentId;
+
+    // Deduplicated chats visible to any enabled profile
     const seen = new Set<string>();
     const profileChats = mockChats
       .filter(c => enabledProfiles.some(p => c.visibleToProfiles.includes(p.id)))
       .filter(c => { if (seen.has(c.id)) return false; seen.add(c.id); return true; });
 
-    // For each chat, determine which enabled profile(s) own it (for labels)
     const chatPersonLabels = (chat: Chat): Array<{ name: string; color: { bg: string; text: string } }> => {
       if (enabledProfiles.length <= 1) return [];
       return enabledProfiles
@@ -3537,63 +3537,67 @@ export function PilotMemberPortal() {
         .map(p => ({ name: p.firstName, color: PERSON_COLORS[p.id] ?? { bg: "#F5F5F5", text: "#525252" } }));
     };
 
-    // Determine user role for permission checks
-    const _profileRole: UserRole = isKidDirectView ? "minor" : "adult_player";
-    void _profileRole;
-
-    // Filter by chat type
     const announcements = profileChats.filter(c => c.type === "announcement");
-    const teamChats = profileChats.filter(c => c.type === "team_group");
+    const groupChats = profileChats.filter(c => c.type === "team_group");
     const directChats = profileChats.filter(c => c.type === "direct");
-    
-    // MINOR INTERACTION RULES:
-    // - If parent linked (Flurina, Max): can interact with chats
-    // - If NO parent linked (Anna): VIEW ONLY mode
-    const isMinorWithoutGuardian = isKidDirectView && !activeProfile.parentId;
+    const requestChats = mergedChats.filter(c => c.isRequest);
 
-    // Chat item renderer with optional person labels
+    // Merged & sorted list for "Alle" filter
+    const sortByRecency = (chats: Chat[]) =>
+      [...chats].sort((a, b) => {
+        const aT = a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0;
+        const bT = b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0;
+        return bT - aT;
+      });
+
+    const filteredMessages = (() => {
+      if (chatFilter === "announcements") return announcements;
+      if (chatFilter === "groups") return groupChats;
+      if (chatFilter === "direct") return isChildProfile ? [] : directChats;
+      // "all": merge and sort by recency
+      return sortByRecency([
+        ...announcements,
+        ...groupChats,
+        ...(!isChildProfile ? directChats : []),
+      ]);
+    })();
+
+    // Subtitle: all enabled profile names
+    const headerSubtitle = isKidDirectView
+      ? null
+      : enabledProfiles.map(p => p.firstName).join(", ");
+
+    // Chat row used in the messages section
     const renderChatItem = (chat: Chat) => {
-      const isAnnouncement = chat.type === "announcement";
       const personLabels = chatPersonLabels(chat);
-      
+      const typeIcon =
+        chat.type === "announcement" ? (
+          <Megaphone className="w-5 h-5" style={{ color: theme.accent }} />
+        ) : chat.type === "team_group" ? (
+          <Users className="w-5 h-5" style={{ color: theme.accent }} />
+        ) : (
+          <MessageSquare className="w-5 h-5" style={{ color: theme.accent }} />
+        );
+
       return (
         <button
           key={chat.id}
-          onClick={() => {
-            setSelectedChatMessage(chat);
-            setView("chat-detail");
-          }}
-          className="w-full flex items-center gap-3 px-5 py-3 transition-colors active:bg-black/5"
+          onClick={() => { setSelectedChatMessage(chat); setView("chat-detail"); }}
+          className="w-full flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
           style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
         >
-          {/* Avatar with type indicator */}
+          {/* Avatar circle */}
           <div className="relative flex-shrink-0">
-            {isAnnouncement ? (
-              <div 
-                className="w-12 h-12 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "#FEF3C7" }}
-              >
-                <Megaphone className="w-5 h-5" style={{ color: "#92400E" }} />
-              </div>
-            ) : chat.type === "team_group" ? (
-              <div 
-                className="w-12 h-12 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "#D1FAE5" }}
-              >
-                <Users className="w-5 h-5" style={{ color: "#065F46" }} />
-              </div>
-            ) : (
-              <div 
-                className="w-12 h-12 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "#DBEAFE" }}
-              >
-                <MessageSquare className="w-5 h-5" style={{ color: "#1E40AF" }} />
-              </div>
-            )}
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: theme.accentLight }}
+            >
+              {typeIcon}
+            </div>
             {chat.unreadCount > 0 && (
-              <span 
-                className="absolute -bottom-0.5 -right-0.5 w-5 h-5 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2"
-                style={{ backgroundColor: theme.accent, borderColor: theme.cardBg }}
+              <span
+                className="absolute -bottom-0.5 -right-0.5 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center border-2"
+                style={{ backgroundColor: theme.buttonPrimaryBg, color: theme.buttonPrimaryText, borderColor: theme.cardBg }}
               >
                 {chat.unreadCount}
               </span>
@@ -3602,14 +3606,12 @@ export function PilotMemberPortal() {
 
           {/* Content */}
           <div className="flex-1 min-w-0 text-left">
-            {/* Line 1: Chat name */}
             <p
               className="font-semibold text-sm truncate mb-0.5"
               style={{ color: chat.unreadCount > 0 ? theme.textPrimary : theme.textSecondary }}
             >
               {chat.name}
             </p>
-            {/* Line 2: person labels + team tag + message preview */}
             <div className="flex items-center gap-1 flex-wrap min-w-0">
               {personLabels.map(pl => (
                 <span
@@ -3623,64 +3625,109 @@ export function PilotMemberPortal() {
               {chat.teamName && (
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F3F4F6", color: theme.textMuted }}
+                  style={{ backgroundColor: theme.accentLight, color: theme.accent }}
                 >
                   {chat.teamName}
                 </span>
               )}
               {chat.lastMessage && (
-                <p
-                  className="text-xs truncate min-w-0"
-                  style={{ color: chat.unreadCount > 0 ? theme.textSecondary : theme.textMuted }}
-                >
+                <p className="text-xs truncate min-w-0" style={{ color: chat.unreadCount > 0 ? theme.textSecondary : theme.textMuted }}>
                   {chat.lastMessage.content}
                 </p>
               )}
             </div>
           </div>
-          
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-xs" style={{ color: theme.textMuted }}>
-              {chat.lastMessage ? new Date(chat.lastMessage.createdAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) : ""}
+
+          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+            <span className="text-[11px]" style={{ color: theme.textMuted }}>
+              {chat.lastMessage
+                ? new Date(chat.lastMessage.createdAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })
+                : ""}
             </span>
-            <ChevronRight className="w-4 h-4" style={{ color: theme.textMuted }} />
+            {chat.unreadCount > 0 ? (
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: theme.buttonPrimaryBg }}
+              />
+            ) : (
+              <ChevronRight className="w-4 h-4" style={{ color: theme.textMuted }} />
+            )}
           </div>
         </button>
       );
     };
 
-    // Tab configuration with counts - Short labels for Airbnb-style compact pills
-    // For minors without guardian: hide DMs tab entirely, requests shows 0 (read-only broadcasts only)
-    const tabs = [
-      { id: "announcements" as const, label: "Infos", icon: Megaphone, count: announcements.length, color: "#92400E", bgColor: "#FEF3C7" },
-      { id: "team" as const, label: "Teams", icon: Users, count: teamChats.length, color: "#065F46", bgColor: "#D1FAE5" },
-      { id: "direct" as const, label: "DMs", icon: MessageSquare, count: directChats.length, color: "#1E40AF", bgColor: "#DBEAFE", disabled: isChildProfile, hidden: isMinorWithoutGuardian },
-      { id: "requests" as const, label: "Anfragen", icon: File, count: isMinorWithoutGuardian ? 0 : mergedChats.filter(c => c.isRequest).length, color: "#7C3AED", bgColor: "#F3E8FF" }
+    // Request ticket row
+    const requestStatusConfig: Record<string, { label: string; bg: string; text: string }> = {
+      open:        { label: "Offen",          bg: "#FEF3C7", text: "#92400E" },
+      in_progress: { label: "In Bearbeitung", bg: "#DBEAFE", text: "#1E40AF" },
+      resolved:    { label: "Gelöst",         bg: "#D1FAE5", text: "#065F46" },
+    };
+    const renderRequestItem = (chat: Chat) => {
+      const status = (chat as { status?: string }).status ?? "open";
+      const statusCfg = requestStatusConfig[status] ?? requestStatusConfig.open;
+      const personLabels = chatPersonLabels(chat);
+      return (
+        <button
+          key={chat.id}
+          onClick={() => handleOpenChat(chat)}
+          className="w-full flex items-start gap-3 px-5 py-4 transition-colors active:bg-black/5"
+          style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
+        >
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ backgroundColor: "#F3E8FF" }}
+          >
+            <File className="w-5 h-5" style={{ color: "#7C3AED" }} />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="font-semibold text-sm truncate" style={{ color: theme.textPrimary }}>{chat.name}</p>
+              <span
+                className="flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: statusCfg.bg, color: statusCfg.text }}
+              >
+                {statusCfg.label}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {personLabels.map(pl => (
+                <span key={pl.name} className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: pl.color.bg, color: pl.color.text }}>{pl.name}</span>
+              ))}
+              <p className="text-xs truncate" style={{ color: theme.textMuted }}>
+                {typeof chat.lastMessage === "string" ? chat.lastMessage : chat.lastMessage?.content ?? ""}
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 flex-shrink-0 mt-1" style={{ color: theme.textMuted }} />
+        </button>
+      );
+    };
+
+    // Filter pills for the messages section
+    const msgFilters: Array<{ id: typeof chatFilter; label: string; count: number; hidden?: boolean }> = [
+      { id: "all",           label: "Alle",          count: announcements.length + groupChats.length + directChats.length },
+      { id: "announcements", label: "Ankündigungen", count: announcements.length },
+      { id: "groups",        label: "Gruppen",       count: groupChats.length },
+      { id: "direct",        label: "DMs",           count: directChats.length, hidden: isChildProfile },
     ];
 
     return (
       <div className="min-h-full pb-24" style={{ backgroundColor: theme.cardBg }}>
-        {/* Header */}
-        <div className="px-5 pt-4 pb-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-[28px] font-bold" style={{ color: theme.textPrimary }}>{t.mitteilungen}</h1>
-              {/* Show viewing mode */}
-              {isKidDirectView ? (
-                <p className="text-sm flex items-center gap-1" style={{ color: "#DC2626" }}>
-                  <Shield className="w-3 h-3" />
-                  {activeProfile.firstName} (Kind)
-                </p>
-              ) : (
-                <p className="text-sm" style={{ color: theme.textMuted }}>
-                  {loggedInProfile.firstName}
-                </p>
-              )}
-            </div>
-          </div>
+        {/* ── Header ── */}
+        <div className="px-5 pt-4 pb-3">
+          <h1 className="text-[28px] font-bold" style={{ color: theme.textPrimary }}>{t.mitteilungen}</h1>
+          {isKidDirectView ? (
+            <p className="text-sm flex items-center gap-1 mt-0.5" style={{ color: "#DC2626" }}>
+              <Shield className="w-3 h-3" />
+              {activeProfile.firstName} (Kind)
+            </p>
+          ) : headerSubtitle && (
+            <p className="text-sm mt-0.5" style={{ color: theme.textMuted }}>{headerSubtitle}</p>
+          )}
         </div>
 
-        {/* Global Search - Above pills */}
+        {/* ── Search ── */}
         <div className="px-5 pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: theme.textMuted }} />
@@ -3690,54 +3737,39 @@ export function PilotMemberPortal() {
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t.search}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
-              style={{ 
-                backgroundColor: theme.inputBg, 
-                borderColor: theme.inputBorder, 
-                borderWidth: 1,
-                color: theme.textPrimary,
-                ["--tw-ring-color" as string]: theme.accent 
-              }}
+              style={{ backgroundColor: theme.inputBg, borderColor: theme.inputBorder, borderWidth: 1, color: theme.textPrimary, ["--tw-ring-color" as string]: theme.accent }}
             />
           </div>
         </div>
 
-        {/* === AIRBNB-STYLE SEGMENTED CONTROL === */}
+        {/* ── Section toggle: Nachrichten | Anfragen ── */}
         <div className="px-5 pb-4">
-          <div 
-            className="flex p-1 rounded-xl"
-            style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.08)" : "#F3F4F6" }}
+          <div
+            className="flex p-1 rounded-2xl"
+            style={{ backgroundColor: theme.mode === "dfb" ? theme.accentLight : "#F3F4F6" }}
           >
-            {tabs.map(tab => {
-              const isActive = chatTab === tab.id;
-              const isDisabled = tab.disabled;
-              
-              // Skip hidden tabs (DMs for kids and minors without guardian)
-              if (tab.hidden || (tab.id === "direct" && isChildProfile)) return null;
-              
+            {(["messages", "requests"] as const).map(sec => {
+              const isActive = chatSection === sec;
+              const label = sec === "messages" ? "Nachrichten" : "Anfragen";
+              const badge = sec === "requests" && !isMinorWithoutGuardian ? requestChats.length : 0;
               return (
                 <button
-                  key={tab.id}
-                  onClick={() => !isDisabled && setChatTab(tab.id)}
-                  disabled={isDisabled}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold transition-all ${
-                    isDisabled ? "opacity-40 cursor-not-allowed" : ""
-                  }`}
-                  style={{ 
+                  key={sec}
+                  onClick={() => setChatSection(sec)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                  style={{
                     backgroundColor: isActive ? theme.cardBg : "transparent",
                     color: isActive ? theme.textPrimary : theme.textMuted,
-                    boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.1)" : "none"
+                    boxShadow: isActive ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
                   }}
                 >
-                  <span>{tab.label}</span>
-                  {tab.count > 0 && (
-                    <span 
+                  {label}
+                  {badge > 0 && (
+                    <span
                       className="min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
-                      style={{ 
-                        backgroundColor: isActive ? theme.accent : theme.textMuted,
-                        color: "white"
-                      }}
+                      style={{ backgroundColor: isActive ? theme.accent : theme.textMuted, color: "#fff" }}
                     >
-                      {tab.count}
+                      {badge}
                     </span>
                   )}
                 </button>
@@ -3746,178 +3778,133 @@ export function PilotMemberPortal() {
           </div>
         </div>
 
-        {/* === WARNING BANNERS === */}
-        {/* Minor WITHOUT guardian - Critical warning */}
+        {/* ── Warning banners ── */}
         {isMinorWithoutGuardian && (
-          <div 
-            className="mx-5 mb-4 px-4 py-3 rounded-xl flex items-start gap-3"
-            style={{ backgroundColor: "#FEF3C7", border: "2px solid #F59E0B" }}
-          >
+          <div className="mx-5 mb-4 px-4 py-3 rounded-xl flex items-start gap-3" style={{ backgroundColor: "#FEF3C7", border: "2px solid #F59E0B" }}>
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#B45309" }} />
-            <div className="flex-1">
-              <p className="text-sm font-bold" style={{ color: "#92400E" }}>
-                ⚠️ Kein Erziehungsberechtigter verknüpft
-              </p>
-              <p className="text-xs mt-1" style={{ color: "#B45309" }}>
-                Du kannst Nachrichten nur lesen. Bitte sag deinen Eltern, dass sie sich beim Verein melden sollen, um als Erziehungsberechtigte hinterlegt zu werden.
-              </p>
+            <div>
+              <p className="text-sm font-bold" style={{ color: "#92400E" }}>⚠️ Kein Erziehungsberechtigter verknüpft</p>
+              <p className="text-xs mt-1" style={{ color: "#B45309" }}>Du kannst Nachrichten nur lesen. Bitte sag deinen Eltern, dass sie sich beim Verein melden sollen.</p>
             </div>
           </div>
         )}
-
-
-        {/* Minor with guardian - Restriction notice */}
         {isKidDirectView && activeProfile.parentId && (
-          <div 
-            className="mx-5 mb-4 px-4 py-3 rounded-xl flex items-center gap-3"
-            style={{ backgroundColor: "#FEE2E2" }}
-          >
+          <div className="mx-5 mb-4 px-4 py-3 rounded-xl flex items-center gap-3" style={{ backgroundColor: "#FEE2E2" }}>
             <Shield className="w-5 h-5" style={{ color: "#DC2626" }} />
-            <div className="flex-1">
-              <p className="text-sm font-medium" style={{ color: "#991B1B" }}>
-                Kinderansicht – Direktnachrichten über Elternteil
-              </p>
-              <p className="text-xs" style={{ color: "#B91C1C" }}>
-                Du siehst Team-Chats und kannst dort schreiben. DMs gehen über deine Eltern.
-              </p>
+            <div>
+              <p className="text-sm font-medium" style={{ color: "#991B1B" }}>Kinderansicht – DMs über Elternteil</p>
+              <p className="text-xs" style={{ color: "#B91C1C" }}>Du siehst Gruppen-Chats und kannst dort schreiben. DMs gehen über deine Eltern.</p>
             </div>
           </div>
         )}
 
-        {/* === TAB CONTENT === */}
-        
-        {/* ANNOUNCEMENTS TAB */}
-        {chatTab === "announcements" && (
-          <div>
-            {announcements.length === 0 ? (
-              <div className="px-5 py-8 text-center">
-                <Megaphone className="w-12 h-12 mx-auto mb-3" style={{ color: theme.textMuted }} />
-                <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Keine Ankündigungen</p>
-                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>
-                  Ankündigungen deiner Teams erscheinen hier
-                </p>
-              </div>
-            ) : (
-              announcements.map(chat => renderChatItem(chat))
-            )}
-          </div>
-        )}
+        {/* ══════════════════════════════════════════ */}
+        {/* NACHRICHTEN SECTION                        */}
+        {/* ══════════════════════════════════════════ */}
+        {chatSection === "messages" && (
+          <>
+            {/* Filter pills */}
+            <div className="px-5 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
+              {msgFilters.filter(f => !f.hidden).map(f => {
+                const isActive = chatFilter === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    onClick={() => setChatFilter(f.id)}
+                    className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all"
+                    style={{
+                      backgroundColor: isActive ? theme.accent : theme.chipBg,
+                      color: isActive ? "#fff" : theme.textSecondary,
+                      border: `1px solid ${isActive ? "transparent" : theme.chipBorder}`,
+                    }}
+                  >
+                    {f.label}
+                    {f.count > 0 && (
+                      <span
+                        className="text-[10px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: isActive ? "rgba(255,255,255,0.3)" : theme.accentLight, color: isActive ? "#fff" : theme.accent }}
+                      >
+                        {f.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-        {/* TEAM CHATS TAB */}
-        {chatTab === "team" && (
-          <div>
-            {teamChats.length === 0 ? (
-              <div className="px-5 py-8 text-center">
-                <Users className="w-12 h-12 mx-auto mb-3" style={{ color: theme.textMuted }} />
-                <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Keine Team-Chats</p>
-                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>
-                  Du bist noch keinem Team zugeordnet
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Read-only notice for Anna */}
-                {isMinorWithoutGuardian && (
-                  <div className="px-5 pb-3">
-                    <div 
-                      className="px-3 py-2 rounded-lg flex items-center gap-2"
-                      style={{ backgroundColor: "#FEF3C7" }}
-                    >
-                      <Eye className="w-4 h-4" style={{ color: "#B45309" }} />
-                      <p className="text-xs font-medium" style={{ color: "#92400E" }}>
-                        Nur-Lese-Modus – Du kannst Nachrichten lesen, aber nicht antworten
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {teamChats.map(chat => renderChatItem(chat))}
-              </>
-            )}
-          </div>
-        )}
-
-        {/* DIRECT MESSAGES TAB */}
-        {chatTab === "direct" && !isChildProfile && (
-          <div>
-            {directChats.length === 0 ? (
-              <div className="px-5 py-8 text-center">
-                <MessageSquare className="w-12 h-12 mx-auto mb-3" style={{ color: theme.textMuted }} />
-                <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Keine Direktnachrichten</p>
-                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>
-                  Private Unterhaltungen mit Trainern
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="px-5 pb-2">
-                  <p className="text-xs" style={{ color: theme.textMuted }}>
-                    Private Unterhaltungen
-                  </p>
+            {/* Read-only banner for minors */}
+            {isMinorWithoutGuardian && chatFilter !== "announcements" && (
+              <div className="px-5 pb-3">
+                <div className="px-3 py-2 rounded-lg flex items-center gap-2" style={{ backgroundColor: "#FEF3C7" }}>
+                  <Eye className="w-4 h-4" style={{ color: "#B45309" }} />
+                  <p className="text-xs font-medium" style={{ color: "#92400E" }}>Nur-Lese-Modus – Antworten über Elternteil</p>
                 </div>
-                {directChats.map(chat => renderChatItem(chat))}
-              </>
+              </div>
             )}
-          </div>
+
+            {/* Chat list */}
+            {filteredMessages.length === 0 ? (
+              <div className="px-5 py-10 text-center">
+                <MessageSquare className="w-10 h-10 mx-auto mb-3" style={{ color: theme.textMuted }} />
+                <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Keine Nachrichten</p>
+                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>Hier erscheinen Ankündigungen, Gruppen und DMs</p>
+              </div>
+            ) : (
+              filteredMessages.map(chat => renderChatItem(chat))
+            )}
+          </>
         )}
 
-        {/* REQUESTS TAB */}
-        {chatTab === "requests" && (
-          <div>
-            {/* Minor without guardian - Can only see broadcasts, not send requests */}
+        {/* ══════════════════════════════════════════ */}
+        {/* ANFRAGEN SECTION (ticket-style)            */}
+        {/* ══════════════════════════════════════════ */}
+        {chatSection === "requests" && (
+          <>
+            {/* Intro banner */}
+            <div className="mx-5 mb-4 px-4 py-3 rounded-xl flex items-start gap-3" style={{ backgroundColor: "#F3E8FF" }}>
+              <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#7C3AED" }} />
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "#4C1D95" }}>Anfragen an den Verein</p>
+                <p className="text-xs mt-0.5" style={{ color: "#6D28D9" }}>Mitgliedschaft, Beiträge, Abmeldungen und mehr – du bekommst eine Antwort vom Vereinsbüro.</p>
+              </div>
+            </div>
+
+            {/* New request CTA */}
+            {!isMinorWithoutGuardian && (
+              <div className="px-5 mb-4">
+                <button
+                  onClick={() => setView("new-request")}
+                  className="w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
+                  style={{ backgroundColor: theme.buttonPrimaryBg, color: theme.buttonPrimaryText }}
+                >
+                  <Plus className="w-4 h-4" />
+                  Neue Anfrage stellen
+                </button>
+              </div>
+            )}
+
+            {/* Ticket list */}
             {isMinorWithoutGuardian ? (
               <div className="px-5 py-8 text-center">
-                <File className="w-12 h-12 mx-auto mb-3" style={{ color: theme.textMuted }} />
-                <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Keine Rundschreiben</p>
-                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>
-                  Hier werden Rundschreiben vom Verein angezeigt.
-                </p>
-                <div 
-                  className="mt-4 px-3 py-2 rounded-lg mx-auto inline-block"
-                  style={{ backgroundColor: "#FEF3C7" }}
-                >
-                  <p className="text-xs" style={{ color: "#92400E" }}>
-                    Du kannst keine Anfragen senden, bis ein Erziehungsberechtigter verknüpft ist.
-                  </p>
-                </div>
+                <File className="w-10 h-10 mx-auto mb-3" style={{ color: theme.textMuted }} />
+                <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Anfragen nicht verfügbar</p>
+                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>Anfragen können nur von Erziehungsberechtigten gestellt werden.</p>
               </div>
-            ) : (!mergedChats.some(c => c.isRequest)) ? (
+            ) : requestChats.length === 0 ? (
               <div className="px-5 py-8 text-center">
-                <File className="w-12 h-12 mx-auto mb-3" style={{ color: theme.textMuted }} />
-                <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Keine Anfragen</p>
-                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>
-                  Nutze den + Button oben für neue Anfragen
-                </p>
+                <File className="w-10 h-10 mx-auto mb-3" style={{ color: theme.textMuted }} />
+                <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Noch keine Anfragen</p>
+                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>Deine Anfragen an den Verein erscheinen hier mit Status-Updates</p>
               </div>
             ) : (
               <>
                 <div className="px-5 pb-2">
-                  <p className="text-xs" style={{ color: theme.textMuted }}>
-                    Anfragen an den Verein
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: theme.textMuted }}>Meine Anfragen</p>
                 </div>
-                {mergedChats.filter(c => c.isRequest).map(chat => (
-                  <button
-                    key={chat.id}
-                    onClick={() => handleOpenChat(chat)}
-                    className="w-full flex items-center gap-3 px-5 py-3 transition-colors active:bg-black/5"
-                    style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
-                  >
-                    <div 
-                      className="w-12 h-12 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: "#F3E8FF" }}
-                    >
-                      <File className="w-5 h-5" style={{ color: "#7C3AED" }} />
-                    </div>
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="font-semibold text-sm truncate" style={{ color: theme.textPrimary }}>{chat.name}</p>
-                      <p className="text-sm truncate mt-0.5" style={{ color: theme.textMuted }}>{chat.lastMessage}</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4" style={{ color: theme.textMuted }} />
-                  </button>
-                ))}
+                {requestChats.map(chat => renderRequestItem(chat))}
               </>
             )}
-          </div>
+          </>
         )}
       </div>
     );
