@@ -163,62 +163,62 @@ const lightTheme: Theme = {
 // Calm, authoritative, editorial sports identity
 const dfbTheme: Theme = {
   mode: "dfb",
-  // Primary Background
-  pageBg: "#A6CABA", // bg-primary - Main app background
+  // Primary Background - DFB Design System light surface
+  pageBg: "#C8F2D3", // Light mint - DFB light mode primary surface
   // Cards
-  cardBg: "#FFFFFF", // neutral-0 - Cards, modals (solid white per design system)
-  cardBorder: "#C7DCD3", // neutral-300 - Dividers, borders
+  cardBg: "#FFFFFF", // neutral-0 - Cards, modals
+  cardBorder: "#B8E8C4", // Slightly tinted border
   // Navigation - Bottom Tab Bar
-  navBg: "#FFFFFF", // White background per design system
-  navActiveBg: "#1F5F4A", // primary-700 - Active states
-  navInactiveColor: "#5F7F73", // neutral-500 - Inactive icons
+  navBg: "#FFFFFF",
+  navActiveBg: "#BBFD00", // DFB Lime - primary active state per design system
+  navInactiveColor: "#5F7F73",
   navPlusBg: "#FFFFFF",
   // Text - Neutral Colors
-  textPrimary: "#0F1F1A", // neutral-900 - Primary text
-  textSecondary: "#2F4A41", // neutral-700 - Secondary text
-  textMuted: "#5F7F73", // neutral-500 - Metadata, labels
-  // Brand Green (Primary Interactive)
-  accent: "#1F5F4A", // primary-700 - Primary buttons, active states
-  accentHover: "#2E7D63", // primary-600 - Hover, focus
-  accentLight: "#CFE6DD", // primary-200 - Selected states, fills
-  accentText: "#FFFFFF",
-  // Accent Colors (use sparingly) - Official DFB colors
-  limeAccent: "#BBFD00", // DFB Lime - LIVE, highlights, urgency
-  violetAccent: "#6100FF", // DFB Purple - Official accent from dfb.de
+  textPrimary: "#0F1F1A",
+  textSecondary: "#2F4A41",
+  textMuted: "#5F7F73",
+  // Brand Green (used for text/icon contexts)
+  accent: "#1F5F4A", // dark green - used where lime has poor contrast (text on white)
+  accentHover: "#2E7D63",
+  accentLight: "#DFFDE8", // Light lime tint for subtle fills
+  accentText: "#0A1F0A", // Very dark for text ON lime backgrounds
+  // Accent Colors - DFB Official
+  limeAccent: "#BBFD00", // DFB Lime - primary CTA / action color
+  violetAccent: "#6100FF", // DFB Purple
   // Inputs
   inputBg: "#FFFFFF",
-  inputBorder: "#C7DCD3", // neutral-300
+  inputBorder: "#B8E8C4",
   // Status bar
-  statusBarText: "#0F1F1A", // neutral-900
-  // Buttons
-  buttonPrimaryBg: "#1F5F4A", // primary-700
-  buttonPrimaryText: "#FFFFFF",
+  statusBarText: "#0F1F1A",
+  // Buttons - DFB Design System: neon lime primary
+  buttonPrimaryBg: "#BBFD00", // DFB Lime - primary CTA
+  buttonPrimaryText: "#0A1F0A", // Very dark text for contrast on lime
   buttonSecondaryBg: "#FFFFFF",
-  buttonSecondaryText: "#1F5F4A", // primary-700
-  buttonSecondaryBorder: "#CFE6DD", // primary-200
+  buttonSecondaryText: "#1F5F4A",
+  buttonSecondaryBorder: "#B8E8C4",
   // Alerts / Status Colors
-  alertBg: "#EEF5F2", // neutral-100 - Subtle surfaces
-  alertText: "#0F1F1A", // neutral-900
-  alertIcon: "#C7DCD3", // neutral-300
+  alertBg: "#EEFAF3",
+  alertText: "#0F1F1A",
+  alertIcon: "#B8E8C4",
   successColor: "#2E7D63",
   warningColor: "#E6A700",
   errorColor: "#C6362B",
   infoColor: "#4B3F72",
   // Messages
-  messageSentBg: "#1F5F4A", // primary-700
-  messageSentText: "#FFFFFF",
-  messageReceivedBg: "#FFFFFF", // neutral-0
-  messageReceivedBorder: "#C7DCD3", // neutral-300
-  // Cards (per design system)
+  messageSentBg: "#BBFD00", // DFB Lime for sent messages
+  messageSentText: "#0A1F0A",
+  messageReceivedBg: "#FFFFFF",
+  messageReceivedBorder: "#B8E8C4",
+  // Cards
   cardRadius: "12px",
   cardShadow: "0 4px 16px rgba(0,0,0,0.06)",
   // Dividers
-  dividerColor: "#C7DCD3", // neutral-300
-  // Chips / Filters
+  dividerColor: "#B8E8C4",
+  // Chips / Filters - lime for selected state
   chipBg: "#FFFFFF",
-  chipBorder: "#C7DCD3", // neutral-300
-  chipSelectedBg: "#CFE6DD", // primary-200
-  chipSelectedText: "#1F5F4A", // primary-700
+  chipBorder: "#B8E8C4",
+  chipSelectedBg: "#BBFD00", // DFB Lime
+  chipSelectedText: "#0A1F0A",
 };
 
 // Theme context (for future use if needed)
@@ -2854,11 +2854,11 @@ export function PilotMemberPortal() {
       background: "rgba(255, 255, 255, 0.75)",
       border: "1px solid rgba(255, 255, 255, 0.5)",
       shadow: "0 8px 32px rgba(0, 73, 65, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)",
-      activeBackground: COLORS.violet600, // #6100FF - DFB Purple for active state
-      activeText: "#FFFFFF",
+      activeBackground: COLORS.lime500, // #BBFD00 - DFB Lime for active state
+      activeText: "#0A1F0A", // Very dark for contrast on lime
       inactiveText: "#2F4A41", // neutral-700 for better contrast on glass
-      badgeBg: COLORS.violet600, // #6100FF for badges
-      badgeText: "#FFFFFF", // White text on purple
+      badgeBg: COLORS.lime500, // #BBFD00 for badges
+      badgeText: "#0A1F0A", // Dark text on lime
     } : {
       // Light Mode - true frosted glass effect
       background: "rgba(245, 245, 245, 0.65)",
@@ -4686,16 +4686,16 @@ export function PilotMemberPortal() {
                       className={`rounded-2xl px-4 py-2.5 ${
                         isMe ? "rounded-br-md" : "rounded-bl-md"
                       } ${isReported ? "ring-2 ring-orange-400" : ""}`}
-                      style={{ 
-                        backgroundColor: isMe ? theme.accent : theme.cardBg,
-                        color: isMe ? "#FFFFFF" : theme.textPrimary,
+                      style={{
+                        backgroundColor: isMe ? theme.messageSentBg : theme.cardBg,
+                        color: isMe ? theme.messageSentText : theme.textPrimary,
                         border: isMe ? "none" : `1px solid ${theme.cardBorder}`,
                       }}
                     >
                       <p className="text-sm whitespace-pre-wrap">
                         {msg.content}
                       </p>
-                      <p className={`text-[10px] mt-1 ${isMe ? "text-white/60" : ""}`} style={{ color: isMe ? undefined : theme.textMuted }}>
+                      <p className="text-[10px] mt-1" style={{ color: isMe ? `${theme.messageSentText}99` : theme.textMuted }}>
                         {formatFullDate(msg.createdAt)}
                       </p>
                     </div>
@@ -4814,8 +4814,8 @@ export function PilotMemberPortal() {
                     console.log("Send chat message:", replyText);
                     setReplyText("");
                   }}
-                  className="p-2.5 rounded-xl text-white disabled:opacity-50 transition-all"
-                  style={{ backgroundColor: theme.accent }}
+                  className="p-2.5 rounded-xl disabled:opacity-50 transition-all"
+                  style={{ backgroundColor: theme.buttonPrimaryBg, color: theme.buttonPrimaryText }}
                 >
                   <Send className="w-4 h-4" />
                 </button>
