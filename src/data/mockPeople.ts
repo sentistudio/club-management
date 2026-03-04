@@ -114,12 +114,14 @@ export const MOCK_PERSONS: Person[] = [
     kind: "member",
     // Girl with blonde hair - matches mobile app
     avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
-    hasClaimedIdentity: false,
+    // Flurina has her own minor account active (linked to guardian Lena)
+    hasClaimedIdentity: true,
     createdAt: "2023-02-15T10:00:00Z",
     updatedAt: "2024-01-05T16:00:00Z"
   },
   // Anna - Minor WITHOUT Guardian (same team as Flurina)
   // This is a demo case: minor player with no parent/guardian link established
+  // Anna registered herself but has LIMITED VIEW in mobile app due to no guardian link
   {
     id: "person_anna",
     firstName: "Anna",
@@ -132,7 +134,8 @@ export const MOCK_PERSONS: Person[] = [
     kind: "member",
     // Young girl - matches mobile app
     avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=face",
-    hasClaimedIdentity: false,
+    // Anna registered but has LIMITED view (no guardian link = restricted features)
+    hasClaimedIdentity: true,
     createdAt: "2023-06-01T10:00:00Z",
     updatedAt: "2024-01-10T10:00:00Z"
   },
@@ -316,13 +319,13 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
     status: "active",
     joinedAt: "2022-01-15T10:00:00Z"
   },
-  // Fabio - Player
+  // Fabio - Club membership only (NO department/team yet = inactive)
+  // This demonstrates a member who has club membership but hasn't been assigned to a department
   {
-    id: "mem_fabio_player",
+    id: "mem_fabio_club",
     personId: "person_fabio",
     orgId: "org_sfb",
-    departmentId: "dept_fussball",
-    teamId: "team_herren1",
+    // No departmentId or teamId = member is "inactive" until assigned
     role: "player",
     status: "active",
     joinedAt: "2024-01-05T10:00:00Z"

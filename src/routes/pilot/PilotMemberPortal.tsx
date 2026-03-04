@@ -1628,6 +1628,14 @@ const MAX_MAKKABI_PROFILE: MemberProfile = {
 // All family profiles (SfB club)
 const FAMILY_PROFILES = [LENA_PROFILE, FLURINA_PROFILE, MAX_PROFILE];
 
+// Person label colors - each family member gets a distinct color
+const PERSON_COLORS: Record<string, { bg: string; text: string }> = {
+  "p11": { bg: "#C8F2E0", text: "#004941" },  // Lena - green
+  "p12": { bg: "#EDE9FE", text: "#5B21B6" },  // Flurina - purple
+  "p13": { bg: "#DBEAFE", text: "#1D4ED8" },  // Max - blue
+  "p14": { bg: "#FEF3C7", text: "#92400E" },  // Anna - amber
+};
+
 // Other clubs - for profile switcher
 const OTHER_CLUBS = [
   {
@@ -2053,43 +2061,98 @@ export function PilotMemberPortal() {
   // profileSlug determines WHO is logged in (lena = adult, flurina/max = child view)
   const urlProfile = profileSlug ? PROFILE_MAP[profileSlug.toLowerCase()] : LENA_PROFILE;
   
-  // Profile switching state - for context switching within a profile's view
-  const [contextProfile, setContextProfile] = useState<MemberProfile | null>(null);
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
-  
+
   // The "logged in" profile (from URL) - this determines permissions
   const loggedInProfile = urlProfile || LENA_PROFILE;
-  
-  // The "active" profile being viewed (could be same as logged in, or a child's context)
-  const activeProfile = contextProfile || loggedInProfile;
-  
+
   // Is this a kid's direct view (restricted mode)?
   const isKidDirectView = loggedInProfile.isChild === true;
-  
-  // Is Lena viewing a child's context (on behalf mode)?
-  const isParentViewingChild = !isKidDirectView && activeProfile.isChild === true;
-  
-  // Legacy compatibility
-  const isActingOnBehalf = isParentViewingChild;
-  const parentProfile = isActingOnBehalf ? LENA_PROFILE : null;
-  
-  // Handle profile navigation (for future use - direct URL navigation)
-  // const navigateToProfile = (slug: string) => {
-  //   navigate(`/pilot/member-portal/${slug}`);
-  // };
-  void navigate; // Suppress unused warning for now
-  
-  // Handle context switch (Lena switching to view child's chats)
-  const switchContext = (profile: MemberProfile | null) => {
-    setContextProfile(profile);
-    setShowProfileSwitcher(false);
+
+  // For the header/greeting, always show the logged-in user
+  const activeProfile = loggedInProfile;
+
+  // Multi-profile enabled state - which family members to show in the global view
+  // Default: all family profiles enabled (for Lena), or just self (for kids)
+  const [enabledProfileIds, setEnabledProfileIds] = useState<Set<string>>(
+    () => new Set(isKidDirectView ? [loggedInProfile.id] : FAMILY_PROFILES.map(p => p.id))
+  );
+
+  // Enabled profiles for the global view
+  const enabledProfiles = isKidDirectView
+    ? [loggedInProfile]
+    : FAMILY_PROFILES.filter(p => enabledProfileIds.has(p.id));
+
+  // Toggle a profile's visibility in the global view
+  const toggleProfile = (profileId: string) => {
+    setEnabledProfileIds(prev => {
+      if (prev.size <= 1 && prev.has(profileId)) return prev; // Can't disable the last one
+      const next = new Set(prev);
+      if (next.has(profileId)) {
+        next.delete(profileId);
+      } else {
+        next.add(profileId);
+      }
+      return next;
+    });
   };
+
+  void navigate; // Suppress unused warning for now
 
   // Get current theme based on mode
   const theme = useMemo(() => themeMode === "dfb" ? dfbTheme : lightTheme, [themeMode]);
-  
+
   // Get translations based on language
   const t = useMemo(() => translations[language], [language]);
+
+  // Merged events from all enabled profiles (sorted by date)
+  const mergedEvents = useMemo(() =>
+    enabledProfiles
+      .flatMap(p => p.events.map(e => ({
+        ...e,
+        personId: p.id,
+        personName: p.firstName,
+        personColor: PERSON_COLORS[p.id] ?? { bg: "#F5F5F5", text: "#525252" },
+      })))
+      .sort((a, b) => a.date.localeCompare(b.date)),
+    [enabledProfiles]
+  );
+
+  // Merged chats from all enabled profiles (unique by id, preserving first occurrence)
+  const mergedChats = useMemo(() => {
+    const seen = new Set<string>();
+    return enabledProfiles
+      .flatMap(p => p.chats.map(c => ({
+        ...c,
+        personId: p.id,
+        personName: p.firstName,
+        personColor: PERSON_COLORS[p.id] ?? { bg: "#F5F5F5", text: "#525252" },
+      })))
+      .filter(c => { if (seen.has(c.id)) return false; seen.add(c.id); return true; });
+  }, [enabledProfiles]);
+
+  // Aggregated stats from all enabled profiles
+  const mergedStats = useMemo(() => ({
+    termine: enabledProfiles.reduce((s, p) => s + p.stats.termine, 0),
+    nachrichten: enabledProfiles.reduce((s, p) => s + p.stats.nachrichten, 0),
+    news: enabledProfiles.reduce((s, p) => s + p.stats.news, 0),
+    offeneRechnungen: enabledProfiles.reduce((s, p) => s + p.stats.offeneRechnungen, 0),
+    offenerBetrag: enabledProfiles.find(p => p.stats.offeneRechnungen > 0)?.stats.offenerBetrag ?? "0,00 €",
+  }), [enabledProfiles]);
+
+  // Merged free spots (unique by id)
+  const mergedFreeSpots = useMemo(() => {
+    const seen = new Set<string>();
+    return enabledProfiles
+      .flatMap(p => p.freeSpots ?? [])
+      .filter(s => { if (seen.has(s.id)) return false; seen.add(s.id); return true; });
+  }, [enabledProfiles]);
+
+  // All memberships across enabled profiles (for sport icon lookup)
+  const allMemberships = useMemo(
+    () => enabledProfiles.flatMap(p => p.memberships),
+    [enabledProfiles]
+  );
   
   const formatFullDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(language === "de" ? "de-DE" : "en-US", {
@@ -2205,7 +2268,7 @@ export function PilotMemberPortal() {
     );
   };
 
-  // Profile Switcher Modal - positioned within phone frame
+  // People Manager Modal - enable/disable whose view appears in the global feed
   const ProfileSwitcherModal = () => {
     if (!showProfileSwitcher) return null;
 
@@ -2220,216 +2283,211 @@ export function PilotMemberPortal() {
 
     return (
       <>
-        {/* Backdrop - absolute within phone frame */}
-        <div 
+        {/* Backdrop */}
+        <div
           className="absolute inset-0 bg-black/40 z-50 backdrop-blur-sm rounded-[42px]"
           onClick={() => setShowProfileSwitcher(false)}
         />
-        {/* Modal - absolute within phone frame */}
-        <div 
-          className="absolute bottom-0 left-0 right-0 z-50 bg-white rounded-t-[32px] shadow-2xl max-h-[75%] overflow-y-auto"
+        {/* Sheet */}
+        <div
+          className="absolute bottom-0 left-0 right-0 z-50 bg-white rounded-t-[32px] shadow-2xl max-h-[82%] overflow-y-auto"
           style={{ animation: "slideUp 0.3s ease-out" }}
         >
           {/* Handle */}
           <div className="flex justify-center pt-3 pb-2">
             <div className="w-10 h-1 bg-neutral-300 rounded-full" />
           </div>
-          
+
           {/* Header */}
           <div className="px-5 pb-4 border-b border-neutral-100">
-            <h2 className="text-lg font-semibold text-center" style={{ color: theme.textPrimary }}>{t.selectPerson}</h2>
+            <h2 className="text-lg font-semibold text-center" style={{ color: theme.textPrimary }}>
+              {language === "de" ? "Personen anzeigen" : "Show people"}
+            </h2>
+            <p className="text-xs text-center mt-1" style={{ color: theme.textMuted }}>
+              {language === "de"
+                ? "Aktiviere oder deaktiviere, wessen Inhalte du siehst"
+                : "Enable or disable whose content you see"}
+            </p>
           </div>
 
-          {/* Profiles List */}
+          {/* Profiles List with Toggles */}
           <div className="px-5 py-4 space-y-3">
-            {/* If logged in as Lena, show context switching options */}
             {!isKidDirectView && (
-              <div className="mb-3 pb-3 border-b" style={{ borderColor: theme.cardBorder }}>
-                <p className="text-xs font-semibold mb-2" style={{ color: theme.textMuted }}>
-                  KONTEXT WECHSELN
-                </p>
-                <p className="text-xs" style={{ color: theme.textMuted }}>
-                  Wähle ein Profil um Nachrichten und Termine im Namen deiner Kinder zu sehen
+              <div className="mb-1 pb-3 border-b" style={{ borderColor: theme.cardBorder }}>
+                <p className="text-xs font-semibold" style={{ color: theme.textMuted }}>
+                  {language === "de" ? "DIESES KONTO · SfB" : "THIS ACCOUNT · SfB"}
                 </p>
               </div>
             )}
-            
+
             {FAMILY_PROFILES.map((profile) => {
-              const isSelected = activeProfile.id === profile.id;
-              const isChild = profile.isChild;
-              const age = profile.birthDate ? calculateAge(profile.birthDate) : null;
-              
-              // If kid direct view, only show themselves
               if (isKidDirectView && profile.id !== loggedInProfile.id) return null;
 
+              const isEnabled = enabledProfileIds.has(profile.id);
+              const isLast = enabledProfileIds.size <= 1 && isEnabled;
+              const age = profile.birthDate ? calculateAge(profile.birthDate) : null;
+              const personColor = PERSON_COLORS[profile.id] ?? { bg: "#F5F5F5", text: "#525252" };
+
               return (
-                <button
+                <div
                   key={profile.id}
-                  onClick={() => {
-                    if (isKidDirectView) {
-                      // Kids can't switch
-                      setShowProfileSwitcher(false);
-                    } else if (profile.id === LENA_PROFILE.id) {
-                      // Switching back to Lena's own view
-                      switchContext(null);
-                    } else {
-                      // Lena switching to view child's context
-                      switchContext(profile);
-                    }
+                  className="rounded-2xl p-4 transition-all"
+                  style={{
+                    backgroundColor: isEnabled ? personColor.bg + "55" : theme.cardBg,
+                    border: `1.5px solid ${isEnabled ? personColor.text + "50" : theme.cardBorder}`,
                   }}
-                  className="w-full text-left"
                 >
-                  <div 
-                    className="rounded-2xl p-4 transition-all"
-                    style={{ 
-                      backgroundColor: isSelected ? theme.accentLight : theme.cardBg,
-                      border: `1px solid ${isSelected ? theme.accent : theme.cardBorder}`,
-                    }}
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* Avatar */}
-                      <img 
-                        src={profile.avatar} 
+                  <div className="flex items-start gap-3">
+                    {/* Avatar with person-color ring */}
+                    <div className="relative flex-shrink-0">
+                      <img
+                        src={profile.avatar}
                         alt={profile.firstName}
-                        className="w-14 h-14 rounded-full object-cover flex-shrink-0"
+                        className="w-14 h-14 rounded-full object-cover transition-opacity"
+                        style={{
+                          border: `2.5px solid ${isEnabled ? personColor.text : theme.cardBorder}`,
+                          opacity: isEnabled ? 1 : 0.45,
+                        }}
                       />
-                      
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold" style={{ color: theme.textPrimary }}>
+                      <div
+                        className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white"
+                        style={{ backgroundColor: personColor.text }}
+                      />
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <h3
+                            className="font-semibold truncate"
+                            style={{ color: isEnabled ? theme.textPrimary : theme.textMuted }}
+                          >
                             {profile.firstName} {profile.lastName}
                           </h3>
-                          {isSelected && (
-                            <div 
-                              className="w-6 h-6 rounded-full flex items-center justify-center"
-                              style={{ backgroundColor: theme.accent }}
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span
+                              className="text-xs px-2 py-0.5 rounded-full font-medium"
+                              style={{ backgroundColor: personColor.bg, color: personColor.text }}
                             >
-                              <Check className="w-4 h-4 text-white" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Status Badge & Age */}
-                        <div className="flex items-center gap-2 mt-1">
-                          <span 
-                            className="text-xs px-2 py-0.5 rounded-full font-medium"
-                            style={{ backgroundColor: COLORS.mint, color: COLORS.primary }}
-                          >
-                            {t.active}
-                          </span>
-                          {/* Stats badges */}
-                          <div className="flex items-center gap-2 text-xs" style={{ color: theme.textMuted }}>
-                            {isChild && age && (
-                              <span>{age} {t.years}</span>
+                              {profile.isChild
+                                ? (language === "de" ? "Kind" : "Child")
+                                : (language === "de" ? "Erwachsen" : "Adult")}
+                            </span>
+                            {age && (
+                              <span className="text-xs" style={{ color: theme.textMuted }}>
+                                {age} {t.years}
+                              </span>
                             )}
-                            <span className="flex items-center gap-0.5">
-                              <MessageSquare className="w-3 h-3" /> {profile.stats.nachrichten}
-                            </span>
-                            <span className="flex items-center gap-0.5">
-                              <Calendar className="w-3 h-3" /> {profile.stats.termine}
-                            </span>
                           </div>
                         </div>
 
-                        {/* Teams/Memberships */}
+                        {/* Toggle switch */}
+                        {!isKidDirectView && (
+                          <button
+                            onClick={() => toggleProfile(profile.id)}
+                            disabled={isLast}
+                            className="relative inline-flex items-center rounded-full flex-shrink-0 transition-colors"
+                            style={{
+                              width: 48,
+                              height: 28,
+                              backgroundColor: isEnabled ? personColor.text : "#D1D5DB",
+                              opacity: isLast ? 0.5 : 1,
+                            }}
+                            title={isLast
+                              ? (language === "de" ? "Mindestens eine Person muss aktiv sein" : "At least one person must be active")
+                              : undefined}
+                          >
+                            <span
+                              className="inline-block w-5 h-5 rounded-full bg-white shadow-md transition-transform"
+                              style={{ transform: isEnabled ? "translateX(24px)" : "translateX(4px)" }}
+                            />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Teams (only when enabled) */}
+                      {isEnabled && (
                         <div className="mt-2 flex flex-wrap gap-1">
                           {profile.memberships.map((m, idx) => (
-                            <span 
+                            <span
                               key={idx}
                               className="text-xs px-2 py-1 rounded-lg flex items-center gap-1"
-                              style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.08)" : "#F5F5F5", color: theme.textSecondary }}
+                              style={{ backgroundColor: personColor.bg, color: personColor.text }}
                             >
                               <span>{m.icon}</span>
                               {m.teamName}
                             </span>
                           ))}
                         </div>
+                      )}
 
-                        {/* Next Event */}
-                        {profile.nextEvent && (
-                          <div className="mt-3 pt-3 border-t" style={{ borderColor: theme.cardBorder }}>
-                            <p className="text-sm font-medium flex items-center gap-2" style={{ color: theme.textPrimary }}>
-                              <span>{profile.memberships[0]?.icon}</span>
-                              {profile.nextEvent.dayName} {profile.nextEvent.dayNumber.replace(".", "")}. Jan. {profile.nextEvent.title}
-                            </p>
-                            <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: theme.textMuted }}>
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" /> {profile.nextEvent.time}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" /> {profile.nextEvent.location}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      {/* Next event preview (only when enabled) */}
+                      {isEnabled && profile.nextEvent && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs" style={{ color: theme.textMuted }}>
+                          <Calendar className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">
+                            {profile.nextEvent.dayName} {profile.nextEvent.dayNumber.replace(".", "")}. — {profile.nextEvent.title}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
 
-          {/* Other Clubs Section - ONLY show for parents, NOT for kids in direct view */}
+          {/* Other Clubs Section – club context switch (not profile toggle) */}
           {!isKidDirectView && (
-          <div className="px-5 pb-6">
-            <p className="text-xs font-semibold tracking-wider mb-3" style={{ color: theme.textMuted }}>
-              {t.otherClubs}
-            </p>
-            {OTHER_CLUBS.map(club => (
-              <button
-                key={club.id}
-                onClick={() => {
-                  // Switch to Max's Makkabi profile (context switch)
-                  if (club.profiles && club.profiles.length > 0) {
-                    switchContext(club.profiles[0]);
-                  }
-                }}
-                className="w-full text-left"
-              >
-                <div
-                  className="p-4 rounded-2xl transition-all hover:shadow-md"
-                  style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}
+            <div className="px-5 pb-6">
+              <p className="text-xs font-semibold tracking-wider mb-1" style={{ color: theme.textMuted }}>
+                {t.otherClubs}
+              </p>
+              <p className="text-xs mb-3" style={{ color: theme.textMuted }}>
+                {language === "de"
+                  ? "Für andere Vereine den Vereinskontext wechseln"
+                  : "Switch club context for other clubs"}
+              </p>
+              {OTHER_CLUBS.map(club => (
+                <button
+                  key={club.id}
+                  onClick={() => setShowProfileSwitcher(false)}
+                  className="w-full text-left"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {club.logo ? (
-                        <img 
-                          src={club.logo} 
-                          alt={club.name}
-                          className="w-12 h-12 rounded-full object-contain bg-white p-1"
-                        />
-                      ) : (
+                  <div
+                    className="p-4 rounded-2xl transition-all hover:shadow-md"
+                    style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
                           <span className="text-white font-bold text-sm">{club.shortName}</span>
                         </div>
-                      )}
-                      <div>
-                        <p className="font-semibold" style={{ color: theme.textPrimary }}>{club.name}</p>
-                        <p className="text-sm" style={{ color: theme.textMuted }}>{club.location}</p>
-                        {/* Show who has profiles in this club */}
-                        {club.profiles && club.profiles.length > 0 && (
-                          <div className="flex items-center gap-1 mt-1">
-                            {club.profiles.map((p, idx) => (
-                              <span 
-                                key={idx}
-                                className="text-xs px-2 py-0.5 rounded-full flex items-center gap-1"
-                                style={{ backgroundColor: COLORS.mint, color: COLORS.primary }}
-                              >
-                                {p.memberships[0]?.icon} {p.firstName}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        <div>
+                          <p className="font-semibold" style={{ color: theme.textPrimary }}>{club.name}</p>
+                          <p className="text-sm" style={{ color: theme.textMuted }}>{club.location}</p>
+                          {club.profiles && club.profiles.length > 0 && (
+                            <div className="flex items-center gap-1 mt-1">
+                              {club.profiles.map((p, idx) => (
+                                <span
+                                  key={idx}
+                                  className="text-xs px-2 py-0.5 rounded-full flex items-center gap-1"
+                                  style={{ backgroundColor: COLORS.mint, color: COLORS.primary }}
+                                >
+                                  {p.memberships[0]?.icon} {p.firstName}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
+                      <ChevronRight className="w-5 h-5" style={{ color: theme.textMuted }} />
                     </div>
-                    <ChevronRight className="w-5 h-5" style={{ color: theme.textMuted }} />
                   </div>
-                </div>
-              </button>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
           )}
         </div>
       </>
@@ -2607,7 +2665,7 @@ export function PilotMemberPortal() {
     const navItems = [
       { id: "home", icon: Home, label: t.home },
       { id: "kalender", icon: Calendar, label: t.calendar },
-      { id: "chats", icon: MessageSquare, label: t.chats, badge: activeProfile.stats.nachrichten },
+      { id: "chats", icon: MessageSquare, label: t.chats, badge: mergedStats.nachrichten },
       { id: "news", icon: Bell, label: t.news },
       { id: "profile", icon: User, label: t.profile }
     ];
@@ -2730,31 +2788,46 @@ export function PilotMemberPortal() {
             <div>
               <h1 className="text-[28px] font-bold leading-tight" style={{ color: theme.textPrimary }}>{t.welcome}</h1>
               <h2 className="text-[28px] font-bold" style={{ color: theme.textPrimary }}>{activeProfile.firstName}</h2>
-              {/* Acting on behalf indicator */}
-              {isActingOnBehalf && parentProfile && (
-                <p className="text-sm mt-1" style={{ color: theme.textMuted }}>
-                  ({t.managedBy} {parentProfile.firstName})
+              {/* Show enabled people count when multiple profiles are active */}
+              {!isKidDirectView && enabledProfiles.length > 1 && (
+                <p className="text-sm mt-1 flex items-center gap-1" style={{ color: theme.textMuted }}>
+                  <Users className="w-3.5 h-3.5" />
+                  {enabledProfiles.map(p => p.firstName).join(", ")}
                 </p>
               )}
             </div>
-            {/* Clickable Avatar - Opens Profile Switcher */}
-            <button 
+            {/* Clickable Avatar stack - Opens People Manager */}
+            <button
               onClick={() => setShowProfileSwitcher(true)}
               className="relative z-10"
             >
-              <img 
-                src={activeProfile.avatar} 
-                alt={activeProfile.firstName}
-                className="w-14 h-14 rounded-full object-cover border-2 shadow-md hover:ring-2 hover:ring-offset-2 transition-all"
-                style={{ borderColor: theme.cardBg, ["--tw-ring-color" as string]: theme.accent }}
-              />
-            {/* Multiple profiles indicator */}
-            <div 
-              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-              style={{ backgroundColor: isDfb ? COLORS.violet600 : theme.accent }}
-            >
-              {FAMILY_PROFILES.length}
-            </div>
+              {/* Stack of enabled profile avatars */}
+              <div className="relative">
+                {enabledProfiles.slice(0, 3).map((p, idx) => (
+                  <img
+                    key={p.id}
+                    src={p.avatar}
+                    alt={p.firstName}
+                    className="rounded-full object-cover border-2 shadow-sm absolute"
+                    style={{
+                      width: idx === 0 ? 48 : 28,
+                      height: idx === 0 ? 48 : 28,
+                      borderColor: theme.cardBg,
+                      top: idx === 0 ? 0 : (idx === 1 ? 20 : 8),
+                      right: idx === 0 ? 0 : (idx === 1 ? -6 : 20),
+                      zIndex: 3 - idx,
+                    }}
+                  />
+                ))}
+                <div style={{ width: 56, height: 56 }} />
+              </div>
+              {/* Enabled count badge */}
+              <div
+                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                style={{ backgroundColor: isDfb ? COLORS.violet600 : theme.accent }}
+              >
+                {enabledProfiles.length}
+              </div>
             </button>
           </div>
         </div>
@@ -2786,19 +2859,19 @@ export function PilotMemberPortal() {
           </div>
           
           {/* Alert Banner */}
-          {activeProfile.stats.offeneRechnungen > 0 && (
-            <div 
-              className="rounded-xl px-4 py-3 mb-4 flex items-center gap-3" 
+          {mergedStats.offeneRechnungen > 0 && (
+            <div
+              className="rounded-xl px-4 py-3 mb-4 flex items-center gap-3"
               style={{ backgroundColor: theme.alertBg }}
             >
-              <div 
-                className="w-8 h-8 rounded-full flex items-center justify-center" 
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: theme.alertIcon }}
               >
                 <Bell className="w-4 h-4" style={{ color: theme.alertText }} />
               </div>
               <span className="font-semibold" style={{ color: theme.alertText }}>
-                {activeProfile.stats.offeneRechnungen} {activeProfile.stats.offeneRechnungen === 1 ? t.openInvoice : t.openInvoices}
+                {mergedStats.offeneRechnungen} {mergedStats.offeneRechnungen === 1 ? t.openInvoice : t.openInvoices}
               </span>
             </div>
           )}
@@ -2808,21 +2881,21 @@ export function PilotMemberPortal() {
             <button onClick={() => setView("kalender")} className="flex flex-col items-center gap-1">
               <div className="flex items-center gap-1.5" style={{ color: theme.textSecondary }}>
                 <Calendar className="w-5 h-5" />
-                <span className="text-lg font-bold">{activeProfile.stats.termine}</span>
+                <span className="text-lg font-bold">{mergedStats.termine}</span>
               </div>
               <span className="text-xs" style={{ color: theme.textMuted }}>{t.appointments}</span>
             </button>
             <button onClick={() => setView("chats")} className="flex flex-col items-center gap-1">
               <div className="flex items-center gap-1.5" style={{ color: theme.textSecondary }}>
                 <MessageSquare className="w-5 h-5" />
-                <span className="text-lg font-bold">{activeProfile.stats.nachrichten}</span>
+                <span className="text-lg font-bold">{mergedStats.nachrichten}</span>
               </div>
               <span className="text-xs" style={{ color: theme.textMuted }}>{t.messages}</span>
             </button>
             <button onClick={() => setView("news")} className="flex flex-col items-center gap-1">
               <div className="flex items-center gap-1.5" style={{ color: theme.textSecondary }}>
                 <Bell className="w-5 h-5" />
-                <span className="text-lg font-bold">{activeProfile.stats.news}</span>
+                <span className="text-lg font-bold">{mergedStats.news}</span>
               </div>
               <span className="text-xs" style={{ color: theme.textMuted }}>{t.news}</span>
             </button>
@@ -2830,48 +2903,57 @@ export function PilotMemberPortal() {
         </div>
       </div>
 
-      {/* Next Appointment - Using profile-specific events */}
-      {activeProfile.events && activeProfile.events.length > 0 && (
+      {/* Next Appointment - Merged from all enabled profiles */}
+      {mergedEvents.length > 0 && (
         <div className="px-5 mt-6">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold tracking-wider" style={{ color: isDfb ? COLORS.neutral900 : theme.textMuted }}>{t.nextAppointment}</span>
-            <button 
-              onClick={() => setView("kalender")} 
+            <button
+              onClick={() => setView("kalender")}
               className="text-xs font-medium flex items-center gap-1"
               style={{ color: isDfb ? COLORS.primary700 : theme.accent }}
             >
               {t.allAppointments} <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          
-          <div 
+
+          <div
             className="rounded-2xl shadow-sm p-4"
             style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
           >
             <div className="flex items-start gap-4">
               <div className="text-center min-w-[40px]">
-                <span className="text-2xl font-bold" style={{ color: theme.textPrimary }}>{activeProfile.events[0].dayNumber}</span>
-                <span className="text-sm block" style={{ color: theme.textMuted }}>{activeProfile.events[0].dayName}</span>
+                <span className="text-2xl font-bold" style={{ color: theme.textPrimary }}>{mergedEvents[0].dayNumber}</span>
+                <span className="text-sm block" style={{ color: theme.textMuted }}>{mergedEvents[0].dayName}</span>
               </div>
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xl">{activeProfile.memberships.find(m => m.teamName === activeProfile.events[0].team)?.icon || "📅"}</span>
-                  <h3 className="font-semibold" style={{ color: theme.textPrimary }}>{activeProfile.events[0].title}</h3>
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className="text-xl">{allMemberships.find(m => m.teamName === mergedEvents[0].team)?.icon || "📅"}</span>
+                  <h3 className="font-semibold" style={{ color: theme.textPrimary }}>{mergedEvents[0].title}</h3>
+                  {/* Person label – only shown when multiple profiles enabled */}
+                  {enabledProfiles.length > 1 && (
+                    <span
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: mergedEvents[0].personColor.bg, color: mergedEvents[0].personColor.text }}
+                    >
+                      {mergedEvents[0].personName}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 text-sm mt-1" style={{ color: theme.textMuted }}>
                   <Clock className="w-3.5 h-3.5" />
-                  <span>{activeProfile.events[0].time}</span>
+                  <span>{mergedEvents[0].time}</span>
                 </div>
                 <div className="flex items-center gap-1 text-sm mt-0.5" style={{ color: theme.textMuted }}>
                   <MapPin className="w-3.5 h-3.5" />
-                  <span>{activeProfile.events[0].location}</span>
+                  <span>{mergedEvents[0].location}</span>
                 </div>
-                {activeProfile.events[0].isToday && (
+                {mergedEvents[0].isToday && (
                   <span className="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: COLORS.mint, color: COLORS.primary }}>
                     {t.today}
                   </span>
                 )}
-                {activeProfile.events[0].isTomorrow && (
+                {mergedEvents[0].isTomorrow && (
                   <span className="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#FFF3CD", color: "#856404" }}>
                     {t.tomorrow}
                   </span>
@@ -2882,8 +2964,8 @@ export function PilotMemberPortal() {
         </div>
       )}
 
-      {/* Free Spots - Profile-specific courses */}
-      {activeProfile.freeSpots && activeProfile.freeSpots.length > 0 && (
+      {/* Free Spots - Merged from enabled profiles */}
+      {mergedFreeSpots.length > 0 && (
         <div className="mt-6">
           <div className="flex items-center justify-between px-5 mb-3">
             <span className="text-xs font-semibold tracking-wider" style={{ color: isDfb ? COLORS.neutral900 : theme.textMuted }}>{t.freeSpots}</span>
@@ -2894,7 +2976,7 @@ export function PilotMemberPortal() {
           
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-3 px-5 pb-2">
-              {activeProfile.freeSpots.map(spot => (
+              {mergedFreeSpots.map(spot => (
                 <div 
                   key={spot.id} 
                   className="flex-shrink-0 w-40 rounded-2xl shadow-sm overflow-hidden"
@@ -2922,24 +3004,24 @@ export function PilotMemberPortal() {
         </div>
       )}
 
-      {/* More Appointments - Using profile-specific events */}
-      {activeProfile.events && activeProfile.events.length > 1 && (
+      {/* More Appointments - Merged from enabled profiles */}
+      {mergedEvents.length > 1 && (
         <div className="px-5 mt-6 pb-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold tracking-wider" style={{ color: isDfb ? COLORS.neutral900 : theme.textMuted }}>{t.moreAppointments}</span>
-            <button 
-              onClick={() => setView("kalender")} 
+            <button
+              onClick={() => setView("kalender")}
               className="text-xs font-medium flex items-center gap-1"
               style={{ color: isDfb ? COLORS.primary700 : theme.accent }}
             >
               {t.allAppointments} <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-3">
-            {activeProfile.events.slice(1, 3).map(event => (
-              <div 
-                key={event.id} 
+            {mergedEvents.slice(1, 3).map(event => (
+              <div
+                key={event.id}
                 className="rounded-2xl shadow-sm p-4"
                 style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
               >
@@ -2947,11 +3029,20 @@ export function PilotMemberPortal() {
                   <span className="text-sm font-medium" style={{ color: theme.textMuted }}>{event.dayName}</span>
                   <span className="text-lg font-bold" style={{ color: theme.textPrimary }}>{event.dayNumber.replace(".", "")}. Jan.</span>
                 </div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm">{activeProfile.memberships.find(m => m.teamName === event.team)?.icon || "📅"}</span>
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className="text-sm">{allMemberships.find(m => m.teamName === event.team)?.icon || "📅"}</span>
                   <h4 className="font-semibold text-sm" style={{ color: theme.textPrimary }}>{event.title}</h4>
                 </div>
-                <div className="flex items-center gap-1 text-xs mt-1" style={{ color: theme.textMuted }}>
+                {/* Person label pill */}
+                {enabledProfiles.length > 1 && (
+                  <span
+                    className="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded-full mb-1"
+                    style={{ backgroundColor: event.personColor.bg, color: event.personColor.text }}
+                  >
+                    {event.personName}
+                  </span>
+                )}
+                <div className="flex items-center gap-1 text-xs mt-0.5" style={{ color: theme.textMuted }}>
                   <Clock className="w-3 h-3" />
                   <span>{event.time}</span>
                 </div>
@@ -3079,163 +3170,95 @@ export function PilotMemberPortal() {
           </div>
         </div>
 
-        {/* Events List - Profile-specific */}
+        {/* Events List - Merged from all enabled profiles */}
         <div className="px-5 py-4 space-y-4">
-          {/* Today's Events */}
-          {activeProfile.events && activeProfile.events.filter(e => e.isToday).length > 0 && (
-            <div>
-              <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>
-                {language === "de" ? "HEUTE" : "TODAY"}
-              </span>
-              <div className="mt-2 space-y-3">
-                {activeProfile.events.filter(e => e.isToday).map(event => (
-                  <button 
-                    key={event.id}
-                    onClick={() => handleEventClick(event)}
-                    className="rounded-2xl shadow-sm p-4 w-full text-left hover:shadow-md transition-shadow"
-                    style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="text-center min-w-[40px]">
-                        <span className="text-2xl font-bold" style={{ color: theme.textPrimary }}>{event.dayNumber}</span>
-                        <span className="text-sm block" style={{ color: theme.textMuted }}>{event.dayName}</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{activeProfile.memberships.find(m => m.teamName === event.team)?.icon || "📅"}</span>
-                          <h3 className="font-semibold" style={{ color: theme.textPrimary }}>{event.title}</h3>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm mt-1" style={{ color: theme.textMuted }}>
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{event.time}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm mt-0.5" style={{ color: theme.textMuted }}>
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span>{event.location}</span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-3">
-                          <EventStatusBadge status={event.status} />
-                          <div 
-                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-                            style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F5F5F5" }}
-                          >
-                            {event.teamAvatar && <img src={event.teamAvatar} className="w-4 h-4 rounded-full" alt="" />}
-                            <span className="text-xs" style={{ color: theme.textSecondary }}>
-                              {event.type === "match" ? t.match : event.type === "training" ? t.training : t.course}
-                            </span>
-                          </div>
-                          <ChevronRight className="w-4 h-4 ml-auto" style={{ color: theme.textMuted }} />
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Tomorrow's Events */}
-          {activeProfile.events && activeProfile.events.filter(e => e.isTomorrow).length > 0 && (
-            <div>
-              <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>
-                {language === "de" ? "MORGEN" : "TOMORROW"}
-              </span>
-              <div className="mt-2 space-y-3">
-                {activeProfile.events.filter(e => e.isTomorrow).map(event => (
-                <button 
-                  key={event.id} 
-                  onClick={() => handleEventClick(event)}
-                  className="rounded-2xl shadow-sm p-4 w-full text-left hover:shadow-md transition-shadow"
-                  style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="text-center min-w-[40px]">
-                      <span className="text-2xl font-bold" style={{ color: theme.textPrimary }}>{event.dayNumber}</span>
-                      <span className="text-sm block" style={{ color: theme.textMuted }}>{event.dayName}</span>
-                    </div>
-                    <div className="flex-1">
+          {/* Helper to render a single event card with person label */}
+          {(() => {
+            const renderEventCard = (event: typeof mergedEvents[0]) => (
+              <button
+                key={event.id}
+                onClick={() => handleEventClick(event)}
+                className="rounded-2xl shadow-sm p-4 w-full text-left hover:shadow-md transition-shadow"
+                style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="text-center min-w-[40px]">
+                    <span className="text-2xl font-bold" style={{ color: theme.textPrimary }}>{event.dayNumber}</span>
+                    <span className="text-sm block" style={{ color: theme.textMuted }}>{event.dayName}</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-lg">{allMemberships.find(m => m.teamName === event.team)?.icon || "📅"}</span>
                       <h3 className="font-semibold" style={{ color: theme.textPrimary }}>{event.title}</h3>
-                      <div className="flex items-center gap-1 text-sm mt-1" style={{ color: theme.textMuted }}>
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{event.time}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm mt-0.5" style={{ color: theme.textMuted }}>
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span>{event.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-3">
-                        <EventStatusBadge status={event.status} />
-                        <div 
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-                          style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F5F5F5" }}
+                      {/* Person label – only when multiple profiles enabled */}
+                      {enabledProfiles.length > 1 && (
+                        <span
+                          className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: event.personColor.bg, color: event.personColor.text }}
                         >
-                          {event.teamAvatar && <img src={event.teamAvatar} className="w-4 h-4 rounded-full" alt="" />}
-                          <span className="text-xs" style={{ color: theme.textSecondary }}>
-                            {event.type === "match" ? t.match : event.type === "training" ? t.training : t.course}
-                          </span>
-                        </div>
-                        <ChevronRight className="w-4 h-4 ml-auto" style={{ color: theme.textMuted }} />
+                          {event.personName}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 text-sm mt-1" style={{ color: theme.textMuted }}>
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{event.time}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm mt-0.5" style={{ color: theme.textMuted }}>
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{event.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-3">
+                      <EventStatusBadge status={event.status} />
+                      <div
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+                        style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F5F5F5" }}
+                      >
+                        {event.teamAvatar && <img src={event.teamAvatar} className="w-4 h-4 rounded-full" alt="" />}
+                        <span className="text-xs" style={{ color: theme.textSecondary }}>
+                          {event.type === "match" ? t.match : event.type === "training" ? t.training : t.course}
+                        </span>
                       </div>
+                      <ChevronRight className="w-4 h-4 ml-auto" style={{ color: theme.textMuted }} />
                     </div>
                   </div>
-                </button>
-              ))}
-              </div>
-            </div>
-          )}
+                </div>
+              </button>
+            );
 
-          {/* Later this week */}
-          {activeProfile.events && activeProfile.events.filter(e => !e.isToday && !e.isTomorrow).length > 0 && (
-            <div>
-              <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>
-                {t.laterThisWeek}
-              </span>
-              <div className="mt-2 space-y-3">
-                {activeProfile.events.filter(e => !e.isToday && !e.isTomorrow).map(event => (
-                  <button 
-                    key={event.id}
-                    onClick={() => handleEventClick(event)}
-                    className="rounded-2xl shadow-sm p-4 w-full text-left hover:shadow-md transition-shadow"
-                    style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="text-center min-w-[40px]">
-                        <span className="text-2xl font-bold" style={{ color: theme.textPrimary }}>{event.dayNumber}</span>
-                        <span className="text-sm block" style={{ color: theme.textMuted }}>{event.dayName}</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{activeProfile.memberships.find(m => m.teamName === event.team)?.icon || "📅"}</span>
-                          <h3 className="font-semibold" style={{ color: theme.textPrimary }}>{event.title}</h3>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm mt-1" style={{ color: theme.textMuted }}>
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{event.time}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm mt-0.5" style={{ color: theme.textMuted }}>
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span>{event.location}</span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-3">
-                          <EventStatusBadge status={event.status} />
-                          <div 
-                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-                            style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F5F5F5" }}
-                          >
-                            {event.teamAvatar && <img src={event.teamAvatar} className="w-4 h-4 rounded-full" alt="" />}
-                            <span className="text-xs" style={{ color: theme.textSecondary }}>
-                              {event.type === "match" ? t.match : event.type === "training" ? t.training : t.course}
-                            </span>
-                          </div>
-                          <ChevronRight className="w-4 h-4 ml-auto" style={{ color: theme.textMuted }} />
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+            const todayEvents = mergedEvents.filter(e => e.isToday);
+            const tomorrowEvents = mergedEvents.filter(e => e.isTomorrow);
+            const laterEvents = mergedEvents.filter(e => !e.isToday && !e.isTomorrow);
+
+            return (
+              <>
+                {todayEvents.length > 0 && (
+                  <div>
+                    <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>
+                      {language === "de" ? "HEUTE" : "TODAY"}
+                    </span>
+                    <div className="mt-2 space-y-3">{todayEvents.map(renderEventCard)}</div>
+                  </div>
+                )}
+                {tomorrowEvents.length > 0 && (
+                  <div>
+                    <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>
+                      {language === "de" ? "MORGEN" : "TOMORROW"}
+                    </span>
+                    <div className="mt-2 space-y-3">{tomorrowEvents.map(renderEventCard)}</div>
+                  </div>
+                )}
+                {laterEvents.length > 0 && (
+                  <div>
+                    <span className="text-xs font-semibold tracking-wider" style={{ color: theme.textMuted }}>
+                      {t.laterThisWeek}
+                    </span>
+                    <div className="mt-2 space-y-3">{laterEvents.map(renderEventCard)}</div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Club Events (when viewing club calendar) */}
           {calendarViewMode === "club" && (
@@ -3333,16 +3356,25 @@ export function PilotMemberPortal() {
     // isChildProfile is true only if a kid is viewing DIRECTLY (not parent viewing child)
     const isChildProfile = isKidDirectView;
     
-    // Get chats from the new enhanced mock data - FILTERED BY ACTIVE PROFILE
-    // Each profile only sees chats where their ID is in visibleToProfiles
-    const profileChats = mockChats.filter(c => c.visibleToProfiles.includes(activeProfile.id));
-    
+    // Get chats visible to ANY enabled profile (merged global view)
+    const seen = new Set<string>();
+    const profileChats = mockChats
+      .filter(c => enabledProfiles.some(p => c.visibleToProfiles.includes(p.id)))
+      .filter(c => { if (seen.has(c.id)) return false; seen.add(c.id); return true; });
+
+    // For each chat, determine which enabled profile(s) own it (for labels)
+    const chatPersonLabels = (chat: Chat): Array<{ name: string; color: { bg: string; text: string } }> => {
+      if (enabledProfiles.length <= 1) return [];
+      return enabledProfiles
+        .filter(p => chat.visibleToProfiles.includes(p.id))
+        .map(p => ({ name: p.firstName, color: PERSON_COLORS[p.id] ?? { bg: "#F5F5F5", text: "#525252" } }));
+    };
+
     // Determine user role for permission checks
-    const _profileRole: UserRole = isKidDirectView ? "minor" : 
-      isParentViewingChild ? "parent" : "adult_player";
+    const _profileRole: UserRole = isKidDirectView ? "minor" : "adult_player";
     void _profileRole;
-    
-    // Filter by chat type - now profile-specific (only TEAM-BASED announcements)
+
+    // Filter by chat type
     const announcements = profileChats.filter(c => c.type === "announcement");
     const teamChats = profileChats.filter(c => c.type === "team_group");
     const directChats = profileChats.filter(c => c.type === "direct");
@@ -3352,9 +3384,10 @@ export function PilotMemberPortal() {
     // - If NO parent linked (Anna): VIEW ONLY mode
     const isMinorWithoutGuardian = isKidDirectView && !activeProfile.parentId;
 
-    // Chat item renderer - Clean and simple, no badges in preview
+    // Chat item renderer with optional person labels
     const renderChatItem = (chat: Chat) => {
       const isAnnouncement = chat.type === "announcement";
+      const personLabels = chatPersonLabels(chat);
       
       return (
         <button
@@ -3400,16 +3433,28 @@ export function PilotMemberPortal() {
             )}
           </div>
 
-          {/* Content - Clean without sender badges */}
+          {/* Content */}
           <div className="flex-1 min-w-0 text-left">
-            <p 
-              className="font-semibold text-sm truncate mb-0.5"
-              style={{ color: chat.unreadCount > 0 ? theme.textPrimary : theme.textSecondary }}
-            >
-              {chat.name}
-            </p>
+            <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+              <p
+                className="font-semibold text-sm truncate"
+                style={{ color: chat.unreadCount > 0 ? theme.textPrimary : theme.textSecondary }}
+              >
+                {chat.name}
+              </p>
+              {/* Person label pills – shown when multiple profiles enabled */}
+              {personLabels.map(pl => (
+                <span
+                  key={pl.name}
+                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: pl.color.bg, color: pl.color.text }}
+                >
+                  {pl.name}
+                </span>
+              ))}
+            </div>
             {chat.lastMessage && (
-              <p 
+              <p
                 className="text-sm truncate"
                 style={{ color: chat.unreadCount > 0 ? theme.textSecondary : theme.textMuted }}
               >
@@ -3417,8 +3462,8 @@ export function PilotMemberPortal() {
               </p>
             )}
             {chat.teamName && (
-              <span 
-                className="text-[10px] px-1.5 py-0.5 rounded mt-1 inline-block" 
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded mt-1 inline-block"
                 style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F3F4F6", color: theme.textMuted }}
               >
                 {chat.teamName}
@@ -3442,7 +3487,7 @@ export function PilotMemberPortal() {
       { id: "announcements" as const, label: "Infos", icon: Megaphone, count: announcements.length, color: "#92400E", bgColor: "#FEF3C7" },
       { id: "team" as const, label: "Teams", icon: Users, count: teamChats.length, color: "#065F46", bgColor: "#D1FAE5" },
       { id: "direct" as const, label: "DMs", icon: MessageSquare, count: directChats.length, color: "#1E40AF", bgColor: "#DBEAFE", disabled: isChildProfile, hidden: isMinorWithoutGuardian },
-      { id: "requests" as const, label: "Anfragen", icon: File, count: isMinorWithoutGuardian ? 0 : (activeProfile.chats?.filter(c => c.isRequest).length || 0), color: "#7C3AED", bgColor: "#F3E8FF" }
+      { id: "requests" as const, label: "Anfragen", icon: File, count: isMinorWithoutGuardian ? 0 : mergedChats.filter(c => c.isRequest).length, color: "#7C3AED", bgColor: "#F3E8FF" }
     ];
 
     return (
@@ -3457,11 +3502,6 @@ export function PilotMemberPortal() {
                 <p className="text-sm flex items-center gap-1" style={{ color: "#DC2626" }}>
                   <Shield className="w-3 h-3" />
                   {activeProfile.firstName} (Kind)
-                </p>
-              ) : isParentViewingChild ? (
-                <p className="text-sm flex items-center gap-1" style={{ color: "#92400E" }}>
-                  <Eye className="w-3 h-3" />
-                  {loggedInProfile.firstName} für {activeProfile.firstName}
                 </p>
               ) : (
                 <p className="text-sm" style={{ color: theme.textMuted }}>
@@ -3557,23 +3597,6 @@ export function PilotMemberPortal() {
           </div>
         )}
 
-        {/* Parent viewing child - Info notice */}
-        {isParentViewingChild && (
-          <div 
-            className="mx-5 mb-4 px-4 py-3 rounded-xl flex items-center gap-3"
-            style={{ backgroundColor: "#FEF3C7" }}
-          >
-            <Eye className="w-5 h-5" style={{ color: "#92400E" }} />
-            <div className="flex-1">
-              <p className="text-sm font-medium" style={{ color: "#92400E" }}>
-                Du schreibst im Namen von {activeProfile.firstName}
-              </p>
-              <p className="text-xs" style={{ color: "#B45309" }}>
-                Nachrichten werden als "{loggedInProfile.firstName} für {activeProfile.firstName}" gesendet
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Minor with guardian - Restriction notice */}
         {isKidDirectView && activeProfile.parentId && (
@@ -3689,7 +3712,7 @@ export function PilotMemberPortal() {
                   </p>
                 </div>
               </div>
-            ) : (!activeProfile.chats || !activeProfile.chats.some(c => c.isRequest)) ? (
+            ) : (!mergedChats.some(c => c.isRequest)) ? (
               <div className="px-5 py-8 text-center">
                 <File className="w-12 h-12 mx-auto mb-3" style={{ color: theme.textMuted }} />
                 <p className="text-sm font-medium" style={{ color: theme.textSecondary }}>Keine Anfragen</p>
@@ -3704,7 +3727,7 @@ export function PilotMemberPortal() {
                     Anfragen an den Verein
                   </p>
                 </div>
-                {activeProfile.chats.filter(c => c.isRequest).map(chat => (
+                {mergedChats.filter(c => c.isRequest).map(chat => (
                   <button
                     key={chat.id}
                     onClick={() => handleOpenChat(chat)}
@@ -3831,71 +3854,103 @@ export function PilotMemberPortal() {
     </div>
   );
 
-  // Profile View - matching the design with theme toggle
+  // Profile View - one member card per enabled profile
   const renderProfile = () => (
     <div className="min-h-full pb-24" style={{ backgroundColor: theme.pageBg }}>
-      {/* Member Card */}
-      <div className="px-5 pt-8 pb-6">
-        <div 
-          className="rounded-2xl shadow-sm p-5"
-          style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-xl font-bold mb-3" style={{ color: theme.textPrimary }}>{t.membership}</h2>
-              <div className="flex items-center gap-3">
-                <img 
-                  src={activeProfile.avatar} 
-                  alt={activeProfile.firstName}
-                  className="w-14 h-14 rounded-full object-cover"
-                />
-                <div>
-                  <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>
-                    {activeProfile.firstName.toUpperCase()}
-                  </p>
-                  <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>
-                    {activeProfile.lastName.toUpperCase()}
-                  </p>
-                  {/* Show "Child of" indicator for child profiles */}
-                  {activeProfile.isChild && parentProfile && (
-                    <p className="text-[10px] mt-1" style={{ color: theme.textMuted }}>
-                      ({language === "de" ? "Kinderprofil" : "Child profile"})
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-            {/* QR Code Placeholder */}
-            <div 
-              className="w-20 h-20 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F5F5F5" }}
+      {/* Member Cards – one per enabled profile */}
+      <div className="px-5 pt-8 pb-2 space-y-4">
+        <h2 className="text-xl font-bold" style={{ color: theme.textPrimary }}>{t.membership}</h2>
+        {enabledProfiles.map((profile) => {
+          const personColor = PERSON_COLORS[profile.id] ?? { bg: "#F5F5F5", text: "#525252" };
+          return (
+            <div
+              key={profile.id}
+              className="rounded-2xl shadow-sm p-5"
+              style={{
+                backgroundColor: theme.cardBg,
+                borderColor: theme.cardBorder,
+                borderWidth: 1,
+                borderRadius: theme.cardRadius,
+                boxShadow: theme.cardShadow,
+                borderLeftWidth: 4,
+                borderLeftColor: personColor.text,
+              }}
             >
-              <div className="text-center">
-                <QrCode className="w-8 h-8 mx-auto" style={{ color: theme.textMuted }} />
-                <ClubLogo size="sm" clubName={activeProfile.clubId === "makkabi" ? "TuS" : "SfB"} />
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <img
+                      src={profile.avatar}
+                      alt={profile.firstName}
+                      className="w-14 h-14 rounded-full object-cover"
+                      style={{ border: `2px solid ${personColor.text}` }}
+                    />
+                    {/* Person color dot */}
+                    <div
+                      className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white"
+                      style={{ backgroundColor: personColor.text }}
+                    />
+                  </div>
+                  <div>
+                    <p className="font-bold text-base" style={{ color: theme.textPrimary }}>
+                      {profile.firstName} {profile.lastName}
+                    </p>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full font-medium"
+                      style={{ backgroundColor: personColor.bg, color: personColor.text }}
+                    >
+                      {profile.isChild
+                        ? (language === "de" ? "Kinderprofil" : "Child profile")
+                        : (language === "de" ? "Mitglied" : "Member")}
+                    </span>
+                  </div>
+                </div>
+                {/* QR Code */}
+                <div
+                  className="w-16 h-16 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F5F5F5" }}
+                >
+                  <div className="text-center">
+                    <QrCode className="w-6 h-6 mx-auto" style={{ color: theme.textMuted }} />
+                    <ClubLogo size="sm" clubName={profile.clubId === "makkabi" ? "TuS" : "SfB"} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Teams/Memberships */}
+              <div className="mt-4 pt-3" style={{ borderTopWidth: 1, borderTopColor: theme.cardBorder }}>
+                <h3 className="text-xs font-semibold mb-2" style={{ color: theme.textMuted }}>{t.teams.toUpperCase()}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {profile.memberships.map(m => (
+                    <span
+                      key={m.departmentId}
+                      className="flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-xl"
+                      style={{ backgroundColor: personColor.bg, color: personColor.text }}
+                    >
+                      <span>{m.icon}</span>
+                      <span className="font-medium">{m.teamName}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mini stats row */}
+              <div className="mt-3 flex items-center gap-4 text-xs" style={{ color: theme.textMuted }}>
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5" /> {profile.stats.termine}
+                </span>
+                <span className="flex items-center gap-1">
+                  <MessageSquare className="w-3.5 h-3.5" /> {profile.stats.nachrichten}
+                </span>
+                {profile.stats.offeneRechnungen > 0 && (
+                  <span className="flex items-center gap-1 font-medium" style={{ color: "#EA580C" }}>
+                    <Bell className="w-3.5 h-3.5" /> {profile.stats.offenerBetrag}
+                  </span>
+                )}
               </div>
             </div>
-          </div>
-
-          {/* Departments/Teams */}
-          <div className="mt-5 pt-4" style={{ borderTopWidth: 1, borderTopColor: theme.cardBorder }}>
-            <h3 className="font-semibold mb-3" style={{ color: theme.textPrimary }}>{t.teams}</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {activeProfile.memberships.map(m => (
-                <div key={m.departmentId} className="flex items-center gap-2">
-                  <span className="text-lg">{m.icon}</span>
-                  <span className="text-sm" style={{ color: theme.textSecondary }}>{m.departmentName}</span>
-                </div>
-              ))}
-            </div>
-            {/* Show team name for children */}
-            {activeProfile.isChild && activeProfile.memberships.length > 0 && (
-              <p className="text-xs mt-2" style={{ color: theme.textMuted }}>
-                {activeProfile.memberships.map(m => m.teamName).join(", ")}
-              </p>
-            )}
-          </div>
-        </div>
+          );
+        })}
       </div>
 
       {/* Settings */}
@@ -4362,8 +4417,8 @@ export function PilotMemberPortal() {
             // - Lena own view: p11 is "me"  
             // - Lena viewing child context: p11 is still "me" (she wrote on behalf)
             const isFromLoggedInUser = msg.senderId === loggedInProfile.id;
-            const isFromActiveChild = isParentViewingChild && msg.senderId === activeProfile.id;
             const isMe = isFromLoggedInUser;
+            const isFromActiveChild = false; // No longer using single-child context mode
             
             // Check if this is an "on behalf" message (has onBehalfOf property)
             const isOnBehalfMessage = !!msg.onBehalfOf;

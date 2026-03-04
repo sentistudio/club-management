@@ -12,7 +12,7 @@ import { useState, useMemo } from "react";
 import { 
   Plus, Search, Mail, Phone, Link2, Send,
   ChevronRight, X, Check, Users, UserCheck,
-  Shield, User, Heart
+  Shield, User, Heart, AlertTriangle
 } from "lucide-react";
 import { 
   Card, Button, Badge, 
@@ -79,7 +79,9 @@ export function People() {
   const { 
     persons, 
     memberships,
+    guardianLinks,
     getChildrenByGuardian,
+    getGuardiansByChild,
     getInvitesByPerson,
     addPerson,
     addMembership,
@@ -126,11 +128,56 @@ export function People() {
       .map(m => m.role);
   };
 
-  // Get linked children text
+  // Check if member has department/team assignments (determines active status)
+  const hasDepartmentOrTeam = (personId: string): boolean => {
+    return memberships.some(m => 
+      m.personId === personId && (m.departmentId || m.teamId)
+    );
+  };
+
+  // Get effective status for a member
+  // A member is only "active" if they have at least one department/team assignment
+  const getEffectiveStatus = (person: Person): "active" | "inactive" | "pending" => {
+    if (person.kind === "contact") {
+      return person.status === "active" ? "active" : "inactive";
+    }
+    // For members: must have department/team to be active
+    if (!hasDepartmentOrTeam(person.id)) {
+      return "inactive"; // No department/team assigned yet
+    }
+    return person.status === "active" ? "active" : person.status as "inactive" | "pending";
+  };
+
+  // Get linked children text (for guardians)
   const getLinkedChildrenText = (personId: string): string => {
     const children = getChildrenByGuardian(personId);
     if (children.length === 0) return "";
     return children.map(c => getFullName(c.child)).join(", ");
+  };
+
+  // Get linked guardians text (for minors)
+  const getLinkedGuardiansText = (personId: string): string => {
+    const guardians = getGuardiansByChild(personId);
+    if (guardians.length === 0) return "";
+    return guardians.map(g => getFullName(g.guardian)).join(", ");
+  };
+
+  // Check if person is a minor (under 18)
+  const isMinor = (person: Person): boolean => {
+    if (!person.dateOfBirth) return false;
+    const today = new Date();
+    const birth = new Date(person.dateOfBirth);
+    const age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      return age - 1 < 18;
+    }
+    return age < 18;
+  };
+
+  // Check if minor has a guardian link
+  const hasGuardianLink = (personId: string): boolean => {
+    return guardianLinks.some(gl => gl.childPersonId === personId);
   };
 
   // Get invite status
@@ -279,6 +326,7 @@ export function People() {
               <TableHead>Name</TableHead>
               <TableHead>Kontakt</TableHead>
               <TableHead>Rollen / Verknüpfungen</TableHead>
+              <TableHead>Konto</TableHead>
               <TableHead>Status</TableHead>
               <TableHead align="right">Aktionen</TableHead>
             </TableRow>
@@ -287,13 +335,16 @@ export function People() {
             {filteredList.length === 0 ? (
               <TableEmpty 
                 message={viewMode === "members" ? "Keine Mitglieder gefunden" : "Keine Kontakte gefunden"}
-                colSpan={5}
+                colSpan={6}
               />
             ) : (
               filteredList.map((person) => {
                 const roles = getPersonRoles(person.id);
                 const linkedChildren = getLinkedChildrenText(person.id);
+                const linkedGuardians = getLinkedGuardiansText(person.id);
                 const inviteStatus = getInviteStatus(person.id);
+                const personIsMinor = isMinor(person);
+                const minorHasGuardian = hasGuardianLink(person.id);
 
                 return (
                   <TableRow 
@@ -317,10 +368,8 @@ export function People() {
                         )}
                         <div>
                           <p className="font-medium text-slate-800">{getFullName(person)}</p>
-                          {person.hasClaimedIdentity && (
-                            <span className="text-xs text-green-600 flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Konto aktiviert
-                            </span>
+                          {personIsMinor && (
+                            <span className="text-xs text-amber-600">Minderjährig</span>
                           )}
                         </div>
                       </div>
@@ -342,35 +391,87 @@ export function People() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {roles.map((role, idx) => (
-                          <span 
-                            key={idx}
-                            className="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded"
-                          >
-                            {getRoleLabel(role)}
-                          </span>
-                        ))}
+                      <div className="flex flex-col gap-1.5">
+                        {/* Roles */}
+                        <div className="flex flex-wrap gap-1">
+                          {roles.map((role, idx) => (
+                            <span 
+                              key={idx}
+                              className="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded"
+                            >
+                              {getRoleLabel(role)}
+                            </span>
+                          ))}
+                        </div>
+                        {/* Guardian of children (for adults/guardians) */}
                         {linkedChildren && (
-                          <div className="flex items-center gap-1 px-2 py-0.5 text-xs bg-violet-100 text-violet-700 rounded">
+                          <div className="flex items-center gap-1 px-2 py-0.5 text-xs bg-violet-100 text-violet-700 rounded w-fit">
                             <Link2 className="w-3 h-3" />
-                            Guardian: {linkedChildren}
+                            Guardian von: {linkedChildren}
                           </div>
                         )}
-                        {roles.length === 0 && !linkedChildren && (
+                        {/* Child of guardians (for minors) */}
+                        {personIsMinor && linkedGuardians && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded w-fit">
+                            <Users className="w-3 h-3" />
+                            Kind von: {linkedGuardians}
+                          </div>
+                        )}
+                        {/* Warning: Minor without guardian */}
+                        {personIsMinor && !minorHasGuardian && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded w-fit">
+                            <AlertTriangle className="w-3 h-3" />
+                            Kein Erziehungsberechtigter
+                          </div>
+                        )}
+                        {/* No roles and no links */}
+                        {roles.length === 0 && !linkedChildren && !linkedGuardians && !personIsMinor && (
                           <span className="text-sm text-slate-400">-</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    {/* Konto Column */}
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {person.hasClaimedIdentity ? (
+                          <span className="flex items-center gap-1 text-xs text-green-600">
+                            <Check className="w-3.5 h-3.5" /> Aktiviert
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400">Nicht aktiviert</span>
+                        )}
+                        {/* For minors with account but no guardian: limited view warning */}
+                        {personIsMinor && person.hasClaimedIdentity && !minorHasGuardian && (
+                          <span className="text-xs text-amber-600 flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" />
+                            Eingeschränkt
+                          </span>
+                        )}
+                        {inviteStatus && (
+                          <Badge variant={inviteStatus.variant as any} className="text-xs">
+                            {inviteStatus.label}
+                          </Badge>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        <Badge variant={person.status === "active" ? "success" : "default"}>
-                          {getStatusLabel(person.status)}
-                        </Badge>
-                        {inviteStatus && (
-                          <Badge variant={inviteStatus.variant as any}>
-                            {inviteStatus.label}
-                          </Badge>
+                        {(() => {
+                          const effectiveStatus = getEffectiveStatus(person);
+                          const statusLabels: Record<string, string> = {
+                            active: "Aktiv",
+                            inactive: "Inaktiv",
+                            pending: "Ausstehend"
+                          };
+                          return (
+                            <Badge variant={effectiveStatus === "active" ? "success" : effectiveStatus === "pending" ? "warning" : "default"}>
+                              {statusLabels[effectiveStatus]}
+                            </Badge>
+                          );
+                        })()}
+                        {/* Show hint if member has no department/team */}
+                        {person.kind === "member" && !hasDepartmentOrTeam(person.id) && (
+                          <span className="text-xs text-amber-600">Keine Abteilung</span>
                         )}
                       </div>
                     </TableCell>
@@ -655,11 +756,43 @@ function PersonDetailModal({
   onClose: () => void;
   onInvite: () => void;
 }) {
-  const { getChildrenByGuardian, getInvitesByPerson, memberships } = usePeople();
+  const { getChildrenByGuardian, getGuardiansByChild, getInvitesByPerson, memberships, guardianLinks, departments, teams } = usePeople();
   
   const linkedChildren = getChildrenByGuardian(person.id);
+  const linkedGuardians = getGuardiansByChild(person.id);
   const personInvites = getInvitesByPerson(person.id);
   const personMemberships = memberships.filter(m => m.personId === person.id);
+
+  // Check if member has department/team assignments
+  const hasDeptOrTeam = personMemberships.some(m => m.departmentId || m.teamId);
+
+  // Check if person is a minor
+  const isMinorPerson = (() => {
+    if (!person.dateOfBirth) return false;
+    const today = new Date();
+    const birth = new Date(person.dateOfBirth);
+    const age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      return age - 1 < 18;
+    }
+    return age < 18;
+  })();
+
+  // Check if minor has guardian link
+  const hasGuardian = guardianLinks.some(gl => gl.childPersonId === person.id);
+  
+  // Calculate effective status
+  type EffectiveStatus = "active" | "inactive" | "pending";
+  const effectiveStatus: EffectiveStatus = person.kind === "contact" 
+    ? (person.status === "active" ? "active" : "inactive")
+    : (!hasDeptOrTeam ? "inactive" : (person.status === "active" ? "active" : "pending"));
+  
+  const statusLabels: Record<EffectiveStatus, string> = {
+    active: "Aktiv",
+    inactive: "Inaktiv",
+    pending: "Ausstehend"
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -686,17 +819,35 @@ function PersonDetailModal({
               )}
               <div>
                 <h2 className="text-xl font-bold text-slate-800">{getFullName(person)}</h2>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <Badge variant={person.kind === "member" ? "teal" : "default"}>
                     {person.kind === "member" ? "Mitglied" : "Kontakt"}
                   </Badge>
-                  <Badge variant={person.status === "active" ? "success" : "default"}>
-                    {getStatusLabel(person.status)}
+                  {isMinorPerson && (
+                    <Badge variant="warning">Minderjährig</Badge>
+                  )}
+                  <Badge variant={effectiveStatus === "active" ? "success" : effectiveStatus === "pending" ? "warning" : "default"}>
+                    {statusLabels[effectiveStatus] || effectiveStatus}
                   </Badge>
-                  {person.hasClaimedIdentity && (
+                  {person.kind === "member" && !hasDeptOrTeam && (
+                    <Badge variant="warning">Keine Abteilung</Badge>
+                  )}
+                  {person.hasClaimedIdentity ? (
                     <Badge variant="info">Konto aktiviert</Badge>
+                  ) : (
+                    <Badge variant="default">Kein Konto</Badge>
                   )}
                 </div>
+                {/* Warning for minor without guardian */}
+                {isMinorPerson && !hasGuardian && (
+                  <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                    <span>
+                      <strong>Achtung:</strong> Kein Erziehungsberechtigter verknüpft.
+                      {person.hasClaimedIdentity && " Eingeschränkte Funktionen in der App."}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg">
@@ -738,16 +889,102 @@ function PersonDetailModal({
           {personMemberships.length > 0 && (
             <div>
               <h3 className="font-semibold text-slate-800 mb-3">Rollen & Mitgliedschaften</h3>
-              <div className="space-y-2">
-                {personMemberships.map(m => (
-                  <div key={m.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-800">{getRoleLabel(m.role)}</span>
-                    <Badge variant={m.status === "active" ? "success" : "warning"}>
-                      {getStatusLabel(m.status)}
-                    </Badge>
-                  </div>
-                ))}
+              <div className="space-y-3">
+                {personMemberships.map(m => {
+                  // Get department and team names
+                  const dept = m.departmentId ? departments.find(d => d.id === m.departmentId) : null;
+                  const team = m.teamId ? teams.find(t => t.id === m.teamId) : null;
+                  
+                  return (
+                    <div key={m.id} className="p-4 bg-slate-50 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-slate-800">{getRoleLabel(m.role)}</span>
+                        <Badge variant={m.status === "active" ? "success" : "warning"}>
+                          {getStatusLabel(m.status)}
+                        </Badge>
+                      </div>
+                      {(dept || team) ? (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {dept && (
+                            <span className="inline-flex items-center gap-1 text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded">
+                              <span className="text-teal-500">📂</span>
+                              {dept.name}
+                            </span>
+                          )}
+                          {team && (
+                            <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                              <span className="text-blue-500">👥</span>
+                              {team.name}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-amber-600 mt-1">
+                          ⚠️ Keine Abteilung oder Team zugewiesen
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
+            </div>
+          )}
+
+          {/* Linked Guardians (for minors) */}
+          {isMinorPerson && (
+            <div>
+              <h3 className="font-semibold text-slate-800 mb-3">
+                Erziehungsberechtigte {linkedGuardians.length > 0 && `(${linkedGuardians.length})`}
+              </h3>
+              {linkedGuardians.length > 0 ? (
+                <div className="space-y-3">
+                  {linkedGuardians.map(({ guardian, link }) => (
+                    <div key={link.id} className="p-4 bg-slate-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {guardian.avatarUrl ? (
+                          <img 
+                            src={guardian.avatarUrl} 
+                            alt={getFullName(guardian)}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
+                            <span className="text-violet-700 font-medium">
+                              {guardian.firstName[0]}{guardian.lastName[0]}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <p className="font-medium text-slate-800">{getFullName(guardian)}</p>
+                          <p className="text-sm text-slate-500">{guardian.email}</p>
+                        </div>
+                        <Badge variant={link.status === "active" ? "success" : "warning"}>
+                          {link.status === "active" ? "Aktiv" : "Ausstehend"}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <AlertTriangle className="w-5 h-5" />
+                    <p className="font-medium">Kein Erziehungsberechtigter verknüpft</p>
+                  </div>
+                  <p className="mt-2 text-sm text-red-600">
+                    Ohne verknüpften Erziehungsberechtigten hat dieses Kind eingeschränkten Zugriff auf die App.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-3 border-red-300 text-red-700 hover:bg-red-100"
+                    onClick={onInvite}
+                  >
+                    <Users className="w-4 h-4 mr-1" />
+                    Erziehungsberechtigten einladen
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
@@ -761,11 +998,19 @@ function PersonDetailModal({
                 {linkedChildren.map(({ child, link }) => (
                   <div key={link.id} className="p-4 bg-slate-50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
-                        <span className="text-teal-700 font-medium">
-                          {child.firstName[0]}{child.lastName[0]}
-                        </span>
-                      </div>
+                      {child.avatarUrl ? (
+                        <img 
+                          src={child.avatarUrl} 
+                          alt={getFullName(child)}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
+                          <span className="text-teal-700 font-medium">
+                            {child.firstName[0]}{child.lastName[0]}
+                          </span>
+                        </div>
+                      )}
                       <div>
                         <p className="font-medium text-slate-800">{getFullName(child)}</p>
                         <Badge variant={link.status === "active" ? "success" : "warning"}>

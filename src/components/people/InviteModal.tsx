@@ -42,7 +42,8 @@ export function InviteModal({
     sendInvite, 
     addPerson, 
     org, 
-    teams
+    teams,
+    departments
   } = usePeople();
 
   const [mode, setMode] = useState<InviteMode>(defaultMode);
@@ -50,8 +51,14 @@ export function InviteModal({
   // Selection state
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(person || null);
   const [selectedChild, setSelectedChild] = useState<Person | null>(childPerson || null);
+  const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedTeam, setSelectedTeam] = useState("");
   const [selectedRole, setSelectedRole] = useState<MembershipRole>("player");
+
+  // Filter teams by selected department
+  const filteredTeams = selectedDepartment 
+    ? teams.filter(t => t.departmentId === selectedDepartment)
+    : teams;
   
   // Email mode state
   const [firstName, setFirstName] = useState("");
@@ -103,6 +110,7 @@ export function InviteModal({
       const result = sendInvite({
         personId: targetPerson.id,
         orgId: org.id,
+        departmentId: selectedDepartment || undefined,
         teamId: selectedTeam || undefined,
         role,
         target,
@@ -327,6 +335,60 @@ export function InviteModal({
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
+              
+              {/* Role, Department & Team for email invite */}
+              <div className="pt-4 border-t border-slate-200">
+                <h4 className="font-medium text-slate-700 mb-3">Mitgliedschaft</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Rolle</label>
+                    <select
+                      value={selectedRole}
+                      onChange={e => setSelectedRole(e.target.value as MembershipRole)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    >
+                      <option value="player">Spieler</option>
+                      <option value="coach">Trainer</option>
+                      <option value="guardian_contact">Erziehungsberechtigter</option>
+                      <option value="volunteer">Helfer</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Abteilung</label>
+                    <select
+                      value={selectedDepartment}
+                      onChange={e => {
+                        setSelectedDepartment(e.target.value);
+                        setSelectedTeam("");
+                      }}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    >
+                      <option value="">Keine Abteilung</option>
+                      {departments.map(d => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Ohne Abteilung bleibt das Mitglied inaktiv
+                    </p>
+                  </div>
+                  {selectedDepartment && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Team (optional)</label>
+                      <select
+                        value={selectedTeam}
+                        onChange={e => setSelectedTeam(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      >
+                        <option value="">Kein spezifisches Team</option>
+                        {filteredTeams.map(t => (
+                          <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -403,7 +465,7 @@ export function InviteModal({
             </>
           )}
 
-          {/* Role & Team Selection (for existing person mode) */}
+          {/* Role, Department & Team Selection (for existing person mode) */}
           {mode === "existing" && selectedPerson && (
             <div className="space-y-4">
               <div>
@@ -420,18 +482,39 @@ export function InviteModal({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Team (optional)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Abteilung</label>
                 <select
-                  value={selectedTeam}
-                  onChange={e => setSelectedTeam(e.target.value)}
+                  value={selectedDepartment}
+                  onChange={e => {
+                    setSelectedDepartment(e.target.value);
+                    setSelectedTeam(""); // Reset team when department changes
+                  }}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
-                  <option value="">Kein spezifisches Team</option>
-                  {teams.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
+                  <option value="">Keine Abteilung</option>
+                  {departments.map(d => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
                   ))}
                 </select>
+                <p className="text-xs text-slate-500 mt-1">
+                  Ohne Abteilung bleibt das Mitglied inaktiv
+                </p>
               </div>
+              {selectedDepartment && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Team (optional)</label>
+                  <select
+                    value={selectedTeam}
+                    onChange={e => setSelectedTeam(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="">Kein spezifisches Team</option>
+                    {filteredTeams.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           )}
         </div>
