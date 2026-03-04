@@ -2958,46 +2958,43 @@ export function PilotMemberPortal() {
             <div>
               <h1 className="text-[28px] font-bold leading-tight" style={{ color: theme.textPrimary }}>{t.welcome}</h1>
               <h2 className="text-[28px] font-bold" style={{ color: theme.textPrimary }}>{activeProfile.firstName}</h2>
-              {/* Show enabled people count when multiple profiles are active */}
-              {!isKidDirectView && enabledProfiles.length > 1 && (
+              {/* Ansicht für label */}
+              {!isKidDirectView && (
                 <p className="text-sm mt-1 flex items-center gap-1" style={{ color: theme.textMuted }}>
-                  <Users className="w-3.5 h-3.5" />
-                  {enabledProfiles.map(p => p.firstName).join(", ")}
+                  <Eye className="w-3.5 h-3.5" />
+                  {enabledProfiles.length > 1
+                    ? `Ansicht für ${enabledProfiles.map(p => p.firstName).join(", ")}`
+                    : `Ansicht für ${loggedInProfile.firstName}`
+                  }
                 </p>
               )}
             </div>
             {/* Clickable Avatar stack - Opens People Manager */}
             <button
               onClick={() => setShowProfileSwitcher(true)}
-              className="relative z-10"
+              className="relative flex flex-col items-center gap-1"
             >
-              {/* Stack of enabled profile avatars */}
-              <div className="relative">
-                {enabledProfiles.slice(0, 3).map((p, idx) => (
-                  <img
-                    key={p.id}
-                    src={p.avatar}
-                    alt={p.firstName}
-                    className="rounded-full object-cover border-2 shadow-sm absolute"
-                    style={{
-                      width: idx === 0 ? 48 : 28,
-                      height: idx === 0 ? 48 : 28,
-                      borderColor: theme.cardBg,
-                      top: idx === 0 ? 0 : (idx === 1 ? 20 : 8),
-                      right: idx === 0 ? 0 : (idx === 1 ? -6 : 20),
-                      zIndex: 3 - idx,
-                    }}
-                  />
-                ))}
-                <div style={{ width: 56, height: 56 }} />
-              </div>
-              {/* Enabled count badge */}
-              <div
-                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                style={{ backgroundColor: isDfb ? COLORS.violet600 : theme.accent }}
-              >
-                {enabledProfiles.length}
-              </div>
+              {/* Main avatar - logged-in profile */}
+              <img
+                src={loggedInProfile.avatar}
+                alt={loggedInProfile.firstName}
+                className="rounded-full object-cover border-2 shadow-sm"
+                style={{ width: 52, height: 52, borderColor: PERSON_COLORS[loggedInProfile.id]?.bg ?? theme.cardBg }}
+              />
+              {/* Row of secondary avatars for other enabled profiles */}
+              {!isKidDirectView && enabledProfiles.filter(p => p.id !== loggedInProfile.id).length > 0 && (
+                <div className="flex -space-x-1.5">
+                  {enabledProfiles.filter(p => p.id !== loggedInProfile.id).slice(0, 3).map(p => (
+                    <img
+                      key={p.id}
+                      src={p.avatar}
+                      alt={p.firstName}
+                      className="rounded-full object-cover border-2"
+                      style={{ width: 22, height: 22, borderColor: theme.cardBg }}
+                    />
+                  ))}
+                </div>
+              )}
             </button>
           </div>
         </div>
@@ -3605,14 +3602,15 @@ export function PilotMemberPortal() {
 
           {/* Content */}
           <div className="flex-1 min-w-0 text-left">
-            <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-              <p
-                className="font-semibold text-sm truncate"
-                style={{ color: chat.unreadCount > 0 ? theme.textPrimary : theme.textSecondary }}
-              >
-                {chat.name}
-              </p>
-              {/* Person label pills – shown when multiple profiles enabled */}
+            {/* Line 1: Chat name */}
+            <p
+              className="font-semibold text-sm truncate mb-0.5"
+              style={{ color: chat.unreadCount > 0 ? theme.textPrimary : theme.textSecondary }}
+            >
+              {chat.name}
+            </p>
+            {/* Line 2: person labels + team tag + message preview */}
+            <div className="flex items-center gap-1 flex-wrap min-w-0">
               {personLabels.map(pl => (
                 <span
                   key={pl.name}
@@ -3622,23 +3620,23 @@ export function PilotMemberPortal() {
                   {pl.name}
                 </span>
               ))}
+              {chat.teamName && (
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F3F4F6", color: theme.textMuted }}
+                >
+                  {chat.teamName}
+                </span>
+              )}
+              {chat.lastMessage && (
+                <p
+                  className="text-xs truncate min-w-0"
+                  style={{ color: chat.unreadCount > 0 ? theme.textSecondary : theme.textMuted }}
+                >
+                  {chat.lastMessage.content}
+                </p>
+              )}
             </div>
-            {chat.lastMessage && (
-              <p
-                className="text-sm truncate"
-                style={{ color: chat.unreadCount > 0 ? theme.textSecondary : theme.textMuted }}
-              >
-                {chat.lastMessage.content}
-              </p>
-            )}
-            {chat.teamName && (
-              <span
-                className="text-[10px] px-1.5 py-0.5 rounded mt-1 inline-block"
-                style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "#F3F4F6", color: theme.textMuted }}
-              >
-                {chat.teamName}
-              </span>
-            )}
           </div>
           
           <div className="flex flex-col items-end gap-1">
@@ -4615,23 +4613,26 @@ export function PilotMemberPortal() {
               
               // Is this the active child's own message (when parent viewing)?
               if (isFromActiveChild && !isOnBehalfMessage) {
-                return { 
-                  label: `${firstName} (Kind)`, 
-                  emoji: "👶",
-                  bg: "#FEE2E2", 
-                  text: "#DC2626" 
+                return {
+                  label: firstName,
+                  emoji: "⚽",
+                  bg: "#FEE2E2",
+                  text: "#DC2626"
                 };
               }
               
               // Other senders based on role
               if (role === "coach") {
-                return { label: `🏃 ${firstName}`, emoji: "", bg: "#DBEAFE", text: "#1E40AF" };
+                // Strip "Trainer"/"Trainerin" prefix to get the actual first name
+                const coachName = msg.senderName.replace(/^Trainer(in)?\s+/i, "").split(" ")[0];
+                return { label: coachName, emoji: "🏃", bg: "#DBEAFE", text: "#1E40AF" };
               }
               if (role === "admin") {
                 return { label: `👔 ${firstName}`, emoji: "", bg: "#F3E8FF", text: "#7C3AED" };
               }
               if (role === "minor") {
-                return { label: `${firstName} (Kind)`, emoji: "👶", bg: "#FEE2E2", text: "#DC2626" };
+                // Just the first name + player emoji, no "(Kind)" label
+                return { label: firstName, emoji: "⚽", bg: "#FEE2E2", text: "#DC2626" };
               }
               if (role === "parent" && isOnBehalfMessage && msg.onBehalfOf) {
                 return { 
@@ -4764,15 +4765,29 @@ export function PilotMemberPortal() {
           }
           
           // Regular reply box
+          // Determine if parent is writing on behalf of a child in this chat
+          const chatProfileIds = (selectedChatMessage && isEnhancedChat(selectedChatMessage))
+            ? selectedChatMessage.visibleToProfiles
+            : [];
+          const childInChat = !isKidDirectView
+            ? enabledProfiles.find(p => p.isChild && chatProfileIds.includes(p.id))
+            : null;
+
           return (
-            <div 
+            <div
               className="sticky bottom-3 mx-3 rounded-2xl px-3 py-2 backdrop-blur-xl"
-              style={{ 
+              style={{
                 backgroundColor: theme.mode === "dfb" ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.95)",
                 border: `1px solid ${theme.cardBorder}`,
                 boxShadow: "0 -4px 20px rgba(0,0,0,0.05)",
               }}
             >
+              {/* Subtle on-behalf disclaimer for parents writing in youth team chats */}
+              {childInChat && (
+                <p className="text-[10px] text-center pb-1.5 pt-0.5" style={{ color: theme.textMuted }}>
+                  Du schreibst im Namen von {childInChat.firstName}
+                </p>
+              )}
               <div className="flex items-end gap-2">
                 <button 
                   className="p-2 rounded-xl transition-colors"

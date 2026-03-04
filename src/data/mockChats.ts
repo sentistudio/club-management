@@ -671,8 +671,137 @@ export const mockChats: Chat[] = [
 // Coherent story with proper sender information
 
 export const mockChatMessages: ChatMessage[] = [
-  // NOTE: Club-wide announcements removed - only team-based announcements
-  
+
+  // =============================================
+  // FITNESS ANKÜNDIGUNGEN - Sandra → Lena
+  // =============================================
+  {
+    id: "ann_fit_1", chatId: "announce_fitness",
+    senderId: "sandra", senderName: "Trainerin Sandra", senderRole: "coach",
+    content: "🏋️ Neue Geräte sind da! Ab Montag stehen euch die neuen Kraft- und Ausdauergeräte zur Verfügung. Einweisungstermine könnt ihr ab sofort buchen.",
+    createdAt: "2026-01-13T07:00:00", isRead: false
+  },
+  {
+    id: "ann_fit_2", chatId: "announce_fitness",
+    senderId: "sandra", senderName: "Trainerin Sandra", senderRole: "coach",
+    content: "📅 Kursplan Änderung: Die Mittwoch-Einheit startet ab 07.01. um 07:00 statt 06:45 Uhr. Bitte entsprechend einplanen!",
+    createdAt: "2026-01-08T08:00:00", isRead: true
+  },
+  {
+    id: "ann_fit_3", chatId: "announce_fitness",
+    senderId: "sandra", senderName: "Trainerin Sandra", senderRole: "coach",
+    content: "❄️ Frohe Feiertage! Die Morgengruppe macht vom 23.12. bis 5.01. Pause. Wir starten fit und motiviert ins neue Jahr – bis dann! 💪",
+    createdAt: "2025-12-22T09:00:00", isRead: true
+  },
+  {
+    id: "ann_fit_4", chatId: "announce_fitness",
+    senderId: "sandra", senderName: "Trainerin Sandra", senderRole: "coach",
+    content: "🧘 Nächste Woche machen wir ausnahmsweise Yoga & Mobility statt Core-Training. Bringt bitte eine Matte mit!",
+    createdAt: "2025-12-15T07:30:00", isRead: true
+  },
+
+  // =============================================
+  // FRAUEN Ü40 ANKÜNDIGUNGEN - Bernd → Lena
+  // =============================================
+  {
+    id: "ann_ue40_1", chatId: "announce_ue40",
+    senderId: "bernd", senderName: "Trainer Bernd", senderRole: "coach",
+    content: "⚽ Auswärtsspiel Sonntag 14:00 gegen SV Grünberg – Treffpunkt 12:30 am Vereinsheim! Bitte rechtzeitig da sein.",
+    createdAt: "2026-01-13T10:00:00", isRead: false
+  },
+  {
+    id: "ann_ue40_2", chatId: "announce_ue40",
+    senderId: "bernd", senderName: "Trainer Bernd", senderRole: "coach",
+    content: "🏆 Toller Sieg am Wochenende – 3:1 gegen FC Rabenau! Ihr seid großartig. Training Dienstag findet wie gewohnt statt.",
+    createdAt: "2026-01-11T18:00:00", isRead: true
+  },
+  {
+    id: "ann_ue40_3", chatId: "announce_ue40",
+    senderId: "bernd", senderName: "Trainer Bernd", senderRole: "coach",
+    content: "📋 Kader für Samstag: Bitte bis Donnerstag 12 Uhr Rückmeldung, ob ihr spielen könnt. Wir brauchen mindestens 11 Zusagen.",
+    createdAt: "2026-01-08T11:00:00", isRead: true
+  },
+  {
+    id: "ann_ue40_4", chatId: "announce_ue40",
+    senderId: "bernd", senderName: "Trainer Bernd", senderRole: "coach",
+    content: "❌ Training heute fällt leider aus – Platzsperrung wegen Frost. Nächster Termin: Dienstag 19:30 Uhr.",
+    createdAt: "2026-01-06T15:00:00", isRead: true
+  },
+  {
+    id: "ann_ue40_5", chatId: "announce_ue40",
+    senderId: "bernd", senderName: "Trainer Bernd", senderRole: "coach",
+    content: "🎉 Willkommen im neuen Jahr! Vorbereitung auf die Rückrunde startet kommende Woche. Fitnesstests am Dienstag – bitte alle erscheinen!",
+    createdAt: "2026-01-05T09:00:00", isRead: true
+  },
+
+  // =============================================
+  // VOLLEYBALL U16 ANKÜNDIGUNGEN - Katja → Flurina & Anna
+  // =============================================
+  {
+    id: "ann_vb_1", chatId: "announce_vb_u16",
+    senderId: "katja", senderName: "Trainerin Katja", senderRole: "coach",
+    content: "🏐 Morgen Punktspiel vs. TV Lich – bitte alle 13:30 Uhr da sein! Vereinstrikot und Volleyballschuhe nicht vergessen.",
+    createdAt: "2026-01-13T19:00:00", isRead: false
+  },
+  {
+    id: "ann_vb_2", chatId: "announce_vb_u16",
+    senderId: "katja", senderName: "Trainerin Katja", senderRole: "coach",
+    content: "✅ Klasse Trainingswoche! Besonders der Aufschlag ist deutlich besser geworden. Weiter so! 🌟",
+    createdAt: "2026-01-10T18:00:00", isRead: true
+  },
+  {
+    id: "ann_vb_3", chatId: "announce_vb_u16",
+    senderId: "katja", senderName: "Trainerin Katja", senderRole: "coach",
+    content: "📣 Kreismeisterschaft Anmeldung: Wir nehmen teil! Datum: 22. Februar in der Sporthalle Burkhardsfelden. Eltern sind herzlich eingeladen zuzuschauen.",
+    createdAt: "2026-01-07T17:00:00", isRead: true
+  },
+  {
+    id: "ann_vb_4", chatId: "announce_vb_u16",
+    senderId: "katja", senderName: "Trainerin Katja", senderRole: "coach",
+    content: "⚠️ Training am Freitag findet in der kleinen Halle statt (Umbau in Haupthalle). Treffpunkt Eingang C!",
+    createdAt: "2026-01-05T16:30:00", isRead: true
+  },
+  {
+    id: "ann_vb_5", chatId: "announce_vb_u16",
+    senderId: "katja", senderName: "Trainerin Katja", senderRole: "coach",
+    content: "🎄 Schöne Ferien euch allen! Training startet wieder am 8. Januar. Bleibt gesund und übt den Aufschlag zuhause 😄🏐",
+    createdAt: "2025-12-20T15:00:00", isRead: true
+  },
+
+  // =============================================
+  // FUßBALL U12 ANKÜNDIGUNGEN - Marco → Max
+  // =============================================
+  {
+    id: "ann_fb_1", chatId: "announce_fb_u12",
+    senderId: "marco", senderName: "Trainer Marco", senderRole: "coach",
+    content: "⚽ Morgen Heimspiel gegen JSG Laubach – alle um 10:00 Uhr am Platz! Treffpunkt Kabine 1. Eltern können an der Seitenlinie anfeuern.",
+    createdAt: "2026-01-13T18:00:00", isRead: false
+  },
+  {
+    id: "ann_fb_2", chatId: "announce_fb_u12",
+    senderId: "marco", senderName: "Trainer Marco", senderRole: "coach",
+    content: "🏅 Super Training heute! Besonders die Passübungen haben geklappt. Nächste Woche konzentrieren wir uns auf Standardsituationen.",
+    createdAt: "2026-01-11T17:30:00", isRead: true
+  },
+  {
+    id: "ann_fb_3", chatId: "announce_fb_u12",
+    senderId: "marco", senderName: "Trainer Marco", senderRole: "coach",
+    content: "👕 Trikots: Bitte alle Trikots bis Freitag gereinigt mitbringen – wir machen das Mannschaftsfoto vor dem Spiel!",
+    createdAt: "2026-01-08T16:00:00", isRead: true
+  },
+  {
+    id: "ann_fb_4", chatId: "announce_fb_u12",
+    senderId: "marco", senderName: "Trainer Marco", senderRole: "coach",
+    content: "❄️ Training am Dienstag findet trotz Kälte statt – bitte warme Sachen anziehen! Stollen oder Winterschuhe empfohlen.",
+    createdAt: "2026-01-06T14:00:00", isRead: true
+  },
+  {
+    id: "ann_fb_5", chatId: "announce_fb_u12",
+    senderId: "marco", senderName: "Trainer Marco", senderRole: "coach",
+    content: "🎉 Rückrunde startet! Spielplan ist raus – alle Termine findet ihr im Vereinskalender. Erstes Spiel: 28. Januar zu Hause gegen JSG Laubach!",
+    createdAt: "2026-01-04T11:00:00", isRead: true
+  },
+
   // =============================================
   // FITNESS TEAM CHAT - Lena's own team
   // =============================================
