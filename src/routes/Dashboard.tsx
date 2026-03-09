@@ -1,8 +1,8 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Users, 
-  Clock, 
+import {
+  Users,
+  Clock,
   TrendingUp,
   Calendar,
   IdCard,
@@ -15,8 +15,42 @@ import {
   CheckCircle,
   AlertCircle,
   X,
-  Check
+  Check,
+  Dumbbell,
+  MapPin,
+  User
 } from "lucide-react";
+import { useRole } from "../contexts";
+
+// Same personal events data as in ClubEvents (shared mock)
+type PersonalEvent = {
+  id: string; title: string; date: string; startTime: string;
+  location: string; type: "training" | "match" | "event"; team: string;
+};
+const PERSONAL_EVENTS: Record<string, PersonalEvent[]> = {
+  // Patrick Steuble – 1. Herren
+  patrick_steuble: [
+    { id: "ps_1", title: "Training 1. Herren", date: "2026-03-10", startTime: "19:00", location: "Hauptplatz SfB", type: "training", team: "1. Herren" },
+    { id: "ps_2", title: "Ligaspiel – SfB vs. TSV Steinbach", date: "2026-03-14", startTime: "15:30", location: "Hauptplatz SfB", type: "match", team: "1. Herren" },
+    { id: "ps_3", title: "Training 1. Herren", date: "2026-03-17", startTime: "19:00", location: "Hauptplatz SfB", type: "training", team: "1. Herren" },
+  ],
+  // Lena Schneider – Fitness Morgengruppe
+  lena_schneider: [
+    { id: "pe_1", title: "Fitness Morgengruppe", date: "2026-03-10", startTime: "07:00", location: "Fitnessraum SfB", type: "training", team: "Fitness – Morgengruppe" },
+    { id: "pe_2", title: "Fitness Morgengruppe", date: "2026-03-12", startTime: "07:00", location: "Fitnessraum SfB", type: "training", team: "Fitness – Morgengruppe" },
+    { id: "pe_3", title: "Jahreshauptversammlung", date: "2026-03-25", startTime: "19:00", location: "Vereinsheim SfB", type: "event", team: "Gesamtverein" },
+  ],
+  // Flurina Schneider – Volleyball U16 Mädchen
+  flurina: [
+    { id: "fe_1", title: "Training Volleyball U16", date: "2026-03-10", startTime: "17:30", location: "Sporthalle SfB", type: "training", team: "Volleyball U16 Mädchen" },
+    { id: "fe_3", title: "Heimspiel U16 – SfB vs. VfL Marburg", date: "2026-03-15", startTime: "11:00", location: "Sporthalle SfB", type: "match", team: "Volleyball U16 Mädchen" },
+  ],
+  // Max Schneider – Fußball U12
+  max: [
+    { id: "mx_1", title: "Training Fußball U12", date: "2026-03-10", startTime: "16:00", location: "Trainingsplatz A", type: "training", team: "Fußball U12" },
+    { id: "mx_3", title: "Ligaspiel U12 – SfB vs. FC Lahntal", date: "2026-03-15", startTime: "10:30", location: "Nebenplatz SfB", type: "match", team: "Fußball U12" },
+  ],
+};
 import { Card, CardHeader, Badge, Button } from "../components/ui";
 import { mockPersons } from "../data/mockPersons";
 import { mockClubMemberships } from "../data/mockMemberships";
@@ -65,6 +99,7 @@ function StatCard({ title, value, icon, trend, onClick }: StatCardProps) {
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useRole();
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -611,6 +646,108 @@ export function Dashboard() {
           </div>
         </Card>
       </div>
+
+      {/* ── Mein Bereich ── */}
+      {user.roles.includes("admin") && user.roles.includes("member") && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-neutral-700">Mein Bereich</h2>
+            <button
+              onClick={() => navigate("/events?person=me")}
+              className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-1"
+            >
+              Alle Termine <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Self */}
+            <Card padding="none">
+              <div className="p-4 border-b border-neutral-100 flex items-center gap-3">
+                <img src={user.avatar} alt={user.firstName} className="w-8 h-8 rounded-full object-cover" />
+                <div>
+                  <p className="font-semibold text-neutral-900 text-sm">{user.firstName} {user.lastName}</p>
+                  {user.team && <p className="text-xs text-neutral-500">{user.team}</p>}
+                </div>
+                <button
+                  onClick={() => navigate("/events?person=me")}
+                  className="ml-auto text-xs text-teal-600 hover:underline"
+                >
+                  Alle
+                </button>
+              </div>
+              <div className="divide-y divide-neutral-50">
+                {(PERSONAL_EVENTS[user.id] ?? []).map(evt => (
+                  <div key={evt.id} className="px-4 py-3 flex items-start gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      evt.type === "training" ? "bg-blue-50 text-blue-500" :
+                      evt.type === "match" ? "bg-teal-50 text-teal-600" : "bg-amber-50 text-amber-500"
+                    }`}>
+                      {evt.type === "training" ? <Dumbbell className="w-4 h-4" /> :
+                       evt.type === "match" ? <Trophy className="w-4 h-4" /> :
+                       <Calendar className="w-4 h-4" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-neutral-800 truncate">{evt.title}</p>
+                      <p className="text-xs text-neutral-500 flex items-center gap-1">
+                        {new Date(evt.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}
+                        {" · "}{evt.startTime}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Linked children */}
+            {user.linkedChildren?.map(child => (
+              <Card key={child.id} padding="none">
+                <div className="p-4 border-b border-neutral-100 flex items-center gap-3">
+                  {child.avatar ? (
+                    <img src={child.avatar} alt={child.firstName} className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+                      <User className="w-4 h-4 text-neutral-500" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-semibold text-neutral-900 text-sm">{child.firstName}</p>
+                    {child.team && <p className="text-xs text-neutral-500">{child.team}</p>}
+                  </div>
+                  <button
+                    onClick={() => navigate(`/events?person=${child.id}`)}
+                    className="ml-auto text-xs text-teal-600 hover:underline"
+                  >
+                    Alle
+                  </button>
+                </div>
+                <div className="divide-y divide-neutral-50">
+                  {(PERSONAL_EVENTS[child.id] ?? []).map(evt => (
+                    <div key={evt.id} className="px-4 py-3 flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        evt.type === "training" ? "bg-blue-50 text-blue-500" :
+                        evt.type === "match" ? "bg-teal-50 text-teal-600" : "bg-amber-50 text-amber-500"
+                      }`}>
+                        {evt.type === "training" ? <Dumbbell className="w-4 h-4" /> :
+                         evt.type === "match" ? <Trophy className="w-4 h-4" /> :
+                         <Calendar className="w-4 h-4" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-neutral-800 truncate">{evt.title}</p>
+                        <p className="text-xs text-neutral-500 flex items-center gap-1 mt-0.5">
+                          {new Date(evt.date).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })}
+                          {" · "}{evt.startTime}
+                          <MapPin className="w-3 h-3 ml-1" />{evt.location}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Membership Structure */}
       <Card>

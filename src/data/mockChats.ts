@@ -81,6 +81,7 @@ export interface ChatMessage {
   deletedAt?: string;
   isReported?: boolean;
   reportReason?: string;
+  reactions?: Record<string, number>;
 }
 
 export interface ChatSettings {
@@ -713,7 +714,8 @@ export const mockChatMessages: ChatMessage[] = [
     id: "ann_ue40_2", chatId: "announce_ue40",
     senderId: "bernd", senderName: "Trainer Bernd", senderRole: "coach",
     content: "🏆 Toller Sieg am Wochenende – 3:1 gegen FC Rabenau! Ihr seid großartig. Training Dienstag findet wie gewohnt statt.",
-    createdAt: "2026-01-11T18:00:00", isRead: true
+    createdAt: "2026-01-11T18:00:00", isRead: true,
+    reactions: { "👍": 8, "🎉": 5, "❤️": 3 }
   },
   {
     id: "ann_ue40_3", chatId: "announce_ue40",
@@ -731,7 +733,8 @@ export const mockChatMessages: ChatMessage[] = [
     id: "ann_ue40_5", chatId: "announce_ue40",
     senderId: "bernd", senderName: "Trainer Bernd", senderRole: "coach",
     content: "🎉 Willkommen im neuen Jahr! Vorbereitung auf die Rückrunde startet kommende Woche. Fitnesstests am Dienstag – bitte alle erscheinen!",
-    createdAt: "2026-01-05T09:00:00", isRead: true
+    createdAt: "2026-01-05T09:00:00", isRead: true,
+    reactions: { "👍": 6, "🎉": 4 }
   },
 
   // =============================================
@@ -747,7 +750,8 @@ export const mockChatMessages: ChatMessage[] = [
     id: "ann_vb_2", chatId: "announce_vb_u16",
     senderId: "katja", senderName: "Trainerin Katja", senderRole: "coach",
     content: "✅ Klasse Trainingswoche! Besonders der Aufschlag ist deutlich besser geworden. Weiter so! 🌟",
-    createdAt: "2026-01-10T18:00:00", isRead: true
+    createdAt: "2026-01-10T18:00:00", isRead: true,
+    reactions: { "👍": 7, "❤️": 4, "🎉": 2 }
   },
   {
     id: "ann_vb_3", chatId: "announce_vb_u16",
@@ -781,7 +785,8 @@ export const mockChatMessages: ChatMessage[] = [
     id: "ann_fb_2", chatId: "announce_fb_u12",
     senderId: "marco", senderName: "Trainer Marco", senderRole: "coach",
     content: "🏅 Super Training heute! Besonders die Passübungen haben geklappt. Nächste Woche konzentrieren wir uns auf Standardsituationen.",
-    createdAt: "2026-01-11T17:30:00", isRead: true
+    createdAt: "2026-01-11T17:30:00", isRead: true,
+    reactions: { "👍": 5, "🎉": 3 }
   },
   {
     id: "ann_fb_3", chatId: "announce_fb_u12",
@@ -815,7 +820,8 @@ export const mockChatMessages: ChatMessage[] = [
     id: "fit_2", chatId: "team_fitness",
     senderId: "sandra", senderName: "Trainerin Sandra", senderRole: "coach",
     content: "Heute machen wir einen intensiven Core-Workout. Bringt gute Laune mit!",
-    createdAt: "2026-01-13T06:05:00", isRead: true
+    createdAt: "2026-01-13T06:05:00", isRead: true,
+    reactions: { "😂": 3, "👍": 2 }
   },
   {
     id: "fit_3", chatId: "team_fitness",
@@ -883,7 +889,8 @@ export const mockChatMessages: ChatMessage[] = [
     id: "ue40_3", chatId: "team_frauen_ue40",
     senderId: "claudia", senderName: "Claudia Weber", senderRole: "adult_player",
     content: "Ich kann fahren am Sonntag - habe Platz für 3 weitere! 🚗",
-    createdAt: "2026-01-13T16:25:00", isRead: true
+    createdAt: "2026-01-13T16:25:00", isRead: true,
+    reactions: { "👍": 3, "❤️": 2 }
   },
   {
     id: "ue40_4", chatId: "team_frauen_ue40",

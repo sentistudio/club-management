@@ -74,6 +74,11 @@ export interface ClubEvent {
   createdByName: string;
   updatedAt: string;
   
+  // Field booking (Platzbelegung)
+  fieldId?: string;
+  bookingScope?: "full_field" | "zones";
+  bookedZoneIds?: string[]; // zone ids when bookingScope === "zones"
+
   // Optional
   category?: string;
   tags?: string[];
@@ -101,6 +106,10 @@ export interface ClubEventFormData {
   recurrenceFrequency: RecurrenceFrequency;
   recurrenceWeekdays: number[];
   recurrenceUntil: string;
+  // Field booking
+  fieldId: string;
+  bookingScope: "full_field" | "zones";
+  bookedZoneIds: string[];
 }
 
 export const defaultEventFormData: ClubEventFormData = {
@@ -123,7 +132,10 @@ export const defaultEventFormData: ClubEventFormData = {
   recurrenceEnabled: false,
   recurrenceFrequency: "weekly",
   recurrenceWeekdays: [],
-  recurrenceUntil: ""
+  recurrenceUntil: "",
+  fieldId: "",
+  bookingScope: "full_field",
+  bookedZoneIds: [],
 };
 
 // Default banner images

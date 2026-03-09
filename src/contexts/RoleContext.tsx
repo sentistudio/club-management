@@ -3,6 +3,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 export type UserRole = "admin" | "member";
 
+export interface LinkedChild {
+  id: string;
+  firstName: string;
+  avatar?: string;
+  team?: string;
+}
+
 export interface User {
   id: string;
   firstName: string;
@@ -10,6 +17,8 @@ export interface User {
   email: string;
   avatar: string;
   roles: UserRole[];
+  linkedChildren?: LinkedChild[];
+  team?: string; // User's own team/club role
 }
 
 interface RoleContextType {
@@ -18,6 +27,9 @@ interface RoleContextType {
   setActiveRole: (role: UserRole) => void;
   hasRole: (role: UserRole) => boolean;
   canSwitchRoles: boolean;
+  selectedPersons: string[]; // array of "me" | child.id
+  setSelectedPersons: (persons: string[]) => void;
+  togglePerson: (id: string) => void;
   // User switching
   availableUsers: User[];
   switchUser: (userId: string) => void;
@@ -33,7 +45,8 @@ const DEMO_USERS: User[] = [
     lastName: "Steuble",
     email: "patrick.steuble@sfb.de",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
-    roles: ["admin", "member"] // Can switch between admin and member
+    roles: ["admin", "member"],
+    team: "1. Herren"
   },
   {
     id: "lena_schneider",
@@ -41,7 +54,23 @@ const DEMO_USERS: User[] = [
     lastName: "Schneider",
     email: "lena.schneider@example.com",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50&h=50&fit=crop&crop=face",
-    roles: ["member"] // Member only - no role switcher
+    roles: ["member"],
+    team: "Fitness – Morgengruppe",
+    linkedChildren: [
+      {
+        id: "flurina",
+        firstName: "Flurina",
+        team: "Volleyball U16 Mädchen",
+        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=50&h=50&fit=crop&crop=face"
+      },
+      {
+        id: "max",
+        firstName: "Max",
+        team: "Fußball U12",
+        avatar: "https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=50&h=50&fit=crop&crop=face"
+      }
+    ]
+    // Member with linked children (Flurina + Max)
   }
 ];
 
@@ -60,6 +89,36 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     if (saved === "admin" || saved === "member") return saved;
     return "admin";
   });
+
+  // Selected persons (for member view: array of "me" | child.id)
+  const [selectedPersons, setSelectedPersonsState] = useState<string[]>(() => {
+    const saved = localStorage.getItem("app-selected-persons");
+    try {
+      return saved ? JSON.parse(saved) : ["me"];
+    } catch {
+      return ["me"];
+    }
+  });
+
+  const handleSetSelectedPersons = (persons: string[]) => {
+    const next = persons.length === 0 ? ["me"] : persons;
+    setSelectedPersonsState(next);
+    localStorage.setItem("app-selected-persons", JSON.stringify(next));
+  };
+
+  const togglePerson = (id: string) => {
+    setSelectedPersonsState(prev => {
+      let next: string[];
+      if (prev.includes(id)) {
+        next = prev.filter(p => p !== id);
+        if (next.length === 0) next = ["me"]; // always keep at least one
+      } else {
+        next = [...prev, id];
+      }
+      localStorage.setItem("app-selected-persons", JSON.stringify(next));
+      return next;
+    });
+  };
 
   // Get current user object
   const currentUser = DEMO_USERS.find(u => u.id === currentUserId) || DEMO_USERS[0];
@@ -88,6 +147,9 @@ export function RoleProvider({ children }: { children: ReactNode }) {
       const newRole = newUser.roles[0];
       setActiveRole(newRole);
       localStorage.setItem("app-active-role", newRole);
+      // Reset selected persons on user switch
+      setSelectedPersonsState(["me"]);
+      localStorage.setItem("app-selected-persons", JSON.stringify(["me"]));
     }
   };
 
@@ -103,6 +165,9 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     setActiveRole: handleSetRole,
     hasRole: (role: UserRole) => currentUser.roles.includes(role),
     canSwitchRoles: currentUser.roles.length > 1,
+    selectedPersons,
+    setSelectedPersons: handleSetSelectedPersons,
+    togglePerson,
     availableUsers: DEMO_USERS,
     switchUser,
     logout,
@@ -358,9 +423,11 @@ export function UserSwitcher({ onClose }: { onClose?: () => void }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{u.firstName} {u.lastName}</p>
                     <p className="text-xs text-neutral-500">
-                      {u.roles.includes("admin") 
-                        ? "Admin & Mitglied" 
-                        : "Nur Mitglied"
+                      {u.roles.includes("admin") && u.roles.includes("member")
+                        ? "Admin & Mitglied"
+                        : u.roles.includes("admin")
+                        ? "Administrator"
+                        : "Mitglied"
                       }
                     </p>
                   </div>

@@ -310,7 +310,9 @@ export const mockClubEvents: ClubEvent[] = [
     createdByName: ADMIN_USER.name,
     updatedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     category: "Versammlung",
-    tags: ["Pflichttermin", "Wahlen"]
+    tags: ["Pflichttermin", "Wahlen"],
+    fieldId: "field_sporthalle",
+    bookingScope: "full_field",
   },
 
   // ═══════════════════════════════════════════
@@ -433,7 +435,10 @@ export const mockClubEvents: ClubEvent[] = [
     createdByName: ADMIN_USER.name,
     updatedAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
     category: "Workshop",
-    tags: ["Pflichtfortbildung"]
+    tags: ["Pflichtfortbildung"],
+    fieldId: "field_nebenplatz",
+    bookingScope: "zones",
+    bookedZoneIds: ["field_nebenplatz_z4", "field_nebenplatz_z5", "field_nebenplatz_z6"],
   },
 
   // ═══════════════════════════════════════════
@@ -472,7 +477,9 @@ export const mockClubEvents: ClubEvent[] = [
     createdBy: ADMIN_USER.id,
     createdByName: ADMIN_USER.name,
     updatedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-    category: "Fest"
+    category: "Fest",
+    fieldId: "field_sporthalle",
+    bookingScope: "full_field",
   },
 
   // ═══════════════════════════════════════════
@@ -709,7 +716,9 @@ export const mockClubEvents: ClubEvent[] = [
     createdBy: ADMIN_USER.id,
     createdByName: ADMIN_USER.name,
     updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    category: "Arbeitseinsatz"
+    category: "Arbeitseinsatz",
+    fieldId: "field_hauptplatz",
+    bookingScope: "full_field",
   },
 
   // ═══════════════════════════════════════════
@@ -750,7 +759,102 @@ export const mockClubEvents: ClubEvent[] = [
     updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     category: "Camp",
     tags: ["Jugend", "Sommer"]
-  }
+  },
+
+  // ═══════════════════════════════════════════
+  // 13. TRAINING HERREN – Zone booking demo
+  // ═══════════════════════════════════════════
+  {
+    id: "evt_training_herren_1",
+    title: "Training Männer Ü40",
+    description: "Wöchentliches Mannschaftstraining auf Hauptplatz – Zone 1–3.",
+    date: "2026-03-14",
+    startTime: "18:00",
+    endTime: "20:00",
+    location: "Hauptplatz",
+    audience: {
+      mode: "departments" as AudienceMode,
+      departmentIds: ["dept_football"]
+    },
+    resolvedMemberCount: 22,
+    visibility: "private" as EventVisibility,
+    rsvpRequired: false,
+    rsvpStats: { invited: 22, confirmed: 18, declined: 1, pending: 3, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 5 }, { status: "published", daysAgo: 3 }),
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Training",
+    fieldId: "field_hauptplatz",
+    bookingScope: "zones",
+    bookedZoneIds: ["field_hauptplatz_z1", "field_hauptplatz_z2", "field_hauptplatz_z3"],
+  },
+
+  // ═══════════════════════════════════════════
+  // 14. TRAINING U12 – same field, different zones, same time
+  // ═══════════════════════════════════════════
+  {
+    id: "evt_training_u12_1",
+    title: "Training Fußball U12",
+    description: "Jugendtraining auf Hauptplatz – Zone 4–6.",
+    date: "2026-03-14",
+    startTime: "17:00",
+    endTime: "18:30",
+    location: "Hauptplatz",
+    audience: {
+      mode: "departments" as AudienceMode,
+      departmentIds: ["dept_football"]
+    },
+    resolvedMemberCount: 16,
+    visibility: "private" as EventVisibility,
+    rsvpRequired: false,
+    rsvpStats: { invited: 16, confirmed: 14, declined: 0, pending: 2, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 5 }, { status: "published", daysAgo: 3 }),
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Training",
+    fieldId: "field_hauptplatz",
+    bookingScope: "zones",
+    bookedZoneIds: ["field_hauptplatz_z4", "field_hauptplatz_z5", "field_hauptplatz_z6"],
+  },
+
+  // ═══════════════════════════════════════════
+  // 15. HEIMSPIEL – full field booking, future match
+  // ═══════════════════════════════════════════
+  {
+    id: "evt_heimspiel_herren",
+    title: "Heimspiel Männer Ü40 vs. SV Grünberg",
+    description: "Ligaspiel auf dem Hauptplatz. Treffpunkt 30 Min. vor Anpfiff.",
+    date: "2026-03-21",
+    startTime: "15:00",
+    endTime: "17:00",
+    location: "Hauptplatz",
+    bannerImage: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop",
+    audience: {
+      mode: "departments" as AudienceMode,
+      departmentIds: ["dept_football"]
+    },
+    resolvedMemberCount: 156,
+    visibility: "public" as EventVisibility,
+    rsvpRequired: true,
+    rsvpDeadline: "2026-03-19T23:59:00",
+    rsvpStats: { invited: 22, confirmed: 16, declined: 2, pending: 4, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 10 }, { status: "published", daysAgo: 7 }),
+    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Spiel",
+    tags: ["Heimspiel"],
+    fieldId: "field_hauptplatz",
+    bookingScope: "full_field",
+  },
 ];
 
 // ==========================================

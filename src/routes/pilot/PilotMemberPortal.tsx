@@ -35,7 +35,8 @@ import {
   Megaphone,
   Shield,
   Lock,
-  Flag
+  Flag,
+  SmilePlus
 } from "lucide-react";
 import { mockTicketForms, getTicketMessages } from "../../data/mockInbox";
 import { 
@@ -48,6 +49,8 @@ import type { Chat, UserRole } from "../../data/mockChats";
 
 // Current member ID (simulating logged-in member)
 const CURRENT_MEMBER_ID = "p11";
+
+const REACTION_EMOJIS = ["👍", "❤️", "😂", "🎉"] as const;
 
 // Theme Types
 type ThemeMode = "light" | "dfb";
@@ -1652,8 +1655,10 @@ const OTHER_CLUBS = [
 const CLUB_DATA = {
   name: "Sportfreunde Burkhardsfelden",
   shortName: "SfB",
-  logo: null
+  logo: "https://derivates.kicker.de/image/upload/w_200,h_200,q_auto/v1709736234/amateur/prod/njjum6unwt8ayahzcpvx.png"
 };
+
+const FALLBACK_BANNER_IMAGE = "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=400&fit=crop";
 
 // Mock Enhanced Events based on Unified Event Model
 const MOCK_ENHANCED_EVENTS: EnhancedEvent[] = [
@@ -1801,7 +1806,7 @@ const MOCK_ENHANCED_EVENTS: EnhancedEvent[] = [
     rsvpRequired: false,
     myRsvp: null,
     dfbReference: "SP-2026-00201",
-    bannerImage: "https://images.unsplash.com/photo-1508098682722-e99c643e7f0b?w=800&h=400&fit=crop"
+    bannerImage: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop"
   },
   {
     id: "evt_pub_match_2",
@@ -1819,7 +1824,8 @@ const MOCK_ENHANCED_EVENTS: EnhancedEvent[] = [
     participants: { confirmed: 0, pending: 0, declined: 0 },
     rsvpRequired: false,
     myRsvp: null,
-    dfbReference: "SP-2026-00202"
+    dfbReference: "SP-2026-00202",
+    bannerImage: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=400&fit=crop"
   },
   {
     id: "evt_pub_match_3",
@@ -1985,7 +1991,7 @@ const MOCK_NEWS = [
     author: "Vorstand Sport",
     authorAvatar: null,
     date: "23.04.2026 - 16:28",
-    image: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=400&h=200&fit=crop",
+    image: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=800&h=560&fit=crop",
     views: 328,
     comments: 12,
     likes: 12
@@ -1997,7 +2003,7 @@ const MOCK_NEWS = [
     author: "Abteilung Yoga",
     authorAvatar: null,
     date: "22.04.2026 - 07:12",
-    image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=200&fit=crop",
+    image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=560&fit=crop",
     views: 328,
     comments: 12,
     likes: 12
@@ -2009,7 +2015,7 @@ const MOCK_NEWS = [
     author: "Vereinsvorstand",
     authorAvatar: null,
     date: "21.04.2026 - 19:42",
-    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop",
+    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=560&fit=crop",
     views: 328,
     comments: 12,
     likes: 12
@@ -2224,6 +2230,11 @@ export function PilotMemberPortal() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const [language, setLanguage] = useState<Language>("de");
   
+  // Emoji reaction state
+  const [reactionPickerMsgId, setReactionPickerMsgId] = useState<string | null>(null);
+  const [msgReactions, setMsgReactions] = useState<Record<string, Record<string, number>>>({});
+  const [myReactionEmojis, setMyReactionEmojis] = useState<Record<string, string[]>>({});
+
   // Report modal state
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportingMessage, setReportingMessage] = useState<{ id: string; content: string; senderName: string } | null>(null);
@@ -2326,6 +2337,15 @@ export function PilotMemberPortal() {
     () => enabledProfiles.flatMap(p => p.memberships),
     [enabledProfiles]
   );
+
+  // Unread chats across all enabled profiles (for home screen preview)
+  const unreadChats = useMemo(() => {
+    const profileIds = new Set(enabledProfiles.map(p => p.id));
+    return mockChats
+      .filter(c => c.visibleToProfiles.some(pid => profileIds.has(pid)) && c.unreadCount > 0)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      .slice(0, 3);
+  }, [enabledProfiles]);
   
   const formatFullDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(language === "de" ? "de-DE" : "en-US", {
@@ -2335,6 +2355,34 @@ export function PilotMemberPortal() {
       hour: "2-digit",
       minute: "2-digit"
     });
+  };
+
+  // Emoji reaction helpers
+  const getEffectiveReactions = (msgId: string, baseReactions?: Record<string, number>) => {
+    const base = baseReactions || {};
+    const local = msgReactions[msgId] || {};
+    const merged: Record<string, number> = { ...base };
+    for (const [emoji, delta] of Object.entries(local)) {
+      merged[emoji] = (merged[emoji] || 0) + delta;
+      if (merged[emoji] <= 0) delete merged[emoji];
+    }
+    return merged;
+  };
+
+  const toggleReaction = (msgId: string, emoji: string, baseReactions?: Record<string, number>) => {
+    const isMine = (myReactionEmojis[msgId] || []).includes(emoji);
+    const effective = getEffectiveReactions(msgId, baseReactions);
+    const distinctCount = Object.keys(effective).filter(e => (effective[e] || 0) > 0).length;
+    if (!isMine && distinctCount >= 4 && !(emoji in effective)) return; // max 4 types
+    setMsgReactions(prev => {
+      const curr = prev[msgId] || {};
+      return { ...prev, [msgId]: { ...curr, [emoji]: (curr[emoji] || 0) + (isMine ? -1 : 1) } };
+    });
+    setMyReactionEmojis(prev => {
+      const curr = prev[msgId] || [];
+      return { ...prev, [msgId]: isMine ? curr.filter(e => e !== emoji) : [...curr, emoji] };
+    });
+    setReactionPickerMsgId(null);
   };
 
   // Mock attachments for messages
@@ -2406,14 +2454,26 @@ export function PilotMemberPortal() {
 
   // Club Logo Component - matching design with dark green border
   const ClubLogo = ({ size = "md", clubName = "SfB" }: { size?: "sm" | "md" | "lg"; clubName?: string }) => {
-    const sizes = {
-      sm: "w-8 h-8 text-[10px]",
-      md: "w-12 h-12 text-sm",
-      lg: "w-16 h-16 text-lg"
-    };
+    const dims = { sm: "w-8 h-8 text-[10px]", md: "w-12 h-12 text-sm", lg: "w-16 h-16 text-lg" };
+    const logo = CLUB_DATA.logo;
+    if (logo) {
+      return (
+        <img
+          src={logo}
+          alt={clubName}
+          className={`${dims[size]} rounded-full object-contain bg-white border-2 p-0.5`}
+          style={{ borderColor: COLORS.primary }}
+          onError={(e) => {
+            const t = e.currentTarget;
+            t.style.display = "none";
+            if (t.nextSibling) (t.nextSibling as HTMLElement).style.display = "flex";
+          }}
+        />
+      );
+    }
     return (
-      <div 
-        className={`${sizes[size]} rounded-full border-2 flex items-center justify-center bg-white font-bold`}
+      <div
+        className={`${dims[size]} rounded-full border-2 flex items-center justify-center bg-white font-bold`}
         style={{ borderColor: COLORS.primary, color: COLORS.primary }}
       >
         {clubName}
@@ -3074,6 +3134,136 @@ export function PilotMemberPortal() {
         </div>
       </div>
 
+      {/* ── Vereinsnews hero carousel ── */}
+      {(() => {
+        const newsItems = MOCK_NEWS;
+        if (newsItems.length === 0) return null;
+        return (
+          <div className="mt-6">
+            <div className="flex items-center justify-between px-5 mb-3">
+              <span className="text-xs font-semibold tracking-wider" style={{ color: isDfb ? COLORS.neutral900 : theme.textMuted }}>
+                {language === "de" ? "VEREINSNEWS" : "CLUB NEWS"}
+              </span>
+              <button
+                onClick={() => setView("news")}
+                className="text-xs font-medium flex items-center gap-1"
+                style={{ color: isDfb ? COLORS.primary700 : theme.accent }}
+              >
+                {language === "de" ? "Alle News" : "All News"} <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="overflow-x-auto scrollbar-hide" style={{ scrollSnapType: "x mandatory", scrollPaddingLeft: "20px" } as React.CSSProperties}>
+              <div className="flex gap-3 pl-5 pr-3 pb-1">
+                {newsItems.map(news => (
+                  <button
+                    key={news.id}
+                    onClick={() => setView("news")}
+                    className="flex-shrink-0 rounded-3xl overflow-hidden relative text-left"
+                    style={{ width: "clamp(300px, calc(100vw - 80px), 320px)", height: 240, scrollSnapAlign: "start" } as React.CSSProperties}
+                  >
+                    <img src={news.image} alt={news.title} className="w-full h-full object-cover object-top" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <p className="text-white text-lg font-bold leading-snug">{news.title}</p>
+                      <p className="text-white/70 text-xs mt-1">{news.author} · {news.date}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Ungelesene Nachrichten (horizontal carousel, up to 3) ── */}
+      {unreadChats.length > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between px-5 mb-3">
+            <span className="text-xs font-semibold tracking-wider" style={{ color: isDfb ? COLORS.neutral900 : theme.textMuted }}>
+              {language === "de" ? "NACHRICHTEN" : "MESSAGES"}
+            </span>
+            <button
+              onClick={() => setView("chats")}
+              className="text-xs font-medium flex items-center gap-1"
+              style={{ color: isDfb ? COLORS.primary700 : theme.accent }}
+            >
+              {language === "de" ? "Alle" : "All"} <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex gap-3 px-5 pb-2">
+              {unreadChats.map(chat => {
+                const timeStr = (() => {
+                  const d = new Date(chat.updatedAt);
+                  const now = new Date();
+                  const diffH = (now.getTime() - d.getTime()) / 3600000;
+                  if (diffH < 24) return d.toLocaleTimeString(language === "de" ? "de-DE" : "en-US", { hour: "2-digit", minute: "2-digit" });
+                  return d.toLocaleDateString(language === "de" ? "de-DE" : "en-US", { day: "numeric", month: "short" });
+                })();
+                // Which enabled profile owns this chat
+                const ownerProfile = enabledProfiles.find(p => chat.visibleToProfiles.includes(p.id));
+                const personColor = ownerProfile ? (PERSON_COLORS[ownerProfile.id] ?? { bg: "#F5F5F5", text: "#525252" }) : null;
+                // Gradient per chat type
+                const headerGradient = chat.type === "announcement"
+                  ? "linear-gradient(135deg, #1F5F4A 0%, #2D8A6A 100%)"
+                  : chat.type === "direct"
+                  ? "linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%)"
+                  : "linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%)";
+                return (
+                  <button
+                    key={chat.id}
+                    onClick={() => { setSelectedChatMessage(chat as unknown as typeof MOCK_MESSAGES[0]); setView("chat-detail"); }}
+                    className="flex-shrink-0 w-44 rounded-2xl overflow-hidden text-left"
+                    style={{ backgroundColor: theme.cardBg, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
+                  >
+                    {/* Header image area – gradient + badges */}
+                    <div className="relative h-24" style={{ background: headerGradient }}>
+                      {/* Subtle pattern overlay */}
+                      <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 70% 30%, white 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+                      {/* Person badge top-left */}
+                      {enabledProfiles.length > 1 && ownerProfile && personColor && (
+                        <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full pl-0.5 pr-2 py-0.5"
+                          style={{ backgroundColor: personColor.bg }}>
+                          <img src={ownerProfile.avatar} alt={ownerProfile.firstName}
+                            className="w-4 h-4 rounded-full object-cover border border-white/60" />
+                          <span className="text-[10px] font-semibold" style={{ color: personColor.text }}>
+                            {ownerProfile.firstName}
+                          </span>
+                        </div>
+                      )}
+                      {/* Unread badge top-right */}
+                      <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                        style={{ backgroundColor: "#BBFD00", color: "#0A1F0A" }}>
+                        {chat.unreadCount}
+                      </span>
+                      {/* Chat type icon bottom-left */}
+                      <div className="absolute bottom-2 left-3 text-white">
+                        {chat.type === "announcement" ? (
+                          <Megaphone className="w-5 h-5 opacity-90" />
+                        ) : chat.type === "direct" ? (
+                          <User className="w-5 h-5 opacity-90" />
+                        ) : (
+                          <Users className="w-5 h-5 opacity-90" />
+                        )}
+                      </div>
+                      {/* Time bottom-right */}
+                      <span className="absolute bottom-2 right-3 text-[10px] text-white/70">{timeStr}</span>
+                    </div>
+                    {/* Content */}
+                    <div className="p-3">
+                      <p className="font-semibold text-sm line-clamp-1 mb-1" style={{ color: theme.textPrimary }}>{chat.name}</p>
+                      {chat.lastMessage && (
+                        <p className="text-xs line-clamp-2" style={{ color: theme.textMuted }}>{chat.lastMessage.content}</p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Meine Termine (carousel, up to 4, my calendar) ── */}
       {mergedEvents.length > 0 && (
         <div className="mt-6">
@@ -3091,47 +3281,59 @@ export function PilotMemberPortal() {
           </div>
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-3 px-5 pb-2">
-              {mergedEvents.slice(0, 4).map(event => (
-                <div
-                  key={event.id}
-                  className="flex-shrink-0 w-44 rounded-2xl p-3.5"
-                  style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
-                >
-                  {/* Date row + person badge */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold leading-none" style={{ color: theme.textPrimary }}>{event.dayNumber}</span>
-                      <span className="text-xs" style={{ color: theme.textMuted }}>{event.dayName}</span>
+              {mergedEvents.slice(0, 4).map(event => {
+                const enhancedImage = MOCK_ENHANCED_EVENTS.find(e => e.title === event.title)?.bannerImage;
+                const d = new Date(event.date);
+                const cardDayName = d.toLocaleDateString(language === "de" ? "de-DE" : "en-US", { weekday: "long" });
+                const cardDayShort = `${d.getDate()}. ${d.toLocaleDateString(language === "de" ? "de-DE" : "en-US", { month: "short" })}`;
+                return (
+                  <button
+                    key={event.id}
+                    onClick={() => handleEventClick(event)}
+                    className="flex-shrink-0 w-44 rounded-2xl overflow-hidden text-left"
+                    style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
+                  >
+                    <div className="relative h-24">
+                      <img src={enhancedImage || FALLBACK_BANNER_IMAGE} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      {enabledProfiles.length > 1 && (() => {
+                        const profile = FAMILY_PROFILES.find(p => p.id === event.personId);
+                        return (
+                          <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full pl-0.5 pr-2 py-0.5"
+                            style={{ backgroundColor: event.personColor.bg }}>
+                            {profile?.avatar && (
+                              <img src={profile.avatar} alt={event.personName}
+                                className="w-4 h-4 rounded-full object-cover border border-white/60" />
+                            )}
+                            <span className="text-[10px] font-semibold" style={{ color: event.personColor.text }}>
+                              {event.personName}
+                            </span>
+                          </div>
+                        );
+                      })()}
+                      <div className="absolute bottom-2 left-3 text-white leading-tight">
+                        <span className="text-sm font-bold">{cardDayName}</span>
+                        <span className="text-xs block opacity-90">{cardDayShort}</span>
+                      </div>
                     </div>
-                    {enabledProfiles.length > 1 && (
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ backgroundColor: event.personColor.bg, color: event.personColor.text }}>
-                        {event.personName}
-                      </span>
-                    )}
-                  </div>
-                  {/* Sport icon + title */}
-                  <div className="flex items-start gap-1.5 mb-2">
-                    <span className="text-base leading-tight flex-shrink-0">{allMemberships.find(m => m.teamName === event.team)?.icon || "📅"}</span>
-                    <h4 className="font-semibold text-sm line-clamp-2 leading-tight" style={{ color: theme.textPrimary }}>{event.title}</h4>
-                  </div>
-                  {/* Time */}
-                  <div className="flex items-center gap-1" style={{ color: theme.textMuted }}>
-                    <Clock className="w-3 h-3" />
-                    <span className="text-xs">{event.time}</span>
-                  </div>
-                  {/* Today/Tomorrow badge */}
-                  {event.isToday && (
-                    <span className="inline-block mt-2 text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: theme.buttonPrimaryBg, color: theme.buttonPrimaryText }}>
-                      {t.today}
-                    </span>
-                  )}
-                  {event.isTomorrow && (
-                    <span className="inline-block mt-2 text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#FFF3CD", color: "#856404" }}>
-                      {t.tomorrow}
-                    </span>
-                  )}
-                </div>
-              ))}
+                    <div className="p-3">
+                      <h4 className="font-semibold text-sm line-clamp-2 leading-tight mb-1.5" style={{ color: theme.textPrimary }}>{event.title}</h4>
+                      <div className="flex items-center gap-1" style={{ color: theme.textMuted }}>
+                        <Clock className="w-3 h-3" />
+                        <span className="text-xs">{event.time}</span>
+                      </div>
+                      {event.isToday && (
+                        <span className="inline-block mt-1.5 text-[10px] font-medium px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: theme.buttonPrimaryBg, color: theme.buttonPrimaryText }}>{t.today}</span>
+                      )}
+                      {event.isTomorrow && (
+                        <span className="inline-block mt-1.5 text-[10px] font-medium px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: "#FFF3CD", color: "#856404" }}>{t.tomorrow}</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -3207,8 +3409,8 @@ export function PilotMemberPortal() {
               <div className="flex gap-3 px-5 pb-2">
                 {upcomingClub.map(event => {
                   const d = new Date(event.date);
-                  const dayNum = d.getDate();
-                  const dayName = d.toLocaleDateString(language === "de" ? "de-DE" : "en-US", { weekday: "short" });
+                  const cardDayName = d.toLocaleDateString(language === "de" ? "de-DE" : "en-US", { weekday: "long" });
+                  const cardDayShort = `${d.getDate()}. ${d.toLocaleDateString(language === "de" ? "de-DE" : "en-US", { month: "short" })}`;
                   return (
                     <button
                       key={event.id}
@@ -3216,22 +3418,14 @@ export function PilotMemberPortal() {
                       className="flex-shrink-0 w-44 rounded-2xl overflow-hidden text-left"
                       style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
                     >
-                      {/* Banner or colored date header */}
-                      {event.bannerImage ? (
-                        <div className="relative h-[72px]">
-                          <img src={event.bannerImage} alt="" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                          <div className="absolute bottom-2 left-3 text-white leading-tight">
-                            <span className="text-xl font-bold">{dayNum}</span>
-                            <span className="text-xs block opacity-90">{dayName}</span>
-                          </div>
+                      <div className="relative h-24">
+                        <img src={event.bannerImage || FALLBACK_BANNER_IMAGE} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute bottom-2 left-3 text-white leading-tight">
+                          <span className="text-sm font-bold">{cardDayName}</span>
+                          <span className="text-xs block opacity-90">{cardDayShort}</span>
                         </div>
-                      ) : (
-                        <div className="h-14 flex items-center px-3 gap-2" style={{ backgroundColor: "#E0F2FE" }}>
-                          <span className="text-2xl font-bold" style={{ color: "#0369A1" }}>{dayNum}</span>
-                          <span className="text-sm font-medium" style={{ color: "#0369A1" }}>{dayName}</span>
-                        </div>
-                      )}
+                      </div>
                       <div className="p-3">
                         <h4 className="font-semibold text-sm line-clamp-2 leading-tight mb-1.5" style={{ color: theme.textPrimary }}>{event.title}</h4>
                         <div className="flex items-center gap-1" style={{ color: theme.textMuted }}>
@@ -3466,15 +3660,13 @@ export function PilotMemberPortal() {
                     style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: 1, borderRadius: theme.cardRadius, boxShadow: theme.cardShadow }}
                   >
                     {/* Banner Image */}
-                    {event.bannerImage && (
-                      <div className="h-24 w-full overflow-hidden">
-                        <img 
-                          src={event.bannerImage} 
-                          alt="" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
+                    <div className="h-24 w-full overflow-hidden">
+                      <img
+                        src={event.bannerImage || FALLBACK_BANNER_IMAGE}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     <div className="p-4">
                       <div className="flex items-start gap-4">
                         <div className="text-center min-w-[40px]">
@@ -3593,11 +3785,11 @@ export function PilotMemberPortal() {
       const personLabels = chatPersonLabels(chat);
       const typeIcon =
         chat.type === "announcement" ? (
-          <Megaphone className="w-5 h-5" style={{ color: theme.accent }} />
+          <Megaphone className="w-5 h-5 text-white" />
         ) : chat.type === "team_group" ? (
-          <Users className="w-5 h-5" style={{ color: theme.accent }} />
+          <Users className="w-5 h-5 text-white" />
         ) : (
-          <MessageSquare className="w-5 h-5" style={{ color: theme.accent }} />
+          <MessageSquare className="w-5 h-5 text-white" />
         );
 
       return (
@@ -3611,7 +3803,13 @@ export function PilotMemberPortal() {
           <div className="relative flex-shrink-0">
             <div
               className="w-12 h-12 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: theme.accentLight }}
+              style={{
+                background: chat.type === "announcement"
+                  ? "linear-gradient(135deg, #1F5F4A 0%, #2D8A6A 100%)"
+                  : chat.type === "direct"
+                  ? "linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%)"
+                  : "linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%)"
+              }}
             >
               {typeIcon}
             </div>
@@ -4756,8 +4954,11 @@ export function PilotMemberPortal() {
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-          {messages.map((msg: { id: string; senderId: string; senderName: string; senderRole?: UserRole; content: string; createdAt: string; onBehalfOf?: { childId: string; childName: string }; visibleToParent?: boolean }) => {
+        <div
+          className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
+          onClick={() => setReactionPickerMsgId(null)}
+        >
+          {messages.map((msg: { id: string; senderId: string; senderName: string; senderRole?: UserRole; content: string; createdAt: string; onBehalfOf?: { childId: string; childName: string }; visibleToParent?: boolean; reactions?: Record<string, number> }) => {
             // Determine if this message is from "me" based on viewing context
             // - Kid direct view (Flurina/Max): Only their own ID is "me"
             // - Lena own view: p11 is "me"  
@@ -4860,7 +5061,47 @@ export function PilotMemberPortal() {
                   </div>
                   
                   <div className="relative">
-                    <div 
+                    {/* Reaction picker button */}
+                    {!chatData.isRequest && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setReactionPickerMsgId(prev => prev === msg.id ? null : msg.id); }}
+                        className={`absolute ${isMe ? "-left-8" : "-right-8"} top-1 w-7 h-7 rounded-full flex items-center justify-center transition-opacity`}
+                        style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.cardBorder}`, opacity: reactionPickerMsgId === msg.id ? 1 : undefined }}
+                      >
+                        <SmilePlus className="w-3.5 h-3.5" style={{ color: theme.textMuted }} />
+                      </button>
+                    )}
+
+                    {/* Emoji picker popup */}
+                    {!chatData.isRequest && reactionPickerMsgId === msg.id && (
+                      <div
+                        className={`absolute ${isMe ? "right-0" : "left-0"} -top-14 flex gap-1 rounded-2xl shadow-xl px-2 py-1.5 z-30`}
+                        style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {REACTION_EMOJIS.map(emoji => {
+                          const effective = getEffectiveReactions(msg.id, msg.reactions);
+                          const isMine = (myReactionEmojis[msg.id] || []).includes(emoji);
+                          const distinctCount = Object.keys(effective).filter(e => (effective[e] || 0) > 0).length;
+                          const disabled = !isMine && distinctCount >= 4 && !(emoji in effective);
+                          return (
+                            <button
+                              key={emoji}
+                              onClick={() => !disabled && toggleReaction(msg.id, emoji, msg.reactions)}
+                              className="w-9 h-9 text-xl flex items-center justify-center rounded-xl transition-transform active:scale-90"
+                              style={{
+                                backgroundColor: isMine ? (theme.buttonPrimaryBg + "30") : "transparent",
+                                opacity: disabled ? 0.3 : 1,
+                              }}
+                            >
+                              {emoji}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div
                       className={`rounded-2xl px-4 py-2.5 ${
                         isMe ? "rounded-br-md" : "rounded-bl-md"
                       } ${isReported ? "ring-2 ring-orange-400" : ""}`}
@@ -4870,23 +5111,17 @@ export function PilotMemberPortal() {
                         border: isMe ? "none" : `1px solid ${theme.cardBorder}`,
                       }}
                     >
-                      <p className="text-sm whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
+                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                       <p className="text-[10px] mt-1" style={{ color: isMe ? `${theme.messageSentText}99` : theme.textMuted }}>
                         {formatFullDate(msg.createdAt)}
                       </p>
                     </div>
-                    
-                    {/* Report button - only show for OTHER people's messages, not your own */}
+
+                    {/* Report button */}
                     {!isMe && !isReported && (
                       <button
                         onClick={() => {
-                          setReportingMessage({
-                            id: msg.id,
-                            content: msg.content,
-                            senderName: msg.senderName
-                          });
+                          setReportingMessage({ id: msg.id, content: msg.content, senderName: msg.senderName });
                           setShowReportModal(true);
                         }}
                         className="absolute -right-8 top-1/2 -translate-y-1/2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -4897,6 +5132,35 @@ export function PilotMemberPortal() {
                       </button>
                     )}
                   </div>
+
+                  {/* Reaction pills */}
+                  {!chatData.isRequest && (() => {
+                    const effective = getEffectiveReactions(msg.id, msg.reactions);
+                    const pills = Object.entries(effective).filter(([, c]) => c > 0);
+                    if (pills.length === 0) return null;
+                    return (
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {pills.map(([emoji, count]) => {
+                          const isMine = (myReactionEmojis[msg.id] || []).includes(emoji);
+                          return (
+                            <button
+                              key={emoji}
+                              onClick={() => toggleReaction(msg.id, emoji, msg.reactions)}
+                              className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-colors"
+                              style={{
+                                backgroundColor: isMine ? theme.buttonPrimaryBg : theme.cardBg,
+                                border: `1px solid ${isMine ? theme.buttonPrimaryBg : theme.cardBorder}`,
+                                color: isMine ? theme.buttonPrimaryText : theme.textPrimary,
+                              }}
+                            >
+                              <span>{emoji}</span>
+                              <span className="font-semibold text-[11px]">{count}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             );

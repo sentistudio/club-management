@@ -3,26 +3,70 @@
 // Admin view for managing club-wide events
 
 import { useMemo, useState } from "react";
-import { 
+import { useSearchParams } from "react-router-dom";
+import {
   Plus, Search, Calendar as CalendarIcon, List, Grid3X3,
   Edit2, Copy, Send, XCircle,
   ChevronLeft, ChevronRight, Users, MapPin,
-  Lock, RefreshCw
+  Lock, RefreshCw, Dumbbell, Trophy as TrophyIcon, PartyPopper, Check, Clock
 } from "lucide-react";
 import { Card, Button } from "../components/ui";
 import { EventDetailDrawer, EventFormDrawer } from "../components/events";
-import { 
-  mockClubEvents, 
+import {
+  mockClubEvents,
   ADMIN_USER
 } from "../data/mockClubEvents";
 import type { ClubEvent, EventStatus, EventVisibility, AudienceMode } from "../types/events";
-import { 
-  computeEventStatus, 
-  getStatusLabel, 
+import {
+  computeEventStatus,
+  getStatusLabel,
   getStatusColor,
   createStatusHistoryEntry
 } from "../utils/eventUtils";
 import { useLanguage } from "../i18n";
+import { useRole } from "../contexts";
+
+// ── Personal events mock data ──────────────────────────────────────────────
+type PersonalEvent = {
+  id: string; title: string; date: string; startTime: string;
+  endTime: string; location: string; type: "training" | "match" | "event";
+  team: string; rsvp: "confirmed" | "declined" | "pending";
+};
+
+const PERSONAL_EVENTS: Record<string, PersonalEvent[]> = {
+  // Patrick Steuble – 1. Herren
+  patrick_steuble: [
+    { id: "ps_1", title: "Training 1. Herren", date: "2026-03-10", startTime: "19:00", endTime: "20:30", location: "Hauptplatz SfB", type: "training", team: "1. Herren", rsvp: "confirmed" },
+    { id: "ps_2", title: "Ligaspiel – SfB vs. TSV Steinbach", date: "2026-03-14", startTime: "15:30", endTime: "17:30", location: "Hauptplatz SfB", type: "match", team: "1. Herren", rsvp: "confirmed" },
+    { id: "ps_3", title: "Training 1. Herren", date: "2026-03-17", startTime: "19:00", endTime: "20:30", location: "Hauptplatz SfB", type: "training", team: "1. Herren", rsvp: "pending" },
+    { id: "ps_4", title: "Auswärtsspiel – SV Lollar vs. SfB", date: "2026-03-21", startTime: "14:00", endTime: "16:00", location: "Sportplatz Lollar", type: "match", team: "1. Herren", rsvp: "pending" },
+    { id: "ps_5", title: "Jahreshauptversammlung", date: "2026-03-25", startTime: "19:00", endTime: "21:00", location: "Vereinsheim SfB", type: "event", team: "Gesamtverein", rsvp: "pending" },
+  ],
+  // Lena Schneider – Fitness Morgengruppe
+  lena_schneider: [
+    { id: "pe_1", title: "Fitness Morgengruppe", date: "2026-03-10", startTime: "07:00", endTime: "08:00", location: "Fitnessraum SfB", type: "training", team: "Fitness – Morgengruppe", rsvp: "confirmed" },
+    { id: "pe_2", title: "Fitness Morgengruppe", date: "2026-03-12", startTime: "07:00", endTime: "08:00", location: "Fitnessraum SfB", type: "training", team: "Fitness – Morgengruppe", rsvp: "confirmed" },
+    { id: "pe_3", title: "Fitness Morgengruppe", date: "2026-03-17", startTime: "07:00", endTime: "08:00", location: "Fitnessraum SfB", type: "training", team: "Fitness – Morgengruppe", rsvp: "pending" },
+    { id: "pe_4", title: "Jahreshauptversammlung", date: "2026-03-25", startTime: "19:00", endTime: "21:00", location: "Vereinsheim SfB", type: "event", team: "Gesamtverein", rsvp: "pending" },
+    { id: "pe_5", title: "Fitness Morgengruppe", date: "2026-03-26", startTime: "07:00", endTime: "08:00", location: "Fitnessraum SfB", type: "training", team: "Fitness – Morgengruppe", rsvp: "pending" },
+  ],
+  // Flurina Schneider – Volleyball U16 Mädchen
+  flurina: [
+    { id: "fe_1", title: "Training Volleyball U16", date: "2026-03-10", startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB", type: "training", team: "Volleyball U16 Mädchen", rsvp: "confirmed" },
+    { id: "fe_2", title: "Training Volleyball U16", date: "2026-03-12", startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB", type: "training", team: "Volleyball U16 Mädchen", rsvp: "confirmed" },
+    { id: "fe_3", title: "Heimspiel U16 – SfB vs. VfL Marburg", date: "2026-03-15", startTime: "11:00", endTime: "13:00", location: "Sporthalle SfB", type: "match", team: "Volleyball U16 Mädchen", rsvp: "confirmed" },
+    { id: "fe_4", title: "Training Volleyball U16", date: "2026-03-17", startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB", type: "training", team: "Volleyball U16 Mädchen", rsvp: "pending" },
+    { id: "fe_5", title: "Gießen Cup Turnier", date: "2026-03-22", startTime: "09:00", endTime: "17:00", location: "Sportanlage Gießen", type: "match", team: "Volleyball U16 Mädchen", rsvp: "pending" },
+  ],
+  // Max Schneider – Fußball U12
+  max: [
+    { id: "mx_1", title: "Training Fußball U12", date: "2026-03-10", startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A", type: "training", team: "Fußball U12", rsvp: "confirmed" },
+    { id: "mx_2", title: "Training Fußball U12", date: "2026-03-13", startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A", type: "training", team: "Fußball U12", rsvp: "confirmed" },
+    { id: "mx_3", title: "Ligaspiel U12 – SfB vs. FC Lahntal", date: "2026-03-15", startTime: "10:30", endTime: "12:00", location: "Nebenplatz SfB", type: "match", team: "Fußball U12", rsvp: "confirmed" },
+    { id: "mx_4", title: "Training Fußball U12", date: "2026-03-17", startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A", type: "training", team: "Fußball U12", rsvp: "pending" },
+    { id: "mx_5", title: "Osterturnier Wettenberg", date: "2026-03-28", startTime: "09:00", endTime: "14:00", location: "Sportpark Wettenberg", type: "match", team: "Fußball U12", rsvp: "pending" },
+  ],
+};
 
 type ViewMode = "list" | "calendar";
 type TimeFilter = "upcoming" | "past" | "all";
@@ -31,7 +75,24 @@ type CalendarViewMode = "day" | "week" | "month";
 export function ClubEvents() {
   // i18n
   const { t, lang, getMonth, getWeekday } = useLanguage();
-  
+
+  // Context: who are we viewing for?
+  const { user } = useRole();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewContext = searchParams.get("person") || "verein";
+  const setViewContext = (person: string) => {
+    if (person === "verein") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ person });
+    }
+  };
+  const isPersonalView = viewContext !== "verein";
+  const personalLabel =
+    viewContext === "me"
+      ? `${user.firstName} ${user.lastName}`
+      : user.linkedChildren?.find(c => c.id === viewContext)?.firstName ?? viewContext;
+
   // State
   const [events, setEvents] = useState<ClubEvent[]>(mockClubEvents);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -255,30 +316,166 @@ export function ClubEvents() {
     );
   };
 
+  // Personal events for the selected person ("me" resolves to current user's id)
+  const personalEventsKey = viewContext === "me" ? user.id : viewContext;
+  const currentPersonalEvents = PERSONAL_EVENTS[personalEventsKey] ?? [];
+
   return (
     <div className="space-y-4">
       {/* Header with Stats Summary */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-800">{t("nav.clubEvents")}</h1>
-          </div>
-          <div className="flex items-center gap-4 mt-2 text-sm">
-            <span className="text-slate-500">
-              <span className="font-semibold text-slate-800">{stats.total}</span> {t("events.total")}
-            </span>
-            <span className="text-[#004941]">
-              <span className="font-semibold">{stats.upcoming}</span> {t("events.upcoming")}
-            </span>
-            <span className="text-slate-500">
-              <span className="font-semibold text-slate-600">{stats.draft}</span> {t("events.drafts")}
-            </span>
-          </div>
+          <h1 className="text-2xl font-bold text-slate-800">{t("nav.clubEvents")}</h1>
+          {!isPersonalView && (
+            <div className="flex items-center gap-4 mt-2 text-sm">
+              <span className="text-slate-500">
+                <span className="font-semibold text-slate-800">{stats.total}</span> {t("events.total")}
+              </span>
+              <span className="text-[#004941]">
+                <span className="font-semibold">{stats.upcoming}</span> {t("events.upcoming")}
+              </span>
+              <span className="text-slate-500">
+                <span className="font-semibold text-slate-600">{stats.draft}</span> {t("events.drafts")}
+              </span>
+            </div>
+          )}
         </div>
-        <Button icon={<Plus className="w-4 h-4" />} onClick={() => handleOpenCreate()}>
-          {t("events.newEvent")}
-        </Button>
+        {!isPersonalView && (
+          <Button icon={<Plus className="w-4 h-4" />} onClick={() => handleOpenCreate()}>
+            {t("events.newEvent")}
+          </Button>
+        )}
       </div>
+
+      {/* ── Context filter pills ── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={() => setViewContext("verein")}
+          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            viewContext === "verein"
+              ? "bg-[#004941] text-white"
+              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+          }`}
+        >
+          Vereinstermine
+        </button>
+        <button
+          onClick={() => setViewContext("me")}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            viewContext === "me"
+              ? "bg-[#004941] text-white"
+              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+          }`}
+        >
+          <img src={user.avatar} alt={user.firstName} className="w-4 h-4 rounded-full object-cover" />
+          {user.firstName}
+        </button>
+        {user.linkedChildren?.map(child => (
+          <button
+            key={child.id}
+            onClick={() => setViewContext(child.id)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              viewContext === child.id
+                ? "bg-[#004941] text-white"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+            }`}
+          >
+            {child.avatar && (
+              <img src={child.avatar} alt={child.firstName} className="w-4 h-4 rounded-full object-cover" />
+            )}
+            {child.firstName}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Personal / child events view ── */}
+      {isPersonalView && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {(viewContext === "me" ? user.avatar : user.linkedChildren?.find(c => c.id === viewContext)?.avatar) && (
+                <img
+                  src={viewContext === "me" ? user.avatar : user.linkedChildren?.find(c => c.id === viewContext)?.avatar}
+                  alt={personalLabel}
+                  className="w-7 h-7 rounded-full object-cover"
+                />
+              )}
+              <div>
+                <span className="font-semibold text-slate-800 text-sm">{personalLabel}</span>
+                <span className="text-slate-500 text-sm ml-2">· {currentPersonalEvents.length} bevorstehende Termine</span>
+              </div>
+            </div>
+          </div>
+
+          {currentPersonalEvents.length === 0 ? (
+            <div className="text-center py-16 px-4">
+              <CalendarIcon className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+              <p className="text-slate-500">Keine bevorstehenden Termine</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {currentPersonalEvents.map(event => {
+                const typeIcon =
+                  event.type === "training" ? <Dumbbell className="w-4 h-4" /> :
+                  event.type === "match" ? <TrophyIcon className="w-4 h-4" /> :
+                  <PartyPopper className="w-4 h-4" />;
+                const typeColor =
+                  event.type === "training" ? "bg-blue-50 text-blue-600" :
+                  event.type === "match" ? "bg-teal-50 text-teal-600" :
+                  "bg-amber-50 text-amber-600";
+                const rsvpConfig = {
+                  confirmed: { label: "Zugesagt", color: "bg-green-100 text-green-700", icon: <Check className="w-3 h-3" /> },
+                  declined: { label: "Abgesagt", color: "bg-red-100 text-red-700", icon: null },
+                  pending: { label: "Ausstehend", color: "bg-neutral-100 text-neutral-500", icon: <Clock className="w-3 h-3" /> },
+                };
+                const rsvp = rsvpConfig[event.rsvp];
+
+                return (
+                  <div key={event.id} className="p-4 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-start gap-3">
+                      {/* Date badge */}
+                      <div className="flex-shrink-0 w-11 h-11 bg-[#004941] rounded-lg flex flex-col items-center justify-center text-white">
+                        <span className="text-[9px] font-medium leading-none opacity-80">
+                          {new Date(event.date).toLocaleDateString("de-DE", { month: "short" }).toUpperCase()}
+                        </span>
+                        <span className="text-lg font-bold leading-none">
+                          {new Date(event.date).getDate()}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-slate-800 truncate">{event.title}</h3>
+                          <span className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${typeColor}`}>
+                            {typeIcon}
+                            {event.type === "training" ? "Training" : event.type === "match" ? "Spiel" : "Veranstaltung"}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-500">
+                          <span>{event.startTime} – {event.endTime}</span>
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5" />{event.location}
+                          </span>
+                          <span className="text-xs text-slate-400">{event.team}</span>
+                        </div>
+                      </div>
+
+                      {/* RSVP badge */}
+                      <span className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium flex-shrink-0 ${rsvp.color}`}>
+                        {rsvp.icon}{rsvp.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Admin events view (only when on Vereinstermine) ── */}
+      {!isPersonalView && (<>
 
       {/* Unified Toolbar */}
       <Card className="!p-3">
@@ -803,6 +1000,7 @@ export function ClubEvents() {
           })()}
         </Card>
       )}
+      </>)}
 
       {/* Event Detail Drawer */}
       {showDetailDrawer && selectedEvent && (

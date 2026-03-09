@@ -9,12 +9,14 @@ import {
   Check, AlertCircle, Building2
 } from "lucide-react";
 import type { ClubEvent } from "../../types/events";
-import { 
-  getAudienceDescription, 
+import {
+  getAudienceDescription,
   resolveEventAudience,
   getDepartmentById,
   getGroupById
 } from "../../data/mockClubEvents";
+import { getFieldById } from "../../data/mockFields";
+import { ZoneGrid } from "../fields/ZoneGrid";
 import { 
   getStatusLabel, 
   getStatusColor, 
@@ -47,6 +49,7 @@ export function EventDetailDrawer({
 
   const statusColors = getStatusColor(event.status);
   const audience = resolveEventAudience(event);
+  const field = event.fieldId ? getFieldById(event.fieldId) : null;
 
   const handleCancel = () => {
     onCancel(event, cancelReason);
@@ -171,6 +174,29 @@ export function EventDetailDrawer({
                   <div>
                     <p className="text-sm text-slate-500">Ort</p>
                     <p className="font-medium text-slate-800">{event.location}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Field Booking */}
+              {field && (
+                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl">
+                  <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-slate-500">Feld</p>
+                    <p className="font-medium text-slate-800 mb-2">{field.name}</p>
+                    {field.isDivisibleInto6 && (
+                      <ZoneGrid
+                        zones={field.zones}
+                        ownZones={event.bookingScope === "zones" ? (event.bookedZoneIds ?? []) : []}
+                        fullField={event.bookingScope === "full_field"}
+                        readOnly
+                        compact
+                      />
+                    )}
+                    {!field.isDivisibleInto6 && (
+                      <p className="text-xs text-slate-500">Ganzes Feld</p>
+                    )}
                   </div>
                 </div>
               )}

@@ -3,8 +3,8 @@
 // Create/Edit event with Google Calendar UX
 
 import { useState, useEffect, useRef } from "react";
-import { 
-  X, Calendar, MapPin, FileText, 
+import {
+  X, Calendar, MapPin, FileText,
   Lock, Globe, Save, Send, Image, Upload, Check
 } from "lucide-react";
 import type { ClubEvent, ClubEventFormData } from "../../types/events";
@@ -12,6 +12,7 @@ import { DEFAULT_BANNERS } from "../../types/events";
 import { AudienceSelector } from "./AudienceSelector";
 import { RecurrenceEditor } from "./RecurrenceEditor";
 import { RSVPSection } from "./RSVPSection";
+import { FieldPicker } from "../fields/FieldPicker";
 import { ADMIN_USER, mockClubMembers, mockGroups } from "../../data/mockClubEvents";
 import { generateEventId, createStatusHistoryEntry } from "../../utils/eventUtils";
 
@@ -47,7 +48,10 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
     recurrenceEnabled: false,
     recurrenceFrequency: "weekly",
     recurrenceWeekdays: [],
-    recurrenceUntil: ""
+    recurrenceUntil: "",
+    fieldId: "",
+    bookingScope: "full_field",
+    bookedZoneIds: [],
   });
   
   const [showBannerPicker, setShowBannerPicker] = useState(false);
@@ -75,7 +79,10 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
         recurrenceEnabled: event.recurrence?.enabled || false,
         recurrenceFrequency: event.recurrence?.frequency || "weekly",
         recurrenceWeekdays: event.recurrence?.weekdays || [],
-        recurrenceUntil: event.recurrence?.until || ""
+        recurrenceUntil: event.recurrence?.until || "",
+        fieldId: event.fieldId || "",
+        bookingScope: event.bookingScope || "full_field",
+        bookedZoneIds: event.bookedZoneIds || [],
       });
     } else if (initialDate) {
       setFormData(prev => ({ ...prev, date: initialDate }));
@@ -130,6 +137,9 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
       endTime: formData.isAllDay ? "23:59" : formData.endTime,
       location: formData.location.trim() || undefined,
       bannerImage: formData.bannerImage || undefined,
+      fieldId: formData.fieldId || undefined,
+      bookingScope: formData.fieldId ? formData.bookingScope : undefined,
+      bookedZoneIds: formData.fieldId && formData.bookingScope === "zones" ? formData.bookedZoneIds : undefined,
       audience: {
         mode: formData.audienceMode,
         departmentIds: formData.audienceMode === "departments" ? formData.departmentIds : undefined,
@@ -318,6 +328,25 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
                 placeholder="Ort hinzufügen"
                 className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
               />
+            </div>
+
+            {/* Field Booking */}
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 mt-1 bg-slate-100 rounded-lg">
+                <MapPin className="w-5 h-5 text-slate-600" />
+              </div>
+              <div className="flex-1">
+                <FieldPicker
+                  fieldId={formData.fieldId}
+                  bookingScope={formData.bookingScope}
+                  bookedZoneIds={formData.bookedZoneIds}
+                  date={formData.date}
+                  startTime={formData.startTime}
+                  endTime={formData.endTime}
+                  excludeEventId={event?.id}
+                  onChange={patch => setFormData(prev => ({ ...prev, ...patch }))}
+                />
+              </div>
             </div>
 
             {/* Description */}

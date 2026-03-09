@@ -7,7 +7,7 @@
 
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
+import {
   Calendar,
   Clock,
   MapPin,
@@ -19,11 +19,24 @@ import {
   Shield,
   QrCode,
   Globe,
-  Bell
+  Bell,
+  ArrowLeft,
+  Send,
+  Megaphone,
+  Users,
+  User,
+  Inbox,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 import { Card, Badge, Button } from "../../components/ui";
 import { useLanguage } from "../../i18n";
 import { useRole } from "../../contexts";
+import { mockChats, mockChatMessages, type Chat, type ChatMessage } from "../../data/mockChats";
+import { mockClubEvents } from "../../data/mockClubEvents";
+import { mockTickets } from "../../data/mockInbox";
+import { getFieldById } from "../../data/mockFields";
+import { ZoneGrid } from "../../components/fields/ZoneGrid";
 
 // ==========================================
 // MOCK DATA
@@ -43,6 +56,9 @@ interface EnhancedEvent {
   team?: string;
   bannerImage?: string;
   isAllDay?: boolean;
+  fieldId?: string;
+  bookingScope?: "full_field" | "zones";
+  bookedZoneIds?: string[];
   rsvp?: {
     status: "confirmed" | "declined" | "pending" | "maybe";
     deadline?: string;
@@ -278,12 +294,168 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
   }
 ];
 
-// Helper to get events based on user
-const getUserEvents = (userId: string): EnhancedEvent[] => {
-  if (userId === "lena_schneider") {
-    return MOCK_LENA_EVENTS;
+const MOCK_FLURINA_EVENTS: EnhancedEvent[] = [
+  {
+    id: "evt_f1", title: "Training Volleyball U16", date: "2026-03-10",
+    startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB",
+    type: "training", teamIcon: "🏐", scope: "team", department: "Volleyball",
+    team: "Volleyball U16 Mädchen",
+    rsvp: { status: "confirmed", required: true, confirmed: 10, maybe: 1, declined: 0, pending: 1, total: 12 },
+    organizer: { name: "Trainerin Katja", avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=50&h=50&fit=crop&crop=face", role: "Trainerin" }
+  },
+  {
+    id: "evt_f2", title: "Training Volleyball U16", date: "2026-03-12",
+    startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB",
+    type: "training", teamIcon: "🏐", scope: "team", department: "Volleyball",
+    team: "Volleyball U16 Mädchen",
+    rsvp: { status: "confirmed", required: true, confirmed: 10, maybe: 0, declined: 1, pending: 1, total: 12 }
+  },
+  {
+    id: "evt_f3", title: "Heimspiel U16 – SfB vs. VfL Marburg", date: "2026-03-15",
+    startTime: "11:00", endTime: "13:00", location: "Sporthalle SfB",
+    type: "match", teamIcon: "🏐", scope: "team", department: "Volleyball",
+    team: "Volleyball U16 Mädchen",
+    bannerImage: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&h=400&fit=crop",
+    rsvp: { status: "confirmed", required: true, confirmed: 11, maybe: 0, declined: 0, pending: 1, total: 12 }
+  },
+  {
+    id: "evt_f4", title: "Training Volleyball U16", date: "2026-03-17",
+    startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB",
+    type: "training", teamIcon: "🏐", scope: "team", department: "Volleyball",
+    team: "Volleyball U16 Mädchen",
+    rsvp: { status: "pending", required: true, confirmed: 8, maybe: 1, declined: 0, pending: 3, total: 12 }
+  },
+  {
+    id: "evt_f5", title: "Gießen Cup Turnier", date: "2026-03-22",
+    startTime: "09:00", endTime: "17:00", location: "Sportanlage Gießen",
+    type: "match", teamIcon: "🏆", scope: "department", department: "Volleyball",
+    team: "Volleyball U16 Mädchen",
+    bannerImage: "https://images.unsplash.com/photo-1547347298-4074fc3086f0?w=800&h=400&fit=crop",
+    rsvp: { status: "pending", required: true, confirmed: 7, maybe: 2, declined: 0, pending: 3, total: 12 }
   }
+];
+
+const MOCK_MAX_EVENTS: EnhancedEvent[] = [
+  {
+    id: "evt_m1", title: "Training Fußball U12", date: "2026-03-10",
+    startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A",
+    type: "training", teamIcon: "⚽", scope: "team", department: "Fußball",
+    team: "Fußball U12",
+    rsvp: { status: "confirmed", required: true, confirmed: 14, maybe: 0, declined: 1, pending: 1, total: 16 },
+    organizer: { name: "Trainer Marco", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face", role: "Trainer" }
+  },
+  {
+    id: "evt_m2", title: "Training Fußball U12", date: "2026-03-13",
+    startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A",
+    type: "training", teamIcon: "⚽", scope: "team", department: "Fußball",
+    team: "Fußball U12",
+    rsvp: { status: "confirmed", required: true, confirmed: 13, maybe: 1, declined: 0, pending: 2, total: 16 }
+  },
+  {
+    id: "evt_m3", title: "Ligaspiel U12 – SfB vs. FC Lahntal", date: "2026-03-15",
+    startTime: "10:30", endTime: "12:00", location: "Nebenplatz SfB",
+    type: "match", teamIcon: "⚽", scope: "team", department: "Fußball",
+    team: "Fußball U12",
+    bannerImage: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop",
+    rsvp: { status: "confirmed", required: true, confirmed: 14, maybe: 0, declined: 1, pending: 1, total: 16 }
+  },
+  {
+    id: "evt_m4", title: "Training Fußball U12", date: "2026-03-17",
+    startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A",
+    type: "training", teamIcon: "⚽", scope: "team", department: "Fußball",
+    team: "Fußball U12",
+    rsvp: { status: "pending", required: true, confirmed: 10, maybe: 0, declined: 0, pending: 6, total: 16 }
+  },
+  {
+    id: "evt_m5", title: "Osterturnier Wettenberg", date: "2026-03-28",
+    startTime: "09:00", endTime: "14:00", location: "Sportpark Wettenberg",
+    type: "match", teamIcon: "🏆", scope: "department", department: "Fußball",
+    team: "Fußball U12",
+    bannerImage: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=400&fit=crop",
+    rsvp: { status: "pending", required: true, confirmed: 8, maybe: 3, declined: 0, pending: 5, total: 16 }
+  }
+];
+
+// Helper to get events based on resolved person id
+const getUserEvents = (resolvedId: string): EnhancedEvent[] => {
+  if (resolvedId === "lena_schneider") return MOCK_LENA_EVENTS;
+  if (resolvedId === "flurina") return MOCK_FLURINA_EVENTS;
+  if (resolvedId === "max") return MOCK_MAX_EVENTS;
   return MOCK_PATRICK_EVENTS;
+};
+
+// ── Chat helpers ─────────────────────────────────────────────────────────────
+
+// Maps the app's user/child IDs → chat profile IDs used in mockChats
+const PERSON_TO_PROFILE: Record<string, string> = {
+  lena_schneider: "p11",
+  flurina: "p12",
+  max: "p13",
+};
+
+/** Returns chats visible to any of the resolved person IDs */
+const getChatsForPersons = (resolvedIds: string[]): Chat[] => {
+  const profileIds = resolvedIds.map(id => PERSON_TO_PROFILE[id]).filter(Boolean);
+  if (profileIds.length === 0) return [];
+  return mockChats.filter(chat =>
+    chat.visibleToProfiles.some(pid => profileIds.includes(pid))
+  );
+};
+
+/** Returns messages for a given chat id */
+const getMessagesForChat = (chatId: string): ChatMessage[] =>
+  mockChatMessages.filter(m => m.chatId === chatId);
+
+// ── Club-event helpers ────────────────────────────────────────────────────────
+
+const PERSON_DEPARTMENTS: Record<string, string[]> = {
+  lena_schneider: ["dept_football", "dept_fitness"],
+  flurina: ["dept_volleyball"],
+  max: ["dept_football"],
+  patrick_steuble: ["dept_football"],
+};
+
+/** Returns published club-wide/department events relevant to the person list, as EnhancedEvent */
+const getClubEventsForPersons = (resolvedIds: string[]): EnhancedEvent[] => {
+  const depts = resolvedIds.flatMap(id => PERSON_DEPARTMENTS[id] ?? []);
+  return mockClubEvents
+    .filter(evt => evt.status === "published")
+    .filter(evt => {
+      if (evt.audience.mode === "all") return true;
+      if (evt.audience.mode === "departments") {
+        return evt.audience.departmentIds?.some(d => depts.includes(d)) ?? false;
+      }
+      return false;
+    })
+    .map(evt => ({
+      id: evt.id,
+      title: evt.title,
+      description: evt.description,
+      date: evt.date,
+      startTime: evt.startTime,
+      endTime: evt.endTime,
+      location: evt.location,
+      bannerImage: evt.bannerImage,
+      type: "event" as const,
+      scope: "club" as const,
+      isAllDay: evt.isAllDay,
+      fieldId: evt.fieldId,
+      bookingScope: evt.bookingScope,
+      bookedZoneIds: evt.bookedZoneIds,
+      organizer: { name: evt.createdByName },
+      rsvp: evt.rsvpStats
+        ? {
+            status: "pending" as const,
+            deadline: evt.rsvpDeadline?.split("T")[0],
+            required: evt.rsvpRequired,
+            confirmed: evt.rsvpStats.confirmed,
+            maybe: 0,
+            declined: evt.rsvpStats.declined,
+            pending: evt.rsvpStats.pending,
+            total: evt.rsvpStats.invited,
+          }
+        : undefined,
+    }));
 };
 
 // Helper to get user memberships
@@ -327,11 +499,33 @@ const MOCK_CLUB_NEWS = [
 // MEMBER HOME
 // ==========================================
 export function MemberHome() {
-  const { user } = useRole();
+  const { user, selectedPersons } = useRole();
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
 
-  const upcomingEvents = getUserEvents(user.id).slice(0, 3);
+  // Resolve person ids
+  const resolvedIds = selectedPersons.map(p => p === "me" ? user.id : p);
+
+  // Welcome banner: show first selected person
+  const firstPerson = selectedPersons[0];
+  const firstChild = user.linkedChildren?.find(c => c.id === firstPerson);
+  const displayName = firstPerson === "me" ? user.firstName : (firstChild?.firstName ?? user.firstName);
+  const displayAvatar = firstPerson === "me" ? user.avatar : (firstChild?.avatar ?? user.avatar);
+  const displayTeam = firstPerson === "me" ? user.team : firstChild?.team;
+
+  // Merge + sort events from all selected persons + club events, deduplicate by id
+  const upcomingEvents = useMemo(() => {
+    const seen = new Set<string>();
+    const clubEvts = getClubEventsForPersons(resolvedIds);
+    return [...resolvedIds.flatMap(id => getUserEvents(id)), ...clubEvts]
+      .filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 5);
+  }, [resolvedIds.join(",")]);
+
+  // Real unread counts from chats
+  const chats = useMemo(() => getChatsForPersons(resolvedIds), [resolvedIds.join(",")]);
+  const totalUnread = chats.reduce((sum, c) => sum + c.unreadCount, 0);
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
@@ -356,14 +550,14 @@ export function MemberHome() {
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-2xl p-6 text-white">
         <div className="flex items-center gap-4">
-          <img 
-            src={user.avatar}
-            alt={user.firstName}
-            className="w-16 h-16 rounded-full border-2 border-white/30"
+          <img
+            src={displayAvatar}
+            alt={displayName}
+            className="w-16 h-16 rounded-full border-2 border-white/30 object-cover"
           />
           <div>
-            <h1 className="text-2xl font-bold">{lang === "de" ? `Hallo, ${user.firstName}!` : `Hello, ${user.firstName}!`}</h1>
-            <p className="text-teal-100">{lang === "de" ? "Willkommen im Mitglieder-Portal" : "Welcome to the Member Portal"}</p>
+            <h1 className="text-2xl font-bold">{lang === "de" ? `Hallo, ${displayName}!` : `Hello, ${displayName}!`}</h1>
+            <p className="text-teal-100">{displayTeam ?? (lang === "de" ? "Willkommen im Mitglieder-Portal" : "Welcome to the Member Portal")}</p>
           </div>
         </div>
       </div>
@@ -375,10 +569,10 @@ export function MemberHome() {
           <p className="text-2xl font-bold text-neutral-900">{upcomingEvents.length}</p>
           <p className="text-sm text-neutral-500">{t("nav.events")}</p>
         </Card>
-        <Card className="text-center">
+        <Card className="text-center cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/member/chats")}>
           <MessageSquare className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-          <p className="text-2xl font-bold text-neutral-900">3</p>
-          <p className="text-sm text-neutral-500">{t("nav.chats")}</p>
+          <p className="text-2xl font-bold text-neutral-900">{totalUnread > 0 ? totalUnread : chats.length}</p>
+          <p className="text-sm text-neutral-500">{totalUnread > 0 ? "Ungelesen" : t("nav.chats")}</p>
         </Card>
         <Card className="text-center">
           <Shield className="w-8 h-8 text-violet-500 mx-auto mb-2" />
@@ -424,7 +618,7 @@ export function MemberHome() {
                     </span>
                   </div>
                   <p className="font-medium text-neutral-900">{event.title}</p>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500">
+                  <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500 flex-wrap">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {event.startTime}
@@ -435,6 +629,19 @@ export function MemberHome() {
                         {event.location}
                       </span>
                     )}
+                    {event.fieldId && (() => {
+                      const field = getFieldById(event.fieldId!);
+                      if (!field) return null;
+                      const zoneLabel = event.bookingScope === "zones" && event.bookedZoneIds?.length
+                        ? ` · Zone ${event.bookedZoneIds.map(zId => field.zones.find(z => z.id === zId)?.zoneNumber).filter(Boolean).join(", ")}`
+                        : "";
+                      return (
+                        <span className="flex items-center gap-1 text-teal-600">
+                          <MapPin className="w-3 h-3" />
+                          {field.name}{zoneLabel}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
                 {/* RSVP Status */}
@@ -452,6 +659,56 @@ export function MemberHome() {
           ))}
         </div>
       </Card>
+
+      {/* Recent Chats */}
+      {chats.length > 0 && (
+        <Card padding="none">
+          <div className="p-5 border-b border-neutral-100">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-neutral-900">Nachrichten</h2>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/member/chats")}>
+                Alle anzeigen
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+          <div className="divide-y divide-neutral-100">
+            {chats
+              .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+              .slice(0, 3)
+              .map(chat => {
+                const typeIcon = chat.type === "announcement" ? "📢" : chat.type === "direct" ? "💬" : "👥";
+                return (
+                  <div
+                    key={chat.id}
+                    onClick={() => navigate("/member/chats")}
+                    className="p-4 hover:bg-neutral-50 cursor-pointer transition-colors flex items-start gap-3"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-lg flex-shrink-0">
+                      {typeIcon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`text-sm font-medium truncate ${chat.unreadCount > 0 ? "text-neutral-900" : "text-neutral-700"}`}>
+                          {chat.name}
+                        </p>
+                        <span className="text-xs text-neutral-400 flex-shrink-0">
+                          {new Date(chat.updatedAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-neutral-500 truncate mt-0.5">{chat.lastMessage?.content}</p>
+                    </div>
+                    {chat.unreadCount > 0 && (
+                      <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center flex-shrink-0 mt-1">
+                        {chat.unreadCount}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </Card>
+      )}
 
       {/* Recent News */}
       <Card padding="none">
@@ -505,31 +762,42 @@ type MemberViewMode = "list" | "calendar";
 type EventTypeFilter = "all" | "training" | "match" | "event";
 
 export function MemberCalendar() {
-  const { user } = useRole();
+  const { user, selectedPersons } = useRole();
   const { t, lang, getWeekday, getMonth } = useLanguage();
-  
+
+  const resolvedIds = selectedPersons.map(p => p === "me" ? user.id : p);
+  const displayName = selectedPersons.map(p => {
+    if (p === "me") return user.firstName;
+    return user.linkedChildren?.find(c => c.id === p)?.firstName ?? "";
+  }).filter(Boolean).join(", ");
+
   // State
   const [viewMode, setViewMode] = useState<MemberViewMode>("list");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<EventTypeFilter>("all");
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<EnhancedEvent | null>(null);
-  
-  // Get user events
-  const allEvents = getUserEvents(user.id);
-  
+
+  // Merge team events + club events, deduplicate by id
+  const allEvents = useMemo(() => {
+    const seen = new Set<string>();
+    const clubEvts = getClubEventsForPersons(resolvedIds);
+    return [...resolvedIds.flatMap(id => getUserEvents(id)), ...clubEvts]
+      .filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; });
+  }, [resolvedIds.join(",")]);
+
   // Filter events
   const filteredEvents = useMemo(() => {
     let events = [...allEvents];
-    
+
     // Type filter
     if (typeFilter !== "all") {
       events = events.filter(e => e.type === typeFilter);
     }
-    
+
     // Sort by date
     events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
+
     return events;
   }, [allEvents, typeFilter]);
 
@@ -670,6 +938,29 @@ export function MemberCalendar() {
                   <span>{selectedEvent.location}</span>
                 </div>
               )}
+              {selectedEvent.fieldId && (() => {
+                const field = getFieldById(selectedEvent.fieldId);
+                if (!field) return null;
+                return (
+                  <div className="flex items-start gap-3 text-neutral-600">
+                    <MapPin className="w-5 h-5 text-neutral-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-neutral-700">{field.name}</p>
+                      {field.isDivisibleInto6 && (
+                        <div className="mt-1.5">
+                          <ZoneGrid
+                            zones={field.zones}
+                            ownZones={selectedEvent.bookingScope === "zones" ? (selectedEvent.bookedZoneIds ?? []) : []}
+                            fullField={selectedEvent.bookingScope === "full_field"}
+                            readOnly
+                            compact
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
               {selectedEvent.team && (
                 <div className="flex items-center gap-3 text-neutral-600">
                   <span className="w-5 h-5 text-center">{selectedEvent.teamIcon}</span>
@@ -751,6 +1042,8 @@ export function MemberCalendar() {
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">{t("nav.calendar")}</h1>
           <p className="text-neutral-500 mt-1">
+            <span className="font-semibold text-neutral-800">{displayName}</span>
+            {" · "}
             <span className="font-semibold text-neutral-800">{filteredEvents.length}</span> {lang === "de" ? "anstehende Termine" : "upcoming events"}
           </p>
         </div>
@@ -1095,24 +1388,306 @@ export function MemberCalendar() {
 }
 
 // ==========================================
-// MEMBER CHATS (Placeholder)
+// MEMBER CHATS
 // ==========================================
+type ChatsTab = "messages" | "requests";
+
 export function MemberChats() {
-  const { t, lang } = useLanguage();
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-neutral-900">{t("nav.chats")}</h1>
-        <p className="text-neutral-500">{lang === "de" ? "Team-Chats und Direktnachrichten" : "Team chats and direct messages"}</p>
+  const { user, selectedPersons } = useRole();
+  const { lang } = useLanguage();
+
+  const resolvedIds = selectedPersons.map(p => p === "me" ? user.id : p);
+  const allChats = useMemo(() => getChatsForPersons(resolvedIds), [resolvedIds.join(",")]);
+
+  // My tickets (requests sent by this user)
+  const myTickets = useMemo(() =>
+    mockTickets.filter(t => t.requesterId === user.id || t.requesterId === "lena_schneider" && user.id === "lena_schneider"),
+    [user.id]
+  );
+
+  const [activeTab, setActiveTab] = useState<ChatsTab>("messages");
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+
+  const announcements = allChats.filter(c => c.type === "announcement");
+  const groupChats = allChats.filter(c => c.type === "team_group");
+  const directChats = allChats.filter(c => c.type === "direct");
+
+  const totalUnread = allChats.reduce((s, c) => s + c.unreadCount, 0);
+  const pendingRequests = myTickets.filter(t => t.status === "open" || t.status === "pending").length;
+
+  const formatTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+
+  const chatTypeIcon = (type: Chat["type"]) =>
+    type === "announcement" ? <Megaphone className="w-4 h-4" /> :
+    type === "direct" ? <User className="w-4 h-4" /> :
+    <Users className="w-4 h-4" />;
+
+  const chatBg = (type: Chat["type"]) =>
+    type === "announcement" ? "from-amber-400 to-amber-600" :
+    type === "direct" ? "from-violet-400 to-violet-600" :
+    "from-teal-400 to-teal-600";
+
+  // ── Chat thread view ──────────────────────────────────────────────────────
+  if (selectedChat) {
+    const messages = getMessagesForChat(selectedChat.id);
+    return (
+      <div className="flex flex-col h-full" style={{ minHeight: "calc(100vh - 8rem)" }}>
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => setSelectedChat(null)}
+            className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-neutral-600" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-neutral-900 truncate">{selectedChat.name}</p>
+            {selectedChat.description && (
+              <p className="text-xs text-neutral-500 truncate">{selectedChat.description}</p>
+            )}
+          </div>
+          {selectedChat.settings.parentVisibility && (
+            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">Eltern sehen mit</span>
+          )}
+        </div>
+
+        {/* Messages */}
+        <Card padding="none" className="flex-1 overflow-y-auto">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-neutral-400">
+              <MessageSquare className="w-10 h-10 mb-2" />
+              <p className="text-sm">Noch keine Nachrichten</p>
+            </div>
+          ) : (
+            <div className="p-4 space-y-4">
+              {messages.map(msg => {
+                const isMine = msg.senderId === PERSON_TO_PROFILE[user.id] || msg.senderId === "p11" && user.id === "lena_schneider";
+                return (
+                  <div key={msg.id} className={`flex gap-3 ${isMine ? "flex-row-reverse" : ""}`}>
+                    {msg.senderAvatar ? (
+                      <img src={msg.senderAvatar} alt={msg.senderName} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {msg.senderName[0]}
+                      </div>
+                    )}
+                    <div className={`max-w-[75%] ${isMine ? "items-end" : "items-start"} flex flex-col gap-0.5`}>
+                      {!isMine && (
+                        <span className="text-xs text-neutral-500">{msg.senderName}</span>
+                      )}
+                      {msg.onBehalfOf && (
+                        <span className="text-[10px] text-violet-600">Im Namen von {msg.onBehalfOf.childName}</span>
+                      )}
+                      <div className={`px-3 py-2 rounded-2xl text-sm ${
+                        isMine ? "bg-teal-500 text-white rounded-tr-sm" : "bg-neutral-100 text-neutral-900 rounded-tl-sm"
+                      }`}>
+                        {msg.content}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-neutral-400">{formatTime(msg.createdAt)}</span>
+                        {msg.reactions && Object.entries(msg.reactions).map(([emoji, count]) => (
+                          <span key={emoji} className="text-xs bg-neutral-100 px-1.5 py-0.5 rounded-full">
+                            {emoji} {count}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
+        {/* Input */}
+        {selectedChat.settings.repliesEnabled ? (
+          <div className="mt-3 flex gap-2">
+            <input
+              type="text"
+              placeholder={lang === "de" ? "Nachricht schreiben…" : "Write a message…"}
+              className="flex-1 px-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+              readOnly
+            />
+            <button className="p-2.5 bg-teal-500 text-white rounded-xl hover:bg-teal-600 transition-colors">
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+        ) : (
+          <div className="mt-3 px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-400 text-center">
+            {lang === "de" ? "Nur Reaktionen möglich" : "Reactions only"}
+          </div>
+        )}
       </div>
-      
-      <Card className="p-12 text-center">
-        <MessageSquare className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
-        <p className="text-neutral-500">{lang === "de" ? "Nachrichten-Funktionalität wird hier angezeigt" : "Messages functionality will be shown here"}</p>
-        <p className="text-sm text-neutral-400 mt-2">
-          {lang === "de" ? "Team-Ankündigungen, Gruppen-Chats und Direktnachrichten" : "Team announcements, group chats and direct messages"}
+    );
+  }
+
+  // ── List view ─────────────────────────────────────────────────────────────
+  const renderChatRow = (chat: Chat) => (
+    <button
+      key={chat.id}
+      onClick={() => setSelectedChat(chat)}
+      className="w-full flex items-start gap-3 px-4 py-3.5 hover:bg-neutral-50 transition-colors text-left"
+    >
+      <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${chatBg(chat.type)} flex items-center justify-center text-white flex-shrink-0`}>
+        {chatTypeIcon(chat.type)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <p className={`text-sm truncate ${chat.unreadCount > 0 ? "font-semibold text-neutral-900" : "font-medium text-neutral-700"}`}>
+            {chat.name}
+          </p>
+          <span className="text-[11px] text-neutral-400 flex-shrink-0">
+            {formatTime(chat.updatedAt)}
+          </span>
+        </div>
+        {chat.teamName && (
+          <p className="text-xs text-neutral-400 mb-0.5">{chat.teamName}</p>
+        )}
+        <p className="text-sm text-neutral-500 truncate">
+          {chat.lastMessage?.content ?? "–"}
         </p>
-      </Card>
+      </div>
+      {chat.unreadCount > 0 && (
+        <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center flex-shrink-0 mt-1">
+          {chat.unreadCount}
+        </span>
+      )}
+    </button>
+  );
+
+  const renderSection = (title: string, icon: React.ReactNode, chats: Chat[]) => {
+    if (chats.length === 0) return null;
+    return (
+      <div>
+        <div className="flex items-center gap-2 px-1 mb-1">
+          <span className="text-neutral-400">{icon}</span>
+          <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">{title}</p>
+        </div>
+        <Card padding="none" className="overflow-hidden">
+          <div className="divide-y divide-neutral-100">
+            {chats.map(renderChatRow)}
+          </div>
+        </Card>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-neutral-900">Nachrichten</h1>
+        <p className="text-neutral-500 mt-0.5">
+          {totalUnread > 0 ? `${totalUnread} ungelesene Nachrichten` : "Alle Nachrichten gelesen"}
+        </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-neutral-100 rounded-lg p-1 w-fit">
+        <button
+          onClick={() => setActiveTab("messages")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+            activeTab === "messages" ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-700"
+          }`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          Chats
+          {totalUnread > 0 && (
+            <span className="w-4 h-4 rounded-full bg-teal-500 text-white text-[10px] flex items-center justify-center">
+              {totalUnread}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("requests")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+            activeTab === "requests" ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-700"
+          }`}
+        >
+          <Inbox className="w-4 h-4" />
+          Anfragen
+          {pendingRequests > 0 && (
+            <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center">
+              {pendingRequests}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Messages tab */}
+      {activeTab === "messages" && (
+        <div className="space-y-4">
+          {allChats.length === 0 ? (
+            <Card className="text-center py-12">
+              <MessageSquare className="w-10 h-10 text-neutral-200 mx-auto mb-3" />
+              <p className="text-neutral-500">Keine Chats vorhanden</p>
+              <p className="text-sm text-neutral-400 mt-1">Wähle eine andere Person aus</p>
+            </Card>
+          ) : (
+            <>
+              {renderSection("Ankündigungen", <Megaphone className="w-3.5 h-3.5" />, announcements)}
+              {renderSection("Gruppen-Chats", <Users className="w-3.5 h-3.5" />, groupChats)}
+              {renderSection("Direktnachrichten", <User className="w-3.5 h-3.5" />, directChats)}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Requests tab */}
+      {activeTab === "requests" && (
+        <div className="space-y-3">
+          {myTickets.length === 0 ? (
+            <Card className="text-center py-12">
+              <Inbox className="w-10 h-10 text-neutral-200 mx-auto mb-3" />
+              <p className="text-neutral-500">Keine Anfragen vorhanden</p>
+            </Card>
+          ) : (
+            <Card padding="none" className="overflow-hidden divide-y divide-neutral-100">
+              {myTickets.map(ticket => (
+                <div key={ticket.id} className="px-4 py-3.5 flex items-start gap-3 hover:bg-neutral-50 transition-colors cursor-pointer">
+                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                    ticket.status === "open" ? "bg-amber-400" :
+                    ticket.status === "pending" ? "bg-blue-400" :
+                    ticket.status === "resolved" ? "bg-green-400" : "bg-neutral-300"
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium text-neutral-900 truncate">{ticket.subject}</p>
+                      <span className="text-[11px] text-neutral-400 flex-shrink-0">
+                        {new Date(ticket.createdAt).toLocaleDateString("de-DE")}
+                      </span>
+                    </div>
+                    {ticket.isOnBehalf && (
+                      <p className="text-xs text-violet-600 mt-0.5">Im Namen von {ticket.onBehalfOfName}</p>
+                    )}
+                    <p className="text-sm text-neutral-500 truncate mt-0.5">{ticket.previewText}</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
+                        ticket.status === "open" ? "bg-amber-100 text-amber-700" :
+                        ticket.status === "pending" ? "bg-blue-100 text-blue-700" :
+                        ticket.status === "resolved" ? "bg-green-100 text-green-700" : "bg-neutral-100 text-neutral-600"
+                      }`}>
+                        {ticket.status === "open" && <AlertCircle className="w-3 h-3" />}
+                        {ticket.status === "pending" && <Clock className="w-3 h-3" />}
+                        {ticket.status === "resolved" && <CheckCircle className="w-3 h-3" />}
+                        {ticket.status === "open" ? "Offen" :
+                          ticket.status === "pending" ? "In Bearbeitung" :
+                          ticket.status === "resolved" ? "Erledigt" : ticket.status}
+                      </span>
+                      {ticket.unreadCount > 0 && (
+                        <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">
+                          {ticket.unreadCount} neu
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -17,6 +17,7 @@ import { Teams } from "./routes/Teams";
 import { Departments } from "./routes/Departments";
 import { PlayerPasses } from "./routes/PlayerPasses";
 import { ClubEvents } from "./routes/ClubEvents";
+import { FieldBooking } from "./routes/FieldBooking";
 import { Volunteering } from "./routes/Volunteering";
 import { Matches } from "./routes/Matches";
 import { Documents } from "./routes/Documents";
@@ -86,6 +87,7 @@ function App() {
                 {/* Veranstaltungen */}
                 <Route path="events" element={<ClubEvents />} />
                 <Route path="club-events" element={<Navigate to="/events" replace />} />
+                <Route path="fields" element={<FieldBooking />} />
                 <Route path="volunteering" element={<Volunteering />} />
                 
                 {/* Billing */}

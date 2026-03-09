@@ -1,8 +1,8 @@
-import { NavLink } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building2, 
+import { NavLink, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
   Settings,
   X,
   Shield,
@@ -13,11 +13,11 @@ import {
   FolderOpen,
   MessageSquare,
   ChevronRight,
-  ExternalLink,
-  Home,
-  Newspaper,
   User,
-  ClipboardList
+  Newspaper,
+  Home,
+  ClipboardList,
+  LayoutGrid
 } from "lucide-react";
 import { useState } from "react";
 import { mockTickets, CURRENT_STAFF_ID } from "../../data/mockInbox";
@@ -28,29 +28,23 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-interface NavSection {
-  title?: string;
-  items: NavItem[];
-  adminOnly?: boolean;
-  memberOnly?: boolean;
-}
-
 interface NavItem {
   to?: string;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   badge?: number;
   children?: { to: string; label: string; badge?: number }[];
-  adminOnly?: boolean;
-  memberOnly?: boolean;
 }
 
-// Calculate badge for inbox
+interface NavSection {
+  title?: string;
+  items: NavItem[];
+}
+
 const myOpenTickets = mockTickets.filter(
   t => t.assignedToId === CURRENT_STAFF_ID && (t.status === "open" || t.status === "pending")
 ).length;
 
-// Admin navigation sections
 const adminNavSections: NavSection[] = [
   {
     items: [
@@ -60,11 +54,11 @@ const adminNavSections: NavSection[] = [
   },
   {
     items: [
-      { to: "/people", icon: Users, label: "Personen" }, // Unified Members + Contacts
+      { to: "/people", icon: Users, label: "Personen" },
       { to: "/registration", icon: ClipboardList, label: "Registrierung" },
-      { 
-        to: "/matches", 
-        icon: Trophy, 
+      {
+        to: "/matches",
+        icon: Trophy,
         label: "Spielbetrieb",
         children: [
           { to: "/matches", label: "Spiele" },
@@ -75,9 +69,9 @@ const adminNavSections: NavSection[] = [
   },
   {
     items: [
-      { 
-        to: "/products", 
-        icon: Package, 
+      {
+        to: "/products",
+        icon: Package,
         label: "Produkte & Zahlung",
         children: [
           { to: "/products", label: "Produkte" },
@@ -87,13 +81,14 @@ const adminNavSections: NavSection[] = [
         ]
       },
       { to: "/events", icon: Calendar, label: "Veranstaltungen" },
+      { to: "/fields", icon: LayoutGrid, label: "Platzbelegung" },
     ]
   },
   {
     items: [
-      { 
-        to: "/departments", 
-        icon: Building2, 
+      {
+        to: "/departments",
+        icon: Building2,
         label: "Vereinsverwaltung",
         children: [
           { to: "/departments", label: "Abteilungen" },
@@ -101,9 +96,9 @@ const adminNavSections: NavSection[] = [
           { to: "/volunteering", label: "Ehrenamt" }
         ]
       },
-      { 
-        to: "/finance", 
-        icon: Wallet, 
+      {
+        to: "/finance",
+        icon: Wallet,
         label: "Finanzen",
         children: [
           { to: "/transactions", label: "Transaktionen" },
@@ -114,8 +109,8 @@ const adminNavSections: NavSection[] = [
   },
   {
     items: [
-      { 
-        icon: MessageSquare, 
+      {
+        icon: MessageSquare,
         label: "Kommunikation",
         badge: myOpenTickets,
         children: [
@@ -131,101 +126,174 @@ const adminNavSections: NavSection[] = [
   }
 ];
 
-// Member navigation sections
-// Use consistent labels with admin nav for shared features
 const memberNavSections: NavSection[] = [
   {
     items: [
-      { to: "/member", icon: Home, label: "Startseite" },
-      { to: "/member/calendar", icon: Calendar, label: "Veranstaltungen" }, // Matches admin "Veranstaltungen"
+      { to: "/member", icon: Home, label: "Übersicht" },
+      { to: "/member/calendar", icon: Calendar, label: "Termine" },
       { to: "/member/chats", icon: MessageSquare, label: "Nachrichten" },
-      { to: "/member/news", icon: Newspaper, label: "Club News" }, // Matches admin "Club News"
+      { to: "/member/news", icon: Newspaper, label: "News" },
     ]
   },
   {
     items: [
-      { to: "/member/profile", icon: User, label: "Mein Profil" },
-      { to: "/member/settings", icon: Settings, label: "Einstellungen" }, // Matches admin "Einstellungen"
+      { to: "/member/profile", icon: User, label: "Profil" },
+      { to: "/member/settings", icon: Settings, label: "Einstellungen" },
     ]
   }
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const { activeRole } = useRole();
-  
-  // Select navigation based on active role
-  const navSections = activeRole === "admin" ? adminNavSections : memberNavSections;
-  
-  // Member Portal path (for external links in admin view)
-  const memberPortalPath = "pilot/member-portal";
+  const { user, activeRole, setActiveRole, canSwitchRoles, selectedPersons, togglePerson } = useRole();
+  const navigate = useNavigate();
+
+  const isMemberMode = activeRole === "member";
+  const navSections = isMemberMode ? memberNavSections : adminNavSections;
 
   const toggleExpand = (label: string) => {
-    setExpandedItems(prev => 
-      prev.includes(label) 
-        ? prev.filter(l => l !== label)
-        : [...prev, label]
+    setExpandedItems(prev =>
+      prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]
     );
   };
+
+  const switchToAdmin = () => {
+    setActiveRole("admin");
+    navigate("/dashboard");
+    onClose();
+  };
+
+  const switchToMember = () => {
+    setActiveRole("member");
+    navigate("/member");
+    onClose();
+  };
+
+  // Subtitle: list selected person names
+  const memberSubtitle = selectedPersons.map(p => {
+    if (p === "me") return user.firstName;
+    return user.linkedChildren?.find(c => c.id === p)?.firstName ?? "";
+  }).filter(Boolean).join(", ");
 
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/30 z-40 lg:hidden backdrop-blur-sm" 
+        <div
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden backdrop-blur-sm"
           onClick={onClose}
         />
       )}
-      
-      {/* Sidebar */}
+
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50
-        flex flex-col
-        w-64 min-h-screen
+        flex flex-col w-64 min-h-screen
         bg-white border-r border-neutral-200
         transform transition-transform duration-200 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-neutral-200">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-neutral-200 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center">
               <span className="text-white font-bold text-lg">cb</span>
             </div>
-            {activeRole === "member" && (
-              <span className="text-sm font-medium text-neutral-600">Mitglieder-Portal</span>
-            )}
           </div>
-          <button 
-            onClick={onClose}
-            className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-          >
+          <button onClick={onClose} className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors">
             <X className="w-5 h-5 text-neutral-500" />
           </button>
         </div>
 
-        {/* Club Logo/Avatar */}
-        <div className="px-4 py-5 border-b border-neutral-200">
+        {/* Club identity */}
+        <div className="px-4 py-3 border-b border-neutral-200 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
-              <span className="text-white font-bold text-xl">SfB</span>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold">SfB</span>
             </div>
-            <div className="flex-1">
-              <p className="font-semibold text-neutral-900 text-sm">Sportfreunde Burkhardsfelden</p>
-              <p className="text-xs text-neutral-500">
-                {activeRole === "admin" ? "Admin-Portal" : "Mitglieder-Portal"}
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-neutral-900 text-sm truncate">Sportfreunde Burkhardsfelden</p>
+              <p className="text-xs text-neutral-400">
+                {isMemberMode ? `${memberSubtitle} · Mitglied` : "Vereinsverwaltung"}
               </p>
             </div>
           </div>
         </div>
 
+        {/* ── Verein / Ich toggle (admin+member users only) ── */}
+        {canSwitchRoles && (
+          <div className="px-3 py-3 border-b border-neutral-200 flex-shrink-0">
+            <div className="flex bg-neutral-100 rounded-lg p-0.5 gap-0.5">
+              <button
+                onClick={switchToAdmin}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  !isMemberMode
+                    ? "bg-white shadow-sm text-neutral-900"
+                    : "text-neutral-500 hover:text-neutral-700"
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                Verein
+              </button>
+              <button
+                onClick={switchToMember}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  isMemberMode
+                    ? "bg-white shadow-sm text-neutral-900"
+                    : "text-neutral-500 hover:text-neutral-700"
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                Ich
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Person selector (member mode + has linked children) ── */}
+        {isMemberMode && (user.linkedChildren?.length ?? 0) > 0 && (
+          <div className="px-3 py-3 border-b border-neutral-100 flex-shrink-0">
+            <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">Ansicht für</p>
+            <div className="flex flex-wrap gap-1.5">
+              {/* Self */}
+              <button
+                onClick={() => togglePerson("me")}
+                className={`flex items-center gap-1.5 pl-0.5 pr-2.5 py-0.5 rounded-full text-xs font-medium transition-all border ${
+                  selectedPersons.includes("me")
+                    ? "bg-teal-500 text-white border-teal-500"
+                    : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300"
+                }`}
+              >
+                <img src={user.avatar} alt={user.firstName} className="w-5 h-5 rounded-full object-cover" />
+                {user.firstName}
+              </button>
+              {/* Children */}
+              {user.linkedChildren?.map(child => (
+                <button
+                  key={child.id}
+                  onClick={() => togglePerson(child.id)}
+                  className={`flex items-center gap-1.5 pl-0.5 pr-2.5 py-0.5 rounded-full text-xs font-medium transition-all border ${
+                    selectedPersons.includes(child.id)
+                      ? "bg-teal-500 text-white border-teal-500"
+                      : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300"
+                  }`}
+                >
+                  {child.avatar
+                    ? <img src={child.avatar} alt={child.firstName} className="w-5 h-5 rounded-full object-cover" />
+                    : <div className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-[9px] font-bold">{child.firstName[0]}</div>
+                  }
+                  {child.firstName}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        <nav className="flex-1 px-3 py-3 overflow-y-auto">
           {navSections.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="mb-2">
+            <div key={sectionIndex} className="mb-1">
               {section.title && (
-                <p className="px-3 mb-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                <p className="px-3 mb-1.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
                   {section.title}
                 </p>
               )}
@@ -236,11 +304,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       <>
                         <button
                           onClick={() => toggleExpand(item.label)}
-                          className={`
-                            w-full flex items-center justify-between px-3 py-2.5 rounded-lg
-                            text-sm font-medium transition-all duration-150
-                            text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900
-                          `}
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
                         >
                           <div className="flex items-center gap-3">
                             <item.icon className="w-5 h-5" />
@@ -258,17 +322,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           </div>
                         </button>
                         {expandedItems.includes(item.label) && (
-                          <div className="ml-8 mt-1 space-y-0.5">
+                          <div className="ml-8 mt-0.5 space-y-0.5">
                             {item.children.map((child) => (
                               <NavLink
                                 key={child.to}
                                 to={child.to}
                                 onClick={onClose}
                                 className={({ isActive }) => `
-                                  flex items-center justify-between px-3 py-2 rounded-lg
-                                  text-sm transition-all duration-150
-                                  ${isActive 
-                                    ? "text-teal-600 bg-teal-50 font-medium" 
+                                  flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all
+                                  ${isActive
+                                    ? "text-teal-600 bg-teal-50 font-medium"
                                     : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
                                   }
                                 `}
@@ -288,11 +351,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       <NavLink
                         to={item.to}
                         onClick={onClose}
+                        end={item.to === "/member"}
                         className={({ isActive }) => `
-                          flex items-center justify-between px-3 py-2.5 rounded-lg
-                          text-sm font-medium transition-all duration-150
-                          ${isActive 
-                            ? "bg-teal-50 text-teal-600" 
+                          flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all
+                          ${isActive
+                            ? "bg-teal-50 text-teal-600"
                             : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
                           }
                         `}
@@ -315,25 +378,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           ))}
         </nav>
 
-        {/* External Links (Admin only) */}
-        {activeRole === "admin" && (
-          <div className="px-4 pb-2 space-y-1">
-            <p className="px-3 pt-2 pb-1 text-xs font-medium text-neutral-400 uppercase tracking-wide">
-              Mitglieder-Ansicht
-            </p>
-            <a
-              href={`${import.meta.env.BASE_URL}${memberPortalPath}`}
-              target="_blank"
-              className="flex items-center gap-3 px-3 py-2 text-sm text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>Mobile App</span>
-            </a>
-          </div>
-        )}
-
-        {/* User Profile with Switcher */}
-        <div className="p-4 border-t border-neutral-200">
+        {/* User Profile */}
+        <div className="p-4 border-t border-neutral-200 flex-shrink-0">
           <UserSwitcher onClose={onClose} />
         </div>
       </aside>
