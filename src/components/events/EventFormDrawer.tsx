@@ -13,6 +13,7 @@ import { AudienceSelector } from "./AudienceSelector";
 import { RecurrenceEditor } from "./RecurrenceEditor";
 import { RSVPSection } from "./RSVPSection";
 import { FieldPicker } from "../fields/FieldPicker";
+import { getFieldById } from "../../data/mockFields";
 import { ADMIN_USER, mockClubMembers, mockGroups } from "../../data/mockClubEvents";
 import { generateEventId, createStatusHistoryEntry } from "../../utils/eventUtils";
 
@@ -344,7 +345,29 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
                   startTime={formData.startTime}
                   endTime={formData.endTime}
                   excludeEventId={event?.id}
-                  onChange={patch => setFormData(prev => ({ ...prev, ...patch }))}
+                  onChange={patch => setFormData(prev => {
+                    const next = { ...prev, ...patch };
+                    // Auto-fill location with field address when a field is selected
+                    if (patch.fieldId !== undefined) {
+                      if (patch.fieldId) {
+                        const f = getFieldById(patch.fieldId);
+                        if (f?.address) {
+                          // Only overwrite if empty or previously auto-filled by a field
+                          const prevFieldAddr = prev.fieldId ? getFieldById(prev.fieldId)?.address : undefined;
+                          if (!prev.location || prev.location === prevFieldAddr) {
+                            next.location = f.address;
+                          }
+                        }
+                      } else {
+                        // Field cleared – remove auto-filled address if unchanged
+                        const prevFieldAddr = prev.fieldId ? getFieldById(prev.fieldId)?.address : undefined;
+                        if (prevFieldAddr && prev.location === prevFieldAddr) {
+                          next.location = "";
+                        }
+                      }
+                    }
+                    return next;
+                  })}
                 />
               </div>
             </div>
