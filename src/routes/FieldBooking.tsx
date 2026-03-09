@@ -18,6 +18,7 @@ import {
   LayoutGrid,
   CheckCircle,
   Home,
+  XCircle,
 } from "lucide-react";
 import { ZoneGrid } from "../components/fields/ZoneGrid";
 import { FieldFormDrawer } from "../components/fields/FieldFormDrawer";
@@ -26,16 +27,14 @@ import { mockClubEvents } from "../data/mockClubEvents";
 import type { Field } from "../types/fields";
 import { FIELD_TYPE_ICONS, FIELD_TYPE_LABELS } from "../types/fields";
 import type { ClubEvent } from "../types/events";
+import { useLanguage } from "../i18n";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const TODAY = new Date().toISOString().split("T")[0];
 
-const fmt = (iso: string) =>
-  new Date(iso).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-
-const fmtDay = (iso: string) =>
-  new Date(iso).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+const fmtDay = (iso: string, lang: "de" | "en") =>
+  new Date(iso).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
 const addDays = (iso: string, n: number) => {
   const d = new Date(iso);
@@ -62,11 +61,13 @@ const EVENT_COLORS: Record<string, string> = {
 type Tab = "felder" | "belegung";
 
 export function FieldBooking() {
+  const { t, lang, getWeekday } = useLanguage();
   const [tab, setTab] = useState<Tab>("felder");
   const [fields, setFields] = useState<Field[]>(mockFields);
   const [formField, setFormField] = useState<Field | null | undefined>(undefined); // undefined = closed
   const [deleteTarget, setDeleteTarget] = useState<Field | null>(null);
   const [selectedDate, setSelectedDate] = useState(TODAY);
+  const [calendarWeek, setCalendarWeek] = useState(new Date());
   const [expandedFields, setExpandedFields] = useState<string[]>([]);
   const [detailEvent, setDetailEvent] = useState<ClubEvent | null>(null);
 
@@ -131,9 +132,9 @@ export function FieldBooking() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Platzbelegung</h1>
+          <h1 className="text-2xl font-bold text-neutral-900">{t("fields.title")}</h1>
           <p className="text-neutral-500 mt-0.5">
-            {fields.filter(f => f.isActive).length} aktive Felder · {fields.length} gesamt
+            {fields.filter(f => f.isActive).length} {t("fields.activeFields")} · {fields.length} {t("fields.total")}
           </p>
         </div>
         {tab === "felder" && (
@@ -142,23 +143,23 @@ export function FieldBooking() {
             className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Feld hinzufügen
+            {t("fields.addField")}
           </button>
         )}
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-neutral-100 rounded-lg p-1 w-fit">
-        {(["felder", "belegung"] as Tab[]).map(t => (
+        {(["felder", "belegung"] as Tab[]).map(tabKey => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              tab === t ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-700"
+              tab === tabKey ? "bg-white shadow-sm text-neutral-900" : "text-neutral-500 hover:text-neutral-700"
             }`}
           >
-            {t === "felder" ? <Home className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
-            {t === "felder" ? "Felder" : "Belegung"}
+            {tabKey === "felder" ? <Home className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
+            {tabKey === "felder" ? t("fields.fieldsTab") : t("fields.occupancyTab")}
           </button>
         ))}
       </div>
@@ -209,21 +210,21 @@ export function FieldBooking() {
                       ? "bg-violet-50 border-violet-200 text-violet-700"
                       : "bg-emerald-50 border-emerald-200 text-emerald-700"
                   }`}>
-                    {field.indoorOutdoor === "indoor" ? "🏟️ Halle" : "🌿 Outdoor"}
+                    {field.indoorOutdoor === "indoor" ? `🏟️ ${t("fields.indoor")}` : `🌿 ${t("fields.outdoor")}`}
                   </span>
                   {field.isDivisibleInto6 && (
                     <span className="text-xs px-2 py-0.5 rounded-full border bg-blue-50 border-blue-200 text-blue-700">
-                      6 Zonen
+                      6 {t("fields.zonesCount")}
                     </span>
                   )}
                   {!field.isActive && (
                     <span className="text-xs px-2 py-0.5 rounded-full border bg-neutral-100 border-neutral-200 text-neutral-500">
-                      Inaktiv
+                      {t("fields.inactive")}
                     </span>
                   )}
                   {field.sourceType === "imported" && (
                     <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-50 border-amber-200 text-amber-700">
-                      Importiert
+                      {t("fields.imported")}
                     </span>
                   )}
                 </div>
@@ -260,10 +261,10 @@ export function FieldBooking() {
                 <div className="flex items-center gap-1.5 text-xs">
                   {hasFuture ? (
                     <span className="text-teal-600 flex items-center gap-1">
-                      <CheckCircle className="w-3.5 h-3.5" /> Hat zukünftige Buchungen
+                      <CheckCircle className="w-3.5 h-3.5" /> {t("fields.futureBookings")}
                     </span>
                   ) : (
-                    <span className="text-neutral-400">Keine zukünftigen Buchungen</span>
+                    <span className="text-neutral-400">{t("fields.noFutureBookings")}</span>
                   )}
                 </div>
               </div>
@@ -275,32 +276,81 @@ export function FieldBooking() {
       {/* ── BELEGUNG TAB ────────────────────────────────────────────────── */}
       {tab === "belegung" && (
         <div className="space-y-4">
-          {/* Date navigation */}
-          <div className="flex items-center gap-3 bg-white border border-neutral-200 rounded-xl px-4 py-3">
-            <button
-              onClick={() => setSelectedDate(addDays(selectedDate, -1))}
-              className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5 text-neutral-600" />
-            </button>
-            <div className="flex-1 text-center">
-              <p className="font-semibold text-neutral-900">{fmtDay(selectedDate)}</p>
-              {selectedDate === TODAY && (
-                <p className="text-xs text-teal-600 font-medium">Heute</p>
+          {/* Date navigation – matches Events list view week strip */}
+          <div className="bg-white border border-neutral-200 rounded-xl p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => { const d = new Date(calendarWeek); d.setDate(d.getDate() - 7); setCalendarWeek(d); }}
+                  className="p-1 hover:bg-neutral-100 rounded"
+                >
+                  <ChevronLeft className="w-4 h-4 text-neutral-500" />
+                </button>
+                <span className="text-sm font-medium text-neutral-700 min-w-[120px] text-center">
+                  {calendarWeek.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}
+                </span>
+                <button
+                  onClick={() => { const d = new Date(calendarWeek); d.setDate(d.getDate() + 7); setCalendarWeek(d); }}
+                  className="p-1 hover:bg-neutral-100 rounded"
+                >
+                  <ChevronRight className="w-4 h-4 text-neutral-500" />
+                </button>
+                <button
+                  onClick={() => { setCalendarWeek(new Date()); setSelectedDate(TODAY); }}
+                  className="ml-2 text-xs px-2 py-1 text-[#004941] hover:bg-[#C8F2E0] rounded"
+                >
+                  {t("fields.today")}
+                </button>
+              </div>
+              {selectedDate !== TODAY ? (
+                <button
+                  onClick={() => setSelectedDate(TODAY)}
+                  className="text-xs px-2 py-1 bg-[#004941] text-white rounded flex items-center gap-1"
+                >
+                  {new Date(selectedDate).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
+                  <XCircle className="w-3 h-3" />
+                </button>
+              ) : (
+                <span className="text-xs text-neutral-500">{fmtDay(selectedDate, lang)}</span>
               )}
             </div>
-            <button
-              onClick={() => setSelectedDate(addDays(selectedDate, 1))}
-              className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors"
-            >
-              <ChevronRight className="w-5 h-5 text-neutral-600" />
-            </button>
-            <button
-              onClick={() => setSelectedDate(TODAY)}
-              className="text-xs text-teal-600 hover:text-teal-700 font-medium px-2 py-1 hover:bg-teal-50 rounded-lg transition-colors"
-            >
-              Heute
-            </button>
+            {/* Week strip */}
+            <div className="flex gap-1">
+              {(() => {
+                const startOfWeek = new Date(calendarWeek);
+                const dow = startOfWeek.getDay();
+                startOfWeek.setDate(startOfWeek.getDate() + (dow === 0 ? -6 : 1 - dow));
+                const todayDate = new Date();
+                todayDate.setHours(0, 0, 0, 0);
+                return Array.from({ length: 7 }, (_, i) => {
+                  const d = new Date(startOfWeek);
+                  d.setDate(d.getDate() + i);
+                  const dateStr = d.toISOString().split("T")[0];
+                  const isToday = d.toDateString() === todayDate.toDateString();
+                  const isSelected = selectedDate === dateStr;
+                  const hasBookings = events.some(e => e.fieldId && e.date === dateStr);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedDate(dateStr)}
+                      className={`flex-1 py-1.5 rounded text-center transition-all ${
+                        isSelected ? "bg-[#004941] text-white" : isToday ? "bg-[#C8F2E0] text-[#004941]" : hasBookings ? "bg-white hover:bg-neutral-100" : "hover:bg-white"
+                      }`}
+                    >
+                      <p className={`text-[10px] uppercase ${isSelected ? "text-white/70" : "text-neutral-400"}`}>
+                        {getWeekday(d)}
+                      </p>
+                      <p className={`text-sm font-bold ${isSelected ? "text-white" : isToday ? "text-[#004941]" : "text-neutral-700"}`}>
+                        {d.getDate()}
+                      </p>
+                      {hasBookings && (
+                        <div className={`w-1 h-1 rounded-full mx-auto mt-0.5 ${isSelected ? "bg-white" : "bg-[#004941]"}`} />
+                      )}
+                    </button>
+                  );
+                });
+              })()}
+            </div>
           </div>
 
           {/* Timeline header */}
@@ -317,7 +367,7 @@ export function FieldBooking() {
             {!hasAnyBooking && (
               <div className="py-12 text-center">
                 <LayoutGrid className="w-8 h-8 text-neutral-200 mx-auto mb-2" />
-                <p className="text-sm text-neutral-500">Keine Buchungen an diesem Tag.</p>
+                <p className="text-sm text-neutral-500">{t("fields.noBookings")}</p>
               </div>
             )}
 
@@ -338,7 +388,7 @@ export function FieldBooking() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-neutral-900 truncate">{field.name}</p>
                         {field.isDivisibleInto6 && (
-                          <p className="text-[10px] text-neutral-400">{isExpanded ? "▲ Zonen" : "▼ Zonen"}</p>
+                          <p className="text-[10px] text-neutral-400">{isExpanded ? `▲ ${t("fields.expandZones")}` : `▼ ${t("fields.expandZones")}`}</p>
                         )}
                       </div>
                     </div>
@@ -372,7 +422,7 @@ export function FieldBooking() {
                       })}
                       {!hasBookings && (
                         <div className="absolute inset-0 flex items-center justify-start pl-3">
-                          <span className="text-[11px] text-neutral-300">Frei</span>
+                          <span className="text-[11px] text-neutral-300">{t("fields.free")}</span>
                         </div>
                       )}
                     </div>
@@ -427,13 +477,13 @@ export function FieldBooking() {
           {/* Legend */}
           <div className="flex flex-wrap gap-3 text-xs text-neutral-500">
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-blue-200 border border-blue-300" /> Training
+              <span className="w-3 h-3 rounded bg-blue-200 border border-blue-300" /> {t("fields.training")}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-amber-200 border border-amber-300" /> Spiel
+              <span className="w-3 h-3 rounded bg-amber-200 border border-amber-300" /> {t("fields.match")}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-violet-200 border border-violet-300" /> Veranstaltung
+              <span className="w-3 h-3 rounded bg-violet-200 border border-violet-300" /> {t("fields.event")}
             </span>
           </div>
         </div>
@@ -457,7 +507,7 @@ export function FieldBooking() {
               <div className="space-y-2 mt-3 text-sm text-neutral-600">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-neutral-400" />
-                  {detailEvent.startTime} – {detailEvent.endTime} Uhr
+                  {detailEvent.startTime} – {detailEvent.endTime}{lang === "de" ? " Uhr" : ""}
                 </div>
                 {detailEvent.location && (
                   <div className="flex items-center gap-2">
@@ -469,8 +519,8 @@ export function FieldBooking() {
                   <div className="flex items-center gap-2">
                     <LayoutGrid className="w-4 h-4 text-neutral-400" />
                     {detailEvent.bookingScope === "full_field"
-                      ? "Ganzes Feld"
-                      : `Zonen: ${detailEvent.bookedZoneIds?.length ?? 0}`}
+                      ? t("fields.fullField")
+                      : `${t("fields.zonesCount")}: ${detailEvent.bookedZoneIds?.length ?? 0}`}
                   </div>
                 )}
               </div>
@@ -478,7 +528,7 @@ export function FieldBooking() {
                 onClick={() => setDetailEvent(null)}
                 className="mt-4 w-full py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg text-sm font-medium transition-colors"
               >
-                Schließen
+                {t("common.close")}
               </button>
             </div>
           </div>
@@ -511,9 +561,9 @@ export function FieldBooking() {
                     <AlertCircle className="w-5 h-5 text-red-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-neutral-900">Löschen nicht möglich</p>
+                    <p className="font-semibold text-neutral-900">{t("fields.deleteBlocked")}</p>
                     <p className="text-sm text-neutral-500 mt-0.5">
-                      „{deleteTarget.name}" hat noch zukünftige Buchungen. Bitte diese zuerst entfernen.
+                      „{deleteTarget.name}" {t("fields.deleteBlockedDesc")}
                     </p>
                   </div>
                 </div>
@@ -531,9 +581,9 @@ export function FieldBooking() {
                     <Trash2 className="w-5 h-5 text-red-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-neutral-900">Feld löschen?</p>
+                    <p className="font-semibold text-neutral-900">{t("fields.deleteConfirm")}</p>
                     <p className="text-sm text-neutral-500 mt-0.5">
-                      „{deleteTarget.name}" wird dauerhaft gelöscht.
+                      „{deleteTarget.name}" – {t("fields.deleteDesc")}
                     </p>
                   </div>
                 </div>
@@ -542,13 +592,13 @@ export function FieldBooking() {
                     onClick={() => setDeleteTarget(null)}
                     className="flex-1 py-2.5 border border-neutral-300 text-neutral-700 rounded-lg text-sm font-medium hover:bg-neutral-50 transition-colors"
                   >
-                    Abbrechen
+                    {t("common.cancel")}
                   </button>
                   <button
                     onClick={handleDeleteConfirm}
                     className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
                   >
-                    Löschen
+                    {t("common.delete")}
                   </button>
                 </div>
               </>

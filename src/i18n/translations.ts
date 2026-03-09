@@ -202,6 +202,51 @@ export const translations = {
   },
 
   // ==========================================
+  // FIELD BOOKING (Platzbelegung)
+  // ==========================================
+  fields: {
+    title: { de: "Platzbelegung", en: "Field Booking" },
+    activeFields: { de: "aktive Felder", en: "active fields" },
+    total: { de: "gesamt", en: "total" },
+    addField: { de: "Feld hinzufügen", en: "Add Field" },
+    fieldsTab: { de: "Felder", en: "Fields" },
+    occupancyTab: { de: "Belegung", en: "Occupancy" },
+    today: { de: "Heute", en: "Today" },
+    free: { de: "Frei", en: "Free" },
+    noBookings: { de: "Keine Buchungen an diesem Tag.", en: "No bookings on this day." },
+    training: { de: "Training", en: "Training" },
+    match: { de: "Spiel", en: "Match" },
+    event: { de: "Veranstaltung", en: "Event" },
+    fullField: { de: "Ganzes Feld", en: "Full field" },
+    zonesCount: { de: "Zonen", en: "Zones" },
+    indoor: { de: "Halle", en: "Indoor" },
+    outdoor: { de: "Outdoor", en: "Outdoor" },
+    inactive: { de: "Inaktiv", en: "Inactive" },
+    imported: { de: "Importiert", en: "Imported" },
+    futureBookings: { de: "Hat zukünftige Buchungen", en: "Has future bookings" },
+    noFutureBookings: { de: "Keine zukünftigen Buchungen", en: "No future bookings" },
+    deleteBlocked: { de: "Löschen nicht möglich", en: "Cannot delete" },
+    deleteBlockedDesc: { de: "hat noch zukünftige Buchungen. Bitte diese zuerst entfernen.", en: "has future bookings. Please remove them first." },
+    deleteConfirm: { de: "Feld wirklich löschen?", en: "Really delete this field?" },
+    deleteDesc: { de: "Diese Aktion kann nicht rückgängig gemacht werden.", en: "This action cannot be undone." },
+    // Form
+    newField: { de: "Neues Feld", en: "New Field" },
+    editField: { de: "Feld bearbeiten", en: "Edit Field" },
+    fieldName: { de: "Name", en: "Name" },
+    namePlaceholder: { de: "z.B. Hauptplatz", en: "e.g. Main pitch" },
+    fieldType: { de: "Typ", en: "Type" },
+    fieldLocation: { de: "Standort", en: "Location" },
+    divisible: { de: "In 6 Zonen teilbar", en: "Divisible into 6 zones" },
+    divisibleDesc: { de: "Erlaubt es, Trainings auf einzelnen Zonen zu buchen und das Feld mehrfach gleichzeitig zu nutzen.", en: "Allows booking individual zones and using the field for multiple sessions simultaneously." },
+    divisibleError: { de: "Nicht möglich: Dieses Feld hat noch zukünftige Zonen-Buchungen. Bitte erst diese entfernen.", en: "Not possible: This field has future zone bookings. Please remove them first." },
+    address: { de: "Adresse / Lage", en: "Address / Location" },
+    addressPlaceholder: { de: "z.B. Sportanlage Burkhardsfelden, Platz 1", en: "e.g. Sports facility, Pitch 1" },
+    active: { de: "Aktiv", en: "Active" },
+    activeDesc: { de: "Inaktive Felder können nicht gebucht werden.", en: "Inactive fields cannot be booked." },
+    expandZones: { de: "Zonen", en: "Zones" },
+  },
+
+  // ==========================================
   // WEEKDAYS
   // ==========================================
   weekdays: {
