@@ -80,23 +80,21 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
 
-      {/* Drawer */}
-      <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-white shadow-2xl flex flex-col">
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
-          <h2 className="text-lg font-semibold text-neutral-900">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <h2 className="text-xl font-bold text-slate-800">
             {isEdit ? "Feld bearbeiten" : "Neues Feld"}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-slate-100 rounded-lg"
           >
-            <X className="w-5 h-5 text-neutral-500" />
+            <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
@@ -104,7 +102,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -112,14 +110,14 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
               value={form.name}
               onChange={e => set("name", e.target.value)}
               placeholder="z.B. Hauptplatz"
-              className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004941]"
               autoFocus
             />
           </div>
 
           {/* Type */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Typ</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Typ</label>
             <div className="grid grid-cols-3 gap-2">
               {FIELD_TYPES.map(type => (
                 <button
@@ -141,7 +139,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
 
           {/* Indoor / Outdoor */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Standort</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Standort</label>
             <div className="flex gap-2">
               {(["outdoor", "indoor"] as IndoorOutdoor[]).map(io => (
                 <button
@@ -186,25 +184,25 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Beschreibung</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Beschreibung</label>
             <textarea
               value={form.description}
               onChange={e => set("description", e.target.value)}
               rows={2}
               placeholder="Optionale Zusatzinfos (Kapazität, Flutlicht, etc.)"
-              className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004941] resize-none"
             />
           </div>
 
           {/* Address */}
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Adresse / Lage</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Adresse / Lage</label>
             <input
               type="text"
               value={form.address}
               onChange={e => set("address", e.target.value)}
               placeholder="z.B. Sportanlage Burkhardsfelden, Platz 1"
-              className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004941]"
             />
           </div>
 
@@ -231,21 +229,24 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-6 py-4 border-t border-neutral-200">
-          <button
-            onClick={onClose}
-            className="flex-1 py-2.5 border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
-          >
-            Abbrechen
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!form.name.trim()}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:bg-neutral-200 disabled:text-neutral-400 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            <Save className="w-4 h-4" />
-            Speichern
-          </button>
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl">
+          <div className="flex items-center justify-end gap-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              Abbrechen
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!form.name.trim()}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#004941] text-white rounded-lg hover:bg-[#003830] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save className="w-4 h-4" />
+              Speichern
+            </button>
+          </div>
+        </div>
         </div>
       </div>
     </>
