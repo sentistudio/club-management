@@ -245,10 +245,9 @@ export function FieldDetailModal({
                           <div className="flex items-center gap-1.5">
                             <p className="text-sm font-medium text-neutral-900 truncate">{evt.title}</p>
                             {isRecurring && (
-                              <RefreshCw
-                                className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0"
-                                title="Wiederkehrend"
-                              />
+                              <span title="Wiederkehrend">
+                                <RefreshCw className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
+                              </span>
                             )}
                           </div>
                           <p className="text-xs text-neutral-500 mt-0.5">
