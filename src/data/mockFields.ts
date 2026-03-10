@@ -118,6 +118,15 @@ export const mockFields: Field[] = [
 ];
 
 // ==========================================
+// DEMO HELPER – dates relative to today so demo never goes stale
+// ==========================================
+const daysFromToday = (n: number): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split("T")[0];
+};
+
+// ==========================================
 // MAINTENANCE BLOCKS
 // ==========================================
 
@@ -125,31 +134,31 @@ export let mockMaintenanceBlocks: MaintenanceBlock[] = [
   {
     id: "maint_1",
     fieldId: "field_hauptplatz",
-    date: "2026-03-16",
+    date: daysFromToday(6),
     startTime: "08:00",
     endTime: "12:00",
     title: "Rasenpflege",
     note: "Mähen und Neumarkierung der Linien",
-    createdAt: "2026-03-01T09:00:00",
+    createdAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: "maint_2",
     fieldId: "field_nebenplatz",
-    date: "2026-03-18",
+    date: daysFromToday(8),
     startTime: "09:00",
     endTime: "11:00",
     title: "Netz-Reparatur",
-    createdAt: "2026-03-01T09:00:00",
+    createdAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: "maint_3",
     fieldId: "field_sporthalle",
-    date: "2026-03-21",
+    date: daysFromToday(11),
     startTime: "07:00",
     endTime: "09:00",
     title: "Bodenpflege & Wachs",
     note: "Parkett wird behandelt, kein Hallenzugang bis 10 Uhr",
-    createdAt: "2026-03-05T08:00:00",
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
