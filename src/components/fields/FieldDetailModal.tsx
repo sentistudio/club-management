@@ -10,10 +10,10 @@ import {
   FIELD_TYPE_ICONS,
   FIELD_TYPE_LABELS,
   WEEKDAY_KEYS,
-  WEEKDAY_LABELS,
 } from "../../types/fields";
 import type { ClubEvent } from "../../types/events";
 import { ZoneGrid } from "./ZoneGrid";
+import { useLanguage } from "../../i18n";
 
 interface FieldDetailModalProps {
   field: Field;
@@ -28,8 +28,19 @@ type DetailTab = "info" | "buchungen";
 
 const TODAY = new Date().toISOString().split("T")[0];
 
-function fmtDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("de-DE", {
+// Maps WeekdayKey to the full-name translation key
+const WEEKDAY_FULL_KEY: Record<string, string> = {
+  mon: "weekdays.monday",
+  tue: "weekdays.tuesday",
+  wed: "weekdays.wednesday",
+  thu: "weekdays.thursday",
+  fri: "weekdays.friday",
+  sat: "weekdays.saturday",
+  sun: "weekdays.sunday",
+};
+
+function fmtDate(dateStr: string, lang: "de" | "en") {
+  return new Date(dateStr).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", {
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -45,6 +56,7 @@ export function FieldDetailModal({
   onRemoveBooking,
   onRemoveMaintenance,
 }: FieldDetailModalProps) {
+  const { t, lang } = useLanguage();
   const [tab, setTab] = useState<DetailTab>("info");
 
   // ── Compute future bookings (events) ────────────────────────────────────────
@@ -117,17 +129,17 @@ export function FieldDetailModal({
 
         {/* Tab strip */}
         <div className="flex gap-1 px-6 pt-3 border-b border-neutral-100">
-          {(["info", "buchungen"] as DetailTab[]).map(t => (
+          {(["info", "buchungen"] as DetailTab[]).map(tabKey => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tabKey}
+              onClick={() => setTab(tabKey)}
               className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all border-b-2 -mb-px ${
-                tab === t
+                tab === tabKey
                   ? "border-teal-600 text-teal-700"
                   : "border-transparent text-neutral-500 hover:text-neutral-700"
               }`}
             >
-              {t === "info" ? "Details" : "Buchungen"}
+              {tabKey === "info" ? t("fields.detailsTab") : t("fields.bookingsTab")}
             </button>
           ))}
         </div>
@@ -144,11 +156,11 @@ export function FieldDetailModal({
                     ? "bg-violet-50 border-violet-200 text-violet-700"
                     : "bg-emerald-50 border-emerald-200 text-emerald-700"
                 }`}>
-                  {field.indoorOutdoor === "indoor" ? "🏟️ Halle" : "🌿 Outdoor"}
+                  {field.indoorOutdoor === "indoor" ? t("fields.indoorLabel") : t("fields.outdoorLabel")}
                 </span>
                 {field.isDivisibleInto6 && (
                   <span className="text-xs px-2 py-1 rounded-full border bg-blue-50 border-blue-200 text-blue-700">
-                    6 Zonen
+                    6 {t("fields.zonesCount")}
                   </span>
                 )}
                 <span className={`text-xs px-2 py-1 rounded-full border ${
@@ -156,14 +168,14 @@ export function FieldDetailModal({
                     ? "bg-teal-50 border-teal-200 text-teal-700"
                     : "bg-neutral-100 border-neutral-200 text-neutral-500"
                 }`}>
-                  {field.isActive ? "✓ Aktiv" : "Inaktiv"}
+                  {field.isActive ? `✓ ${t("fields.active")}` : t("fields.inactive")}
                 </span>
               </div>
 
               {/* Description */}
               {field.description && (
                 <div>
-                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-1">Beschreibung</p>
+                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-1">{t("fields.fieldDescription")}</p>
                   <p className="text-sm text-neutral-700">{field.description}</p>
                 </div>
               )}
@@ -179,7 +191,7 @@ export function FieldDetailModal({
               {/* Opening Hours */}
               {field.openingHours && (
                 <div>
-                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">Öffnungszeiten</p>
+                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">{t("fields.openingHours")}</p>
                   <div className="border border-neutral-200 rounded-xl overflow-hidden">
                     <table className="w-full text-sm">
                       <tbody>
@@ -191,13 +203,13 @@ export function FieldDetailModal({
                               className={`border-b border-neutral-100 last:border-0 ${idx % 2 === 0 ? "bg-white" : "bg-neutral-50/50"}`}
                             >
                               <td className="px-3 py-2 w-20 text-xs font-medium text-neutral-600">
-                                {WEEKDAY_LABELS[day].de}
+                                {t(WEEKDAY_FULL_KEY[day])}
                               </td>
                               <td className="px-3 py-2 text-xs">
                                 {d.open ? (
-                                  <span className="text-neutral-700">{d.from} – {d.to} Uhr</span>
+                                  <span className="text-neutral-700">{d.from} – {d.to}{lang === "de" ? " Uhr" : ""}</span>
                                 ) : (
-                                  <span className="text-neutral-400 italic">Geschlossen</span>
+                                  <span className="text-neutral-400 italic">{t("fields.closed")}</span>
                                 )}
                               </td>
                             </tr>
@@ -212,7 +224,7 @@ export function FieldDetailModal({
               {/* Zone Grid */}
               {field.isDivisibleInto6 && (
                 <div>
-                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">Zonen-Vorschau</p>
+                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">{t("fields.zonePreview")}</p>
                   <ZoneGrid
                     zones={field.zones}
                     occupiedZones={[]}
@@ -229,7 +241,7 @@ export function FieldDetailModal({
             <div className="space-y-2">
               {allBookings.length === 0 ? (
                 <div className="py-10 text-center">
-                  <p className="text-sm text-neutral-400">Keine zukünftigen Buchungen.</p>
+                  <p className="text-sm text-neutral-400">{t("fields.noFutureBookingsList")}</p>
                 </div>
               ) : (
                 allBookings.map(item => {
@@ -245,19 +257,19 @@ export function FieldDetailModal({
                           <div className="flex items-center gap-1.5">
                             <p className="text-sm font-medium text-neutral-900 truncate">{evt.title}</p>
                             {isRecurring && (
-                              <span title="Wiederkehrend">
+                              <span title={t("fields.recurringEvent")}>
                                 <RefreshCw className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
                               </span>
                             )}
                           </div>
                           <p className="text-xs text-neutral-500 mt-0.5">
-                            {fmtDate(evt.date)} · {evt.startTime}–{evt.endTime} Uhr
+                            {fmtDate(evt.date, lang)} · {evt.startTime}–{evt.endTime}{lang === "de" ? " Uhr" : ""}
                           </p>
                         </div>
                         <button
                           onClick={() => onRemoveBooking(evt.id)}
                           className="p-1.5 hover:bg-red-50 rounded-lg transition-colors text-neutral-400 hover:text-red-600 flex-shrink-0"
-                          title="Feldzuweisung entfernen"
+                          title={t("fields.removeBooking")}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -274,7 +286,7 @@ export function FieldDetailModal({
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-amber-900 truncate">{block.title}</p>
                           <p className="text-xs text-amber-700 mt-0.5">
-                            {fmtDate(block.date)} · {block.startTime}–{block.endTime} Uhr
+                            {fmtDate(block.date, lang)} · {block.startTime}–{block.endTime}{lang === "de" ? " Uhr" : ""}
                           </p>
                           {block.note && (
                             <p className="text-xs text-amber-600 mt-0.5 truncate">{block.note}</p>
@@ -283,7 +295,7 @@ export function FieldDetailModal({
                         <button
                           onClick={() => onRemoveMaintenance(block.id)}
                           className="p-1.5 hover:bg-red-50 rounded-lg transition-colors text-amber-500 hover:text-red-600 flex-shrink-0"
-                          title="Sperre löschen"
+                          title={t("fields.maintenanceDeleteTitle")}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

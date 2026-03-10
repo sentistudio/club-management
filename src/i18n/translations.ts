@@ -260,8 +260,45 @@ export const translations = {
     unassignedEvents: { de: "Ohne Feld", en: "Unassigned" },
     unassignedEventsTitle: { de: "Veranstaltungen ohne Feldzuweisung", en: "Events without field assignment" },
     noUnassignedEvents: { de: "Keine unzugewiesenen Veranstaltungen an diesem Tag.", en: "No unassigned events on this day." },
+    selectFieldPlaceholder: { de: "Feld wählen...", en: "Select field..." },
     assignField: { de: "Zuweisen", en: "Assign" },
     removeBooking: { de: "Feldzuweisung entfernen", en: "Remove field assignment" },
+    // FieldDetailModal
+    fieldDescription: { de: "Beschreibung", en: "Description" },
+    zonePreview: { de: "Zonen-Vorschau", en: "Zone Preview" },
+    maintenanceDeleteTitle: { de: "Sperre löschen", en: "Delete block" },
+    // FieldFormDrawer
+    fieldDescriptionPlaceholder: { de: "Optionale Zusatzinfos (Kapazität, Flutlicht, etc.)", en: "Optional details (capacity, floodlights, etc.)" },
+    indoorLabel: { de: "🏟️ Halle", en: "🏟️ Indoor" },
+    outdoorLabel: { de: "🌿 Outdoor", en: "🌿 Outdoor" },
+    // FieldPicker
+    fieldPickerLabel: { de: "Feld / Anlage", en: "Field / Facility" },
+    noFieldOption: { de: "– Kein Feld –", en: "– No Field –" },
+    zonesCount6Suffix: { de: "(6 Zonen)", en: "(6 Zones)" },
+    halleSuffix: { de: "Halle", en: "Indoor" },
+    removeField: { de: "Feld entfernen", en: "Remove field" },
+    fullFieldScope: { de: "Ganzes Feld", en: "Full Field" },
+    selectZones: { de: "Zonen wählen", en: "Select Zones" },
+    zonesHint: { de: "Zonen auswählen (amber = bereits belegt):", en: "Select zones (amber = already booked):" },
+    minOneZone: { de: "Mindestens eine Zone auswählen.", en: "Select at least one zone." },
+    matchFullFieldInfo: { de: "Spiele buchen immer das gesamte Feld.", en: "Matches always book the entire field." },
+    conflictHeader: { de: "Buchungskonflikt", en: "Booking Conflict" },
+    // MaintenanceBlockForm
+    maintenanceFormTitle: { de: "Sperre hinzufügen", en: "Add Block" },
+    maintenanceFieldLabel: { de: "Feld", en: "Field" },
+    maintenanceDateLabel: { de: "Datum", en: "Date" },
+    maintenanceTitleLabel: { de: "Titel", en: "Title" },
+    maintenanceTitlePlaceholder: { de: "z.B. Rasenpflege", en: "e.g. Lawn care" },
+    maintenanceNotePlaceholder: { de: "Zusätzliche Informationen...", en: "Additional information..." },
+    maintenanceSaveButton: { de: "Sperre speichern", en: "Save Block" },
+    maintenanceTitleRequired: { de: "Bitte gib einen Titel ein.", en: "Please enter a title." },
+    maintenanceDateRequired: { de: "Bitte wähle ein Datum.", en: "Please select a date." },
+    maintenanceTimeError: { de: "Die Endzeit muss nach der Startzeit liegen.", en: "End time must be after start time." },
+    // ZoneGrid
+    zoneOccupied: { de: "Belegt", en: "Occupied" },
+    zoneOccupiedByPrefix: { de: "Belegt:", en: "Occupied by:" },
+    // Timeline
+    addMaintenanceTitle: { de: "Sperre hinzufügen", en: "Add block" },
   },
 
   // ==========================================

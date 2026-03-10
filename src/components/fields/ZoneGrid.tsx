@@ -19,6 +19,7 @@
  */
 
 import type { FieldZone } from "../../types/fields";
+import { useLanguage } from "../../i18n";
 
 interface ZoneGridProps {
   zones: FieldZone[];
@@ -41,6 +42,7 @@ export function ZoneGrid({
   onChange,
   compact = false,
 }: ZoneGridProps) {
+  const { t } = useLanguage();
   const occupiedMap = new Map(occupiedZones.map(o => [o.zoneId, o.label]));
 
   const toggle = (zoneId: string) => {
@@ -90,7 +92,7 @@ export function ZoneGrid({
               <div
                 key={zone.id}
                 onClick={() => toggle(zone.id)}
-                title={occupiedBy ? `Belegt: ${occupiedBy}` : zone.name}
+                title={occupiedBy ? `${t("fields.zoneOccupiedByPrefix")} ${occupiedBy}` : zone.name}
                 className={`
                   flex-1 ${cellH} flex flex-col items-center justify-center
                   border-neutral-200 text-xs font-medium transition-colors select-none
@@ -101,7 +103,7 @@ export function ZoneGrid({
                 <span className="font-bold">{zone.zoneNumber}</span>
                 {!compact && (
                   <span className="text-[9px] opacity-70 truncate max-w-[90%] text-center">
-                    {occupiedBy ? "Belegt" : zone.name}
+                    {occupiedBy ? t("fields.zoneOccupied") : zone.name}
                   </span>
                 )}
               </div>

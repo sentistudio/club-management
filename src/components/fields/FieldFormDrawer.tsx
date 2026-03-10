@@ -11,11 +11,11 @@ import {
   FIELD_TYPE_LABELS,
   FIELD_TYPE_ICONS,
   WEEKDAY_KEYS,
-  WEEKDAY_LABELS,
   DEFAULT_OPENING_HOURS,
 } from "../../types/fields";
 import { fieldHasFutureZoneBookings } from "../../data/mockFields";
 import { mockClubEvents } from "../../data/mockClubEvents";
+import { useLanguage } from "../../i18n";
 
 interface FieldFormDrawerProps {
   field?: Field | null;       // null = create mode
@@ -26,6 +26,7 @@ interface FieldFormDrawerProps {
 const FIELD_TYPES: FieldType[] = ["football", "volleyball", "fitness", "tennis", "swimming", "general"];
 
 export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps) {
+  const { t } = useLanguage();
   const isEdit = !!field;
   const [form, setForm] = useState<FieldFormData>(DEFAULT_FIELD_FORM);
   const [divError, setDivError] = useState(false);
@@ -110,7 +111,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <h2 className="text-xl font-bold text-slate-800">
-            {isEdit ? "Feld bearbeiten" : "Neues Feld"}
+            {isEdit ? t("fields.editField") : t("fields.newField")}
           </h2>
           <button
             onClick={onClose}
@@ -125,13 +126,13 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Name <span className="text-red-500">*</span>
+              {t("fields.fieldName")} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={form.name}
               onChange={e => set("name", e.target.value)}
-              placeholder="z.B. Hauptplatz"
+              placeholder={t("fields.namePlaceholder")}
               className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004941]"
               autoFocus
             />
@@ -139,7 +140,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
 
           {/* Type */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Typ</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("fields.fieldType")}</label>
             <div className="grid grid-cols-3 gap-2">
               {FIELD_TYPES.map(type => (
                 <button
@@ -161,7 +162,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
 
           {/* Indoor / Outdoor */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Standort</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("fields.fieldLocation")}</label>
             <div className="flex gap-2">
               {(["outdoor", "indoor"] as IndoorOutdoor[]).map(io => (
                 <button
@@ -174,7 +175,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
                       : "border-neutral-200 text-neutral-600 hover:border-neutral-300"
                   }`}
                 >
-                  {io === "outdoor" ? "🌿 Outdoor" : "🏟️ Halle"}
+                  {io === "outdoor" ? t("fields.outdoorLabel") : t("fields.indoorLabel")}
                 </button>
               ))}
             </div>
@@ -191,14 +192,14 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
             />
             <div className="flex-1">
               <label htmlFor="divisible" className="text-sm font-medium text-neutral-800 cursor-pointer">
-                In 6 Zonen teilbar
+                {t("fields.divisible")}
               </label>
               <p className="text-xs text-neutral-500 mt-0.5">
-                Erlaubt es, Trainings auf einzelnen Zonen zu buchen und das Feld mehrfach gleichzeitig zu nutzen.
+                {t("fields.divisibleDesc")}
               </p>
               {divError && (
                 <p className="text-xs text-red-600 mt-1">
-                  Nicht möglich: Dieses Feld hat noch zukünftige Zonen-Buchungen. Bitte erst diese entfernen.
+                  {t("fields.divisibleError")}
                 </p>
               )}
             </div>
@@ -206,7 +207,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
 
           {/* Opening Hours */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Öffnungszeiten</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">{t("fields.openingHours")}</label>
             <div className="border border-neutral-200 rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <tbody>
@@ -227,14 +228,14 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
                         </td>
                         <td className="px-1 py-2 w-16">
                           <span className={`text-xs font-medium ${dayData.open ? "text-neutral-700" : "text-neutral-400"}`}>
-                            {WEEKDAY_LABELS[day].short}
+                            {t(`weekdays.${day}`)}
                           </span>
                         </td>
                         {dayData.open ? (
                           <>
                             <td className="px-1 py-2">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-xs text-neutral-500 w-6">Von</span>
+                                <span className="text-xs text-neutral-500 w-6">{t("fields.from")}</span>
                                 <input
                                   type="time"
                                   value={dayData.from}
@@ -245,7 +246,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
                             </td>
                             <td className="px-1 py-2">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-xs text-neutral-500 w-5">Bis</span>
+                                <span className="text-xs text-neutral-500 w-5">{t("fields.to")}</span>
                                 <input
                                   type="time"
                                   value={dayData.to}
@@ -257,7 +258,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
                           </>
                         ) : (
                           <td colSpan={2} className="px-2 py-2 text-xs text-neutral-400 italic">
-                            Geschlossen
+                            {t("fields.closed")}
                           </td>
                         )}
                       </tr>
@@ -270,24 +271,24 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Beschreibung</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("fields.fieldDescription")}</label>
             <textarea
               value={form.description}
               onChange={e => set("description", e.target.value)}
               rows={2}
-              placeholder="Optionale Zusatzinfos (Kapazität, Flutlicht, etc.)"
+              placeholder={t("fields.fieldDescriptionPlaceholder")}
               className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004941] resize-none"
             />
           </div>
 
           {/* Address */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Adresse / Lage</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("fields.address")}</label>
             <input
               type="text"
               value={form.address}
               onChange={e => set("address", e.target.value)}
-              placeholder="z.B. Sportanlage Burkhardsfelden, Platz 1"
+              placeholder={t("fields.addressPlaceholder")}
               className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004941]"
             />
           </div>
@@ -295,8 +296,8 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
           {/* Active toggle */}
           <div className="flex items-center justify-between py-3 border-t border-neutral-200">
             <div>
-              <p className="text-sm font-medium text-neutral-700">Aktiv</p>
-              <p className="text-xs text-neutral-400">Inaktive Felder können nicht gebucht werden.</p>
+              <p className="text-sm font-medium text-neutral-700">{t("fields.active")}</p>
+              <p className="text-xs text-neutral-400">{t("fields.activeDesc")}</p>
             </div>
             <button
               type="button"
@@ -321,7 +322,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
               onClick={onClose}
               className="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
             >
-              Abbrechen
+              {t("common.cancel")}
             </button>
             <button
               onClick={handleSave}
@@ -329,7 +330,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
               className="flex items-center gap-2 px-4 py-2.5 bg-[#004941] text-white rounded-lg hover:bg-[#003830] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-4 h-4" />
-              Speichern
+              {t("common.save")}
             </button>
           </div>
         </div>

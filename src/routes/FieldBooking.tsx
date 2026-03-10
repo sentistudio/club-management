@@ -262,7 +262,7 @@ export function FieldBooking() {
                   }`}
                 >
                   <LayoutGrid className="w-3.5 h-3.5" />
-                  Ohne Feld
+                  {t("fields.unassignedEvents")}
                   {unassignedEvents.length > 0 && (
                     <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold ${
                       showUnassigned ? "bg-violet-600 text-white" : "bg-neutral-200 text-neutral-600"
@@ -326,23 +326,23 @@ export function FieldBooking() {
           {/* Unassigned events panel */}
           {showUnassigned && (
             <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
-              <p className="text-sm font-semibold text-violet-800 mb-3">Veranstaltungen ohne Feldzuweisung</p>
+              <p className="text-sm font-semibold text-violet-800 mb-3">{t("fields.unassignedEventsTitle")}</p>
               {unassignedEvents.length === 0 ? (
-                <p className="text-sm text-violet-500 italic">Keine unzugewiesenen Veranstaltungen an diesem Tag.</p>
+                <p className="text-sm text-violet-500 italic">{t("fields.noUnassignedEvents")}</p>
               ) : (
                 <div className="space-y-2">
                   {unassignedEvents.map(evt => (
                     <div key={evt.id} className="flex items-center gap-3 bg-white rounded-lg p-3 border border-violet-100">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-neutral-900 truncate">{evt.title}</p>
-                        <p className="text-xs text-neutral-500">{evt.startTime}–{evt.endTime} Uhr</p>
+                        <p className="text-xs text-neutral-500">{evt.startTime}–{evt.endTime}{lang === "de" ? " Uhr" : ""}</p>
                       </div>
                       <select
                         value={assignFieldMap[evt.id] ?? ""}
                         onChange={e => setAssignFieldMap(prev => ({ ...prev, [evt.id]: e.target.value }))}
                         className="text-xs border border-neutral-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-500"
                       >
-                        <option value="">Feld wählen...</option>
+                        <option value="">{t("fields.selectFieldPlaceholder")}</option>
                         {activeFields.map(f => (
                           <option key={f.id} value={f.id}>{f.name}</option>
                         ))}
@@ -352,7 +352,7 @@ export function FieldBooking() {
                         disabled={!assignFieldMap[evt.id]}
                         className="text-xs px-3 py-1.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
-                        Zuweisen
+                        {t("fields.assignField")}
                       </button>
                     </div>
                   ))}
@@ -409,7 +409,7 @@ export function FieldBooking() {
                       <button
                         onClick={e => { e.stopPropagation(); setMaintenanceTarget({ field }); }}
                         className="p-1 rounded hover:bg-amber-50 text-amber-500 hover:text-amber-700 transition-colors flex-shrink-0"
-                        title="Sperre hinzufügen"
+                        title={t("fields.addMaintenanceTitle")}
                       >
                         <Wrench className="w-3.5 h-3.5" />
                       </button>
@@ -434,7 +434,7 @@ export function FieldBooking() {
                               className="absolute top-0 bottom-0 bg-neutral-100/70 flex items-center justify-center z-0"
                               style={{ left: "0%", width: "100%" }}
                             >
-                              <span className="text-[10px] text-neutral-400 font-medium">Geschlossen</span>
+                              <span className="text-[10px] text-neutral-400 font-medium">{t("fields.closed")}</span>
                             </div>
                           ) : openFrom && openTo ? (
                             <>
@@ -541,7 +541,7 @@ export function FieldBooking() {
                               })}
                               {zoneBookings.length === 0 && (
                                 <div className="absolute inset-0 flex items-center pl-3">
-                                  <span className="text-[10px] text-neutral-200">Frei</span>
+                                  <span className="text-[10px] text-neutral-200">{t("fields.free")}</span>
                                 </div>
                               )}
                             </div>
@@ -567,13 +567,13 @@ export function FieldBooking() {
               <span className="w-3 h-3 rounded bg-violet-200 border border-violet-300" /> {t("fields.event")}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-amber-100 border border-amber-400" /> Sperre
+              <span className="w-3 h-3 rounded bg-amber-100 border border-amber-400" /> {t("fields.maintenance")}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-teal-50 border border-teal-200" /> Öffnungszeiten
+              <span className="w-3 h-3 rounded bg-teal-50 border border-teal-200" /> {t("fields.openingHours")}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-neutral-200" /> Geschlossen
+              <span className="w-3 h-3 rounded bg-neutral-200" /> {t("fields.closed")}
             </span>
           </div>
         </div>
@@ -605,14 +605,14 @@ export function FieldBooking() {
                     <button
                       onClick={() => setFormField(field)}
                       className="p-2 hover:bg-neutral-100 rounded-lg transition-colors text-neutral-400 hover:text-neutral-700"
-                      title="Bearbeiten"
+                      title={t("common.edit")}
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setDeleteTarget(field)}
                       className="p-2 hover:bg-red-50 rounded-lg transition-colors text-neutral-400 hover:text-red-600"
-                      title="Löschen"
+                      title={t("common.delete")}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

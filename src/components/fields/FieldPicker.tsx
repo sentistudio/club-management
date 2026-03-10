@@ -14,6 +14,7 @@ import { getActiveFields, checkConflict } from "../../data/mockFields";
 import { mockClubEvents } from "../../data/mockClubEvents";
 import type { BookingScope } from "../../types/fields";
 import { FIELD_TYPE_ICONS } from "../../types/fields";
+import { useLanguage } from "../../i18n";
 
 interface FieldPickerProps {
   eventType?: string;   // "training" | "match" | "event" from the form
@@ -42,6 +43,7 @@ export function FieldPicker({
   excludeEventId,
   onChange,
 }: FieldPickerProps) {
+  const { t, lang } = useLanguage();
   const fields = getActiveFields();
   const selectedField = fields.find(f => f.id === fieldId) ?? null;
   const isMatch = eventType === "match";
@@ -83,7 +85,7 @@ export function FieldPicker({
       {/* Field dropdown */}
       <div>
         <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-          Feld / Anlage
+          {t("fields.fieldPickerLabel")}
         </label>
         <div className="flex gap-2">
           <select
@@ -93,12 +95,12 @@ export function FieldPicker({
             }}
             className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
           >
-            <option value="">– Kein Feld –</option>
+            <option value="">{t("fields.noFieldOption")}</option>
             {fields.map(f => (
               <option key={f.id} value={f.id}>
                 {FIELD_TYPE_ICONS[f.type]} {f.name}
-                {f.isDivisibleInto6 ? " (6 Zonen)" : ""}
-                {f.indoorOutdoor === "indoor" ? " · Halle" : ""}
+                {f.isDivisibleInto6 ? ` ${t("fields.zonesCount6Suffix")}` : ""}
+                {f.indoorOutdoor === "indoor" ? ` · ${t("fields.halleSuffix")}` : ""}
               </option>
             ))}
           </select>
@@ -107,7 +109,7 @@ export function FieldPicker({
               type="button"
               onClick={() => onChange({ fieldId: "", bookingScope: "full_field", bookedZoneIds: [] })}
               className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors"
-              title="Feld entfernen"
+              title={t("fields.removeField")}
             >
               <X className="w-4 h-4" />
             </button>
@@ -129,7 +131,7 @@ export function FieldPicker({
                   : "text-neutral-500 hover:text-neutral-700"
               }`}
             >
-              Ganzes Feld
+              {t("fields.fullFieldScope")}
             </button>
             <button
               type="button"
@@ -141,7 +143,7 @@ export function FieldPicker({
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              Zonen wählen
+              {t("fields.selectZones")}
             </button>
           </div>
 
@@ -149,7 +151,7 @@ export function FieldPicker({
           {bookingScope === "zones" && (
             <div>
               <p className="text-xs text-neutral-500 mb-1.5">
-                Zonen auswählen (amber = bereits belegt):
+                {t("fields.zonesHint")}
               </p>
               <ZoneGrid
                 zones={selectedField.zones}
@@ -158,7 +160,7 @@ export function FieldPicker({
                 onChange={ids => onChange({ bookedZoneIds: ids })}
               />
               {bookedZoneIds.length === 0 && (
-                <p className="text-xs text-amber-600 mt-1">Mindestens eine Zone auswählen.</p>
+                <p className="text-xs text-amber-600 mt-1">{t("fields.minOneZone")}</p>
               )}
             </div>
           )}
@@ -179,7 +181,7 @@ export function FieldPicker({
       {/* Match: always full field, show info */}
       {selectedField && isMatch && (
         <p className="text-xs text-neutral-500 bg-neutral-50 px-3 py-2 rounded-lg border border-neutral-200">
-          Spiele buchen immer das <strong>gesamte Feld</strong>.
+          {t("fields.matchFullFieldInfo")}
         </p>
       )}
 
@@ -188,11 +190,11 @@ export function FieldPicker({
         <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
           <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-red-700">Buchungskonflikt</p>
+            <p className="text-sm font-medium text-red-700">{t("fields.conflictHeader")}</p>
             <ul className="text-xs text-red-600 mt-0.5 space-y-0.5">
               {conflicts.map(c => (
                 <li key={c.id}>
-                  „{c.title}" – {c.startTime}–{c.endTime} Uhr
+                  „{c.title}" – {c.startTime}–{c.endTime}{lang === "de" ? " Uhr" : ""}
                 </li>
               ))}
             </ul>

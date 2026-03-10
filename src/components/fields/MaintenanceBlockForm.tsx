@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { X, Save, Wrench } from "lucide-react";
 import type { Field, MaintenanceBlock } from "../../types/fields";
+import { useLanguage } from "../../i18n";
 
 interface MaintenanceBlockFormProps {
   field: Field;
@@ -19,6 +20,7 @@ export function MaintenanceBlockForm({
   onClose,
   onSave,
 }: MaintenanceBlockFormProps) {
+  const { t } = useLanguage();
   const [date, setDate] = useState(selectedDate);
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("12:00");
@@ -28,15 +30,15 @@ export function MaintenanceBlockForm({
 
   const handleSave = () => {
     if (!title.trim()) {
-      setError("Bitte gib einen Titel ein.");
+      setError(t("fields.maintenanceTitleRequired"));
       return;
     }
     if (!date) {
-      setError("Bitte wähle ein Datum.");
+      setError(t("fields.maintenanceDateRequired"));
       return;
     }
     if (startTime >= endTime) {
-      setError("Die Endzeit muss nach der Startzeit liegen.");
+      setError(t("fields.maintenanceTimeError"));
       return;
     }
 
@@ -67,7 +69,7 @@ export function MaintenanceBlockForm({
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
           <div className="flex items-center gap-2">
             <Wrench className="w-5 h-5 text-amber-600" />
-            <h2 className="text-lg font-semibold text-neutral-900">Sperre hinzufügen</h2>
+            <h2 className="text-lg font-semibold text-neutral-900">{t("fields.maintenanceFormTitle")}</h2>
           </div>
           <button
             onClick={onClose}
@@ -81,14 +83,14 @@ export function MaintenanceBlockForm({
         <div className="px-6 py-5 space-y-4">
           {/* Field name (read-only) */}
           <div>
-            <p className="text-xs font-medium text-neutral-500 mb-1">Feld</p>
+            <p className="text-xs font-medium text-neutral-500 mb-1">{t("fields.maintenanceFieldLabel")}</p>
             <p className="text-sm font-medium text-neutral-800">{field.name}</p>
           </div>
 
           {/* Date */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-              Datum <span className="text-red-500">*</span>
+              {t("fields.maintenanceDateLabel")} <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -102,7 +104,7 @@ export function MaintenanceBlockForm({
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                Von <span className="text-red-500">*</span>
+                {t("fields.from")} <span className="text-red-500">*</span>
               </label>
               <input
                 type="time"
@@ -113,7 +115,7 @@ export function MaintenanceBlockForm({
             </div>
             <div className="flex-1">
               <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                Bis <span className="text-red-500">*</span>
+                {t("fields.to")} <span className="text-red-500">*</span>
               </label>
               <input
                 type="time"
@@ -127,13 +129,13 @@ export function MaintenanceBlockForm({
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-              Titel <span className="text-red-500">*</span>
+              {t("fields.maintenanceTitleLabel")} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={title}
               onChange={e => { setTitle(e.target.value); setError(""); }}
-              placeholder="z.B. Rasenpflege"
+              placeholder={t("fields.maintenanceTitlePlaceholder")}
               autoFocus
               className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
@@ -142,13 +144,13 @@ export function MaintenanceBlockForm({
           {/* Note */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-              Notiz (optional)
+              {t("fields.maintenanceNote")}
             </label>
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}
               rows={2}
-              placeholder="Zusätzliche Informationen..."
+              placeholder={t("fields.maintenanceNotePlaceholder")}
               className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
             />
           </div>
@@ -165,7 +167,7 @@ export function MaintenanceBlockForm({
             onClick={onClose}
             className="px-4 py-2.5 text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors text-sm"
           >
-            Abbrechen
+            {t("common.cancel")}
           </button>
           <button
             onClick={handleSave}
@@ -173,7 +175,7 @@ export function MaintenanceBlockForm({
             className="flex items-center gap-2 px-4 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-4 h-4" />
-            Sperre speichern
+            {t("fields.maintenanceSaveButton")}
           </button>
         </div>
       </div>
