@@ -76,12 +76,18 @@ interface EnhancedEvent {
   };
 }
 
+const dft = (n: number): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split("T")[0];
+};
+
 const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
   {
     id: "evt_p1",
     title: "Training Männer Ü40",
     description: "Wöchentliches Mannschaftstraining. Heute: Spieltaktik und Kondition.",
-    date: "2026-01-28",
+    date: dft(0),
     startTime: "19:30",
     endTime: "21:00",
     location: "Sportplatz Burkhardsfelden",
@@ -110,7 +116,7 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
     id: "evt_p2",
     title: "Vorstandssitzung",
     description: "Monatliche Vorstandssitzung. Tagesordnung: Jahresplanung 2026, Finanzbericht.",
-    date: "2026-01-29",
+    date: dft(1),
     startTime: "18:00",
     endTime: "20:00",
     location: "Vereinsheim - Sitzungszimmer",
@@ -135,7 +141,7 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
     id: "evt_p3",
     title: "Freundschaftsspiel vs. TSV Holzkirchen",
     description: "Auswärtsspiel gegen TSV Holzkirchen. Treffpunkt: 14:00 am Vereinsheim.",
-    date: "2026-02-01",
+    date: dft(4),
     startTime: "15:00",
     endTime: "17:00",
     location: "Sportplatz Holzkirchen",
@@ -165,7 +171,7 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
     id: "evt_p4",
     title: "Vereinsversammlung 2026",
     description: "Jährliche Mitgliederversammlung mit Berichten des Vorstands und Wahlen.",
-    date: "2026-02-15",
+    date: dft(15),
     startTime: "18:00",
     endTime: "20:00",
     location: "Vereinsheim - Großer Saal",
@@ -191,7 +197,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     id: "evt_l1",
     title: "Fitness Training - Morgengruppe",
     description: "Reguläres Fitnesstraining mit Fokus auf Cardio und Kräftigung.",
-    date: "2026-01-28",
+    date: dft(0),
     startTime: "07:00",
     endTime: "08:00",
     location: "Fitness-Raum",
@@ -220,7 +226,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     id: "evt_l2",
     title: "Frauen Ü40 Training",
     description: "Wöchentliches Mannschaftstraining mit Taktik- und Spielübungen.",
-    date: "2026-01-29",
+    date: dft(2),
     startTime: "19:00",
     endTime: "20:30",
     location: "Platz 2",
@@ -250,7 +256,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     id: "evt_l3",
     title: "Freundschaftsspiel vs. TuS Mainberg",
     description: "Auswärtsspiel gegen TuS Mainberg. Treffpunkt 30 Minuten vor Spielbeginn.",
-    date: "2026-02-01",
+    date: dft(5),
     startTime: "15:00",
     endTime: "17:00",
     location: "Sportplatz Mainberg",
@@ -274,7 +280,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
     id: "evt_l4",
     title: "Vereinsversammlung 2026",
     description: "Jährliche Mitgliederversammlung mit Berichten des Vorstands und Wahlen.",
-    date: "2026-02-15",
+    date: dft(14),
     startTime: "18:00",
     endTime: "20:00",
     location: "Vereinsheim - Großer Saal",
@@ -296,7 +302,7 @@ const MOCK_LENA_EVENTS: EnhancedEvent[] = [
 
 const MOCK_FLURINA_EVENTS: EnhancedEvent[] = [
   {
-    id: "evt_f1", title: "Training Volleyball U16", date: "2026-03-10",
+    id: "evt_f1", title: "Training Volleyball U16", date: dft(0),
     startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB",
     type: "training", teamIcon: "🏐", scope: "team", department: "Volleyball",
     team: "Volleyball U16 Mädchen",
@@ -304,14 +310,14 @@ const MOCK_FLURINA_EVENTS: EnhancedEvent[] = [
     organizer: { name: "Trainerin Katja", avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=50&h=50&fit=crop&crop=face", role: "Trainerin" }
   },
   {
-    id: "evt_f2", title: "Training Volleyball U16", date: "2026-03-12",
+    id: "evt_f2", title: "Training Volleyball U16", date: dft(2),
     startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB",
     type: "training", teamIcon: "🏐", scope: "team", department: "Volleyball",
     team: "Volleyball U16 Mädchen",
     rsvp: { status: "confirmed", required: true, confirmed: 10, maybe: 0, declined: 1, pending: 1, total: 12 }
   },
   {
-    id: "evt_f3", title: "Heimspiel U16 – SfB vs. VfL Marburg", date: "2026-03-15",
+    id: "evt_f3", title: "Heimspiel U16 – SfB vs. VfL Marburg", date: dft(5),
     startTime: "11:00", endTime: "13:00", location: "Sporthalle SfB",
     type: "match", teamIcon: "🏐", scope: "team", department: "Volleyball",
     team: "Volleyball U16 Mädchen",
@@ -319,14 +325,14 @@ const MOCK_FLURINA_EVENTS: EnhancedEvent[] = [
     rsvp: { status: "confirmed", required: true, confirmed: 11, maybe: 0, declined: 0, pending: 1, total: 12 }
   },
   {
-    id: "evt_f4", title: "Training Volleyball U16", date: "2026-03-17",
+    id: "evt_f4", title: "Training Volleyball U16", date: dft(7),
     startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB",
     type: "training", teamIcon: "🏐", scope: "team", department: "Volleyball",
     team: "Volleyball U16 Mädchen",
     rsvp: { status: "pending", required: true, confirmed: 8, maybe: 1, declined: 0, pending: 3, total: 12 }
   },
   {
-    id: "evt_f5", title: "Gießen Cup Turnier", date: "2026-03-22",
+    id: "evt_f5", title: "Gießen Cup Turnier", date: dft(12),
     startTime: "09:00", endTime: "17:00", location: "Sportanlage Gießen",
     type: "match", teamIcon: "🏆", scope: "department", department: "Volleyball",
     team: "Volleyball U16 Mädchen",
@@ -337,7 +343,7 @@ const MOCK_FLURINA_EVENTS: EnhancedEvent[] = [
 
 const MOCK_MAX_EVENTS: EnhancedEvent[] = [
   {
-    id: "evt_m1", title: "Training Fußball U12", date: "2026-03-10",
+    id: "evt_m1", title: "Training Fußball U12", date: dft(0),
     startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A",
     type: "training", teamIcon: "⚽", scope: "team", department: "Fußball",
     team: "Fußball U12",
@@ -345,14 +351,14 @@ const MOCK_MAX_EVENTS: EnhancedEvent[] = [
     organizer: { name: "Trainer Marco", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face", role: "Trainer" }
   },
   {
-    id: "evt_m2", title: "Training Fußball U12", date: "2026-03-13",
+    id: "evt_m2", title: "Training Fußball U12", date: dft(3),
     startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A",
     type: "training", teamIcon: "⚽", scope: "team", department: "Fußball",
     team: "Fußball U12",
     rsvp: { status: "confirmed", required: true, confirmed: 13, maybe: 1, declined: 0, pending: 2, total: 16 }
   },
   {
-    id: "evt_m3", title: "Ligaspiel U12 – SfB vs. FC Lahntal", date: "2026-03-15",
+    id: "evt_m3", title: "Ligaspiel U12 – SfB vs. FC Lahntal", date: dft(5),
     startTime: "10:30", endTime: "12:00", location: "Nebenplatz SfB",
     type: "match", teamIcon: "⚽", scope: "team", department: "Fußball",
     team: "Fußball U12",
@@ -360,14 +366,14 @@ const MOCK_MAX_EVENTS: EnhancedEvent[] = [
     rsvp: { status: "confirmed", required: true, confirmed: 14, maybe: 0, declined: 1, pending: 1, total: 16 }
   },
   {
-    id: "evt_m4", title: "Training Fußball U12", date: "2026-03-17",
+    id: "evt_m4", title: "Training Fußball U12", date: dft(7),
     startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A",
     type: "training", teamIcon: "⚽", scope: "team", department: "Fußball",
     team: "Fußball U12",
     rsvp: { status: "pending", required: true, confirmed: 10, maybe: 0, declined: 0, pending: 6, total: 16 }
   },
   {
-    id: "evt_m5", title: "Osterturnier Wettenberg", date: "2026-03-28",
+    id: "evt_m5", title: "Osterturnier Wettenberg", date: dft(18),
     startTime: "09:00", endTime: "14:00", location: "Sportpark Wettenberg",
     type: "match", teamIcon: "🏆", scope: "department", department: "Fußball",
     team: "Fußball U12",
@@ -415,6 +421,13 @@ const PERSON_DEPARTMENTS: Record<string, string[]> = {
   patrick_steuble: ["dept_football"],
 };
 
+const PERSONA_MEMBER_IDS: Record<string, string> = {
+  patrick_steuble: "patrick_steuble",
+  lena_schneider: "lena_schneider",
+  flurina: "flurina_schneider",
+  max: "max_schneider",
+};
+
 /** Returns published club-wide/department events relevant to the person list, as EnhancedEvent */
 const getClubEventsForPersons = (resolvedIds: string[]): EnhancedEvent[] => {
   const depts = resolvedIds.flatMap(id => PERSON_DEPARTMENTS[id] ?? []);
@@ -424,6 +437,10 @@ const getClubEventsForPersons = (resolvedIds: string[]): EnhancedEvent[] => {
       if (evt.audience.mode === "all") return true;
       if (evt.audience.mode === "departments") {
         return evt.audience.departmentIds?.some(d => depts.includes(d)) ?? false;
+      }
+      if (evt.audience.mode === "manual") {
+        const memberIds = resolvedIds.map(id => PERSONA_MEMBER_IDS[id] ?? id);
+        return evt.audience.memberIds?.some(mid => memberIds.includes(mid)) ?? false;
       }
       return false;
     })

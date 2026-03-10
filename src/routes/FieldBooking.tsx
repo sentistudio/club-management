@@ -80,7 +80,11 @@ export function FieldBooking() {
   const [expandedFields, setExpandedFields] = useState<string[]>([]);
   const [detailEvent, setDetailEvent] = useState<ClubEvent | null>(null);
   const [detailField, setDetailField] = useState<Field | null>(null);
-  const [events, setEvents] = useState<ClubEvent[]>(mockClubEvents);
+  const [eventOverrides, setEventOverrides] = useState<Record<string, Partial<ClubEvent>>>({});
+  const events = useMemo(
+    () => mockClubEvents.map(e => eventOverrides[e.id] ? { ...e, ...eventOverrides[e.id] } : e),
+    [eventOverrides]
+  );
   const [maintenanceBlocks, setMaintenanceBlocks] = useState<MaintenanceBlock[]>(mockMaintenanceBlocks);
   const [maintenanceTarget, setMaintenanceTarget] = useState<{ field: Field } | null>(null);
   const [showUnassigned, setShowUnassigned] = useState(false);
@@ -144,10 +148,14 @@ export function FieldBooking() {
   // Selected date weekday key
   const selectedWeekdayKey: WeekdayKey = JS_DAY_TO_KEY[new Date(selectedDate + "T12:00:00").getDay()];
 
-  // Unassigned events on selectedDate
+  // All upcoming unassigned events (no field assigned), sorted by date
+  const today = new Date().toISOString().split("T")[0];
   const unassignedEvents = useMemo(
-    () => events.filter(e => !e.fieldId && e.date === selectedDate),
-    [events, selectedDate]
+    () =>
+      events
+        .filter(e => !e.fieldId && e.date >= today && e.status !== "cancelled" && e.status !== "completed")
+        .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime)),
+    [events, today]
   );
 
   const activeFields = fields.filter(f => f.isActive);
@@ -155,13 +163,10 @@ export function FieldBooking() {
   const handleAssignField = (eventId: string) => {
     const fieldId = assignFieldMap[eventId];
     if (!fieldId) return;
-    setEvents(prev =>
-      prev.map(e =>
-        e.id === eventId
-          ? { ...e, fieldId, bookingScope: "full_field" as const, bookedZoneIds: undefined }
-          : e
-      )
-    );
+    setEventOverrides(prev => ({
+      ...prev,
+      [eventId]: { ...prev[eventId], fieldId, bookingScope: "full_field" as const, bookedZoneIds: undefined }
+    }));
     setAssignFieldMap(prev => {
       const next = { ...prev };
       delete next[eventId];
@@ -170,13 +175,10 @@ export function FieldBooking() {
   };
 
   const handleRemoveBooking = (eventId: string) => {
-    setEvents(prev =>
-      prev.map(e =>
-        e.id === eventId
-          ? { ...e, fieldId: undefined, bookingScope: undefined, bookedZoneIds: undefined }
-          : e
-      )
-    );
+    setEventOverrides(prev => ({
+      ...prev,
+      [eventId]: { ...prev[eventId], fieldId: undefined, bookingScope: undefined, bookedZoneIds: undefined }
+    }));
   };
 
   const handleRemoveMaintenance = (blockId: string) => {
@@ -359,7 +361,10 @@ export function FieldBooking() {
                     <div key={evt.id} className="flex items-center gap-3 bg-white rounded-lg p-3 border border-violet-100">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-neutral-900 truncate">{evt.title}</p>
-                        <p className="text-xs text-neutral-500">{evt.startTime}–{evt.endTime}{lang === "de" ? " Uhr" : ""}</p>
+                        <p className="text-xs text-neutral-500">
+                          {new Date(evt.date + "T12:00:00").toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
+                          {" · "}{evt.startTime}–{evt.endTime}{lang === "de" ? " Uhr" : ""}
+                        </p>
                       </div>
                       <select
                         value={assignFieldMap[evt.id] ?? ""}

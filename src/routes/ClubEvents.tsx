@@ -26,47 +26,22 @@ import {
 import { useLanguage } from "../i18n";
 import { useRole } from "../contexts";
 
-// ── Personal events mock data ──────────────────────────────────────────────
-type PersonalEvent = {
-  id: string; title: string; date: string; startTime: string;
-  endTime: string; location: string; type: "training" | "match" | "event";
-  team: string; rsvp: "confirmed" | "declined" | "pending";
+// Maps the viewContext key (from RoleContext) to the member ID used in mockClubEvents audience.memberIds
+const PERSONA_MEMBER_ID: Record<string, string> = {
+  patrick_steuble: "patrick_steuble",
+  lena_schneider: "lena_schneider",
+  flurina: "flurina_schneider",
+  max: "max_schneider",
 };
 
-const PERSONAL_EVENTS: Record<string, PersonalEvent[]> = {
-  // Patrick Steuble – 1. Herren
-  patrick_steuble: [
-    { id: "ps_1", title: "Training 1. Herren", date: "2026-03-10", startTime: "19:00", endTime: "20:30", location: "Hauptplatz SfB", type: "training", team: "1. Herren", rsvp: "confirmed" },
-    { id: "ps_2", title: "Ligaspiel – SfB vs. TSV Steinbach", date: "2026-03-14", startTime: "15:30", endTime: "17:30", location: "Hauptplatz SfB", type: "match", team: "1. Herren", rsvp: "confirmed" },
-    { id: "ps_3", title: "Training 1. Herren", date: "2026-03-17", startTime: "19:00", endTime: "20:30", location: "Hauptplatz SfB", type: "training", team: "1. Herren", rsvp: "pending" },
-    { id: "ps_4", title: "Auswärtsspiel – SV Lollar vs. SfB", date: "2026-03-21", startTime: "14:00", endTime: "16:00", location: "Sportplatz Lollar", type: "match", team: "1. Herren", rsvp: "pending" },
-    { id: "ps_5", title: "Jahreshauptversammlung", date: "2026-03-25", startTime: "19:00", endTime: "21:00", location: "Vereinsheim SfB", type: "event", team: "Gesamtverein", rsvp: "pending" },
-  ],
-  // Lena Schneider – Fitness Morgengruppe
-  lena_schneider: [
-    { id: "pe_1", title: "Fitness Morgengruppe", date: "2026-03-10", startTime: "07:00", endTime: "08:00", location: "Fitnessraum SfB", type: "training", team: "Fitness – Morgengruppe", rsvp: "confirmed" },
-    { id: "pe_2", title: "Fitness Morgengruppe", date: "2026-03-12", startTime: "07:00", endTime: "08:00", location: "Fitnessraum SfB", type: "training", team: "Fitness – Morgengruppe", rsvp: "confirmed" },
-    { id: "pe_3", title: "Fitness Morgengruppe", date: "2026-03-17", startTime: "07:00", endTime: "08:00", location: "Fitnessraum SfB", type: "training", team: "Fitness – Morgengruppe", rsvp: "pending" },
-    { id: "pe_4", title: "Jahreshauptversammlung", date: "2026-03-25", startTime: "19:00", endTime: "21:00", location: "Vereinsheim SfB", type: "event", team: "Gesamtverein", rsvp: "pending" },
-    { id: "pe_5", title: "Fitness Morgengruppe", date: "2026-03-26", startTime: "07:00", endTime: "08:00", location: "Fitnessraum SfB", type: "training", team: "Fitness – Morgengruppe", rsvp: "pending" },
-  ],
-  // Flurina Schneider – Volleyball U16 Mädchen
-  flurina: [
-    { id: "fe_1", title: "Training Volleyball U16", date: "2026-03-10", startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB", type: "training", team: "Volleyball U16 Mädchen", rsvp: "confirmed" },
-    { id: "fe_2", title: "Training Volleyball U16", date: "2026-03-12", startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB", type: "training", team: "Volleyball U16 Mädchen", rsvp: "confirmed" },
-    { id: "fe_3", title: "Heimspiel U16 – SfB vs. VfL Marburg", date: "2026-03-15", startTime: "11:00", endTime: "13:00", location: "Sporthalle SfB", type: "match", team: "Volleyball U16 Mädchen", rsvp: "confirmed" },
-    { id: "fe_4", title: "Training Volleyball U16", date: "2026-03-17", startTime: "17:30", endTime: "19:00", location: "Sporthalle SfB", type: "training", team: "Volleyball U16 Mädchen", rsvp: "pending" },
-    { id: "fe_5", title: "Gießen Cup Turnier", date: "2026-03-22", startTime: "09:00", endTime: "17:00", location: "Sportanlage Gießen", type: "match", team: "Volleyball U16 Mädchen", rsvp: "pending" },
-  ],
-  // Max Schneider – Fußball U12
-  max: [
-    { id: "mx_1", title: "Training Fußball U12", date: "2026-03-10", startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A", type: "training", team: "Fußball U12", rsvp: "confirmed" },
-    { id: "mx_2", title: "Training Fußball U12", date: "2026-03-13", startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A", type: "training", team: "Fußball U12", rsvp: "confirmed" },
-    { id: "mx_3", title: "Ligaspiel U12 – SfB vs. FC Lahntal", date: "2026-03-15", startTime: "10:30", endTime: "12:00", location: "Nebenplatz SfB", type: "match", team: "Fußball U12", rsvp: "confirmed" },
-    { id: "mx_4", title: "Training Fußball U12", date: "2026-03-17", startTime: "16:00", endTime: "17:30", location: "Trainingsplatz A", type: "training", team: "Fußball U12", rsvp: "pending" },
-    { id: "mx_5", title: "Osterturnier Wettenberg", date: "2026-03-28", startTime: "09:00", endTime: "14:00", location: "Sportpark Wettenberg", type: "match", team: "Fußball U12", rsvp: "pending" },
-  ],
-};
+// Derive a simplified event type for personal view display
+function getPersonalEventType(e: ClubEvent): "training" | "match" | "event" {
+  if (e.category === "Training") return "training";
+  const matchKeywords = ["ligaspiel", "heimspiel", "auswärtsspiel", "spiel", "cup", "turnier"];
+  const lower = e.title.toLowerCase();
+  if (e.category === "Spiel" || matchKeywords.some(k => lower.includes(k))) return "match";
+  return "event";
+}
 
 type ViewMode = "list" | "calendar";
 type TimeFilter = "upcoming" | "past" | "all";
@@ -94,7 +69,15 @@ export function ClubEvents() {
       : user.linkedChildren?.find(c => c.id === viewContext)?.firstName ?? viewContext;
 
   // State
-  const [events, setEvents] = useState<ClubEvent[]>(mockClubEvents);
+  const [newEvents, setNewEvents] = useState<ClubEvent[]>([]);
+  const [eventOverrides, setEventOverrides] = useState<Record<string, Partial<ClubEvent>>>({});
+  const events = useMemo(
+    () => [
+      ...mockClubEvents.map(e => eventOverrides[e.id] ? { ...e, ...eventOverrides[e.id] } : e),
+      ...newEvents,
+    ],
+    [eventOverrides, newEvents]
+  );
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchTerm, setSearchTerm] = useState("");
   const [timeFilter] = useState<TimeFilter>("upcoming");
@@ -261,34 +244,28 @@ export function ClubEvents() {
   };
 
   const handlePublish = (event: ClubEvent) => {
-    const updated = events.map(e => {
-      if (e.id === event.id) {
-        return {
-          ...e,
-          status: "published" as EventStatus,
-          statusHistory: [...e.statusHistory, createStatusHistoryEntry("published", ADMIN_USER.id, ADMIN_USER.name)],
-          updatedAt: new Date().toISOString()
-        };
+    setEventOverrides(prev => ({
+      ...prev,
+      [event.id]: {
+        ...prev[event.id],
+        status: "published" as EventStatus,
+        statusHistory: [...event.statusHistory, createStatusHistoryEntry("published", ADMIN_USER.id, ADMIN_USER.name)],
+        updatedAt: new Date().toISOString()
       }
-      return e;
-    });
-    setEvents(updated);
+    }));
     setShowDetailDrawer(false);
   };
 
   const handleCancel = (event: ClubEvent, reason: string) => {
-    const updated = events.map(e => {
-      if (e.id === event.id) {
-        return {
-          ...e,
-          status: "cancelled" as EventStatus,
-          statusHistory: [...e.statusHistory, createStatusHistoryEntry("cancelled", ADMIN_USER.id, ADMIN_USER.name, reason)],
-          updatedAt: new Date().toISOString()
-        };
+    setEventOverrides(prev => ({
+      ...prev,
+      [event.id]: {
+        ...prev[event.id],
+        status: "cancelled" as EventStatus,
+        statusHistory: [...event.statusHistory, createStatusHistoryEntry("cancelled", ADMIN_USER.id, ADMIN_USER.name, reason)],
+        updatedAt: new Date().toISOString()
       }
-      return e;
-    });
-    setEvents(updated);
+    }));
     setShowDetailDrawer(false);
   };
 
@@ -296,12 +273,10 @@ export function ClubEvents() {
     const existingIndex = events.findIndex(e => e.id === event.id);
     if (existingIndex >= 0) {
       // Update existing
-      const updated = [...events];
-      updated[existingIndex] = event;
-      setEvents(updated);
+      setEventOverrides(prev => ({ ...prev, [event.id]: event }));
     } else {
       // Add new
-      setEvents([...events, event]);
+      setNewEvents(prev => [...prev, event]);
     }
     setShowFormDrawer(false);
     setEditingEvent(null);
@@ -316,9 +291,22 @@ export function ClubEvents() {
     );
   };
 
-  // Personal events for the selected person ("me" resolves to current user's id)
+  // Personal events: filter eventsWithComputedStatus by persona member ID
   const personalEventsKey = viewContext === "me" ? user.id : viewContext;
-  const currentPersonalEvents = PERSONAL_EVENTS[personalEventsKey] ?? [];
+  const personaMemberId = PERSONA_MEMBER_ID[personalEventsKey] ?? personalEventsKey;
+  const currentPersonalEvents = useMemo(() =>
+    eventsWithComputedStatus
+      .filter(e => {
+        if (e.status === "cancelled") return false;
+        const eventEnd = new Date(`${e.date}T${e.endTime}`);
+        if (eventEnd < now) return false;
+        if (e.audience.mode === "all") return true;
+        if (e.audience.mode === "manual" && e.audience.memberIds?.includes(personaMemberId)) return true;
+        return false;
+      })
+      .sort((a, b) => new Date(`${a.date}T${a.startTime}`).getTime() - new Date(`${b.date}T${b.startTime}`).getTime()),
+    [eventsWithComputedStatus, personaMemberId, now]
+  );
 
   return (
     <div className="space-y-4">
@@ -415,20 +403,22 @@ export function ClubEvents() {
           ) : (
             <div className="divide-y divide-slate-100">
               {currentPersonalEvents.map(event => {
+                const eventType = getPersonalEventType(event);
                 const typeIcon =
-                  event.type === "training" ? <Dumbbell className="w-4 h-4" /> :
-                  event.type === "match" ? <TrophyIcon className="w-4 h-4" /> :
+                  eventType === "training" ? <Dumbbell className="w-4 h-4" /> :
+                  eventType === "match" ? <TrophyIcon className="w-4 h-4" /> :
                   <PartyPopper className="w-4 h-4" />;
                 const typeColor =
-                  event.type === "training" ? "bg-blue-50 text-blue-600" :
-                  event.type === "match" ? "bg-teal-50 text-teal-600" :
+                  eventType === "training" ? "bg-blue-50 text-blue-600" :
+                  eventType === "match" ? "bg-teal-50 text-teal-600" :
                   "bg-amber-50 text-amber-600";
+                const rsvpStatus: "confirmed" | "pending" = event.rsvpRequired ? "pending" : "confirmed";
                 const rsvpConfig = {
                   confirmed: { label: "Zugesagt", color: "bg-green-100 text-green-700", icon: <Check className="w-3 h-3" /> },
                   declined: { label: "Abgesagt", color: "bg-red-100 text-red-700", icon: null },
                   pending: { label: "Ausstehend", color: "bg-neutral-100 text-neutral-500", icon: <Clock className="w-3 h-3" /> },
                 };
-                const rsvp = rsvpConfig[event.rsvp];
+                const rsvp = rsvpConfig[rsvpStatus];
 
                 return (
                   <div key={event.id} className="p-4 hover:bg-slate-50 transition-colors">
@@ -449,7 +439,7 @@ export function ClubEvents() {
                           <h3 className="font-semibold text-slate-800 truncate">{event.title}</h3>
                           <span className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${typeColor}`}>
                             {typeIcon}
-                            {event.type === "training" ? "Training" : event.type === "match" ? "Spiel" : "Veranstaltung"}
+                            {eventType === "training" ? "Training" : eventType === "match" ? "Spiel" : "Veranstaltung"}
                           </span>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-500">
@@ -457,7 +447,7 @@ export function ClubEvents() {
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3.5 h-3.5" />{event.location}
                           </span>
-                          <span className="text-xs text-slate-400">{event.team}</span>
+                          <span className="text-xs text-slate-400">{event.category ?? ""}</span>
                         </div>
                       </div>
 
