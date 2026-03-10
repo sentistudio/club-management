@@ -212,6 +212,7 @@ export const translations = {
     fieldsTab: { de: "Felder", en: "Fields" },
     occupancyTab: { de: "Belegung", en: "Occupancy" },
     today: { de: "Heute", en: "Today" },
+    jumpToDate: { de: "Datum auswählen", en: "Jump to date" },
     free: { de: "Frei", en: "Free" },
     noBookings: { de: "Keine Buchungen an diesem Tag.", en: "No bookings on this day." },
     training: { de: "Training", en: "Training" },

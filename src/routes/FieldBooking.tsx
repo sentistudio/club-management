@@ -5,7 +5,7 @@
  *   - Felder: field management (list, create, edit, delete)
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   Plus,
   Edit2,
@@ -20,6 +20,7 @@ import {
   Home,
   XCircle,
   Wrench,
+  CalendarDays,
 } from "lucide-react";
 import { ZoneGrid } from "../components/fields/ZoneGrid";
 import { FieldFormDrawer } from "../components/fields/FieldFormDrawer";
@@ -68,6 +69,7 @@ type Tab = "belegung" | "felder";
 
 export function FieldBooking() {
   const { t, lang, getWeekday } = useLanguage();
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<Tab>("belegung");
   const [fields, setFields] = useState<Field[]>(mockFields);
   const [formField, setFormField] = useState<Field | null | undefined>(undefined); // undefined = closed
@@ -235,9 +237,29 @@ export function FieldBooking() {
                 >
                   <ChevronLeft className="w-4 h-4 text-neutral-500" />
                 </button>
-                <span className="text-sm font-medium text-neutral-700 min-w-[120px] text-center">
-                  {calendarWeek.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}
-                </span>
+                <div className="relative">
+                  <button
+                    onClick={() => dateInputRef.current?.showPicker()}
+                    className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded min-w-[130px] justify-center"
+                    title={t("fields.jumpToDate")}
+                  >
+                    <CalendarDays className="w-3.5 h-3.5 text-neutral-400" />
+                    {calendarWeek.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}
+                  </button>
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    value={selectedDate}
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (!val) return;
+                      setSelectedDate(val);
+                      setCalendarWeek(new Date(val + "T12:00:00"));
+                    }}
+                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                    tabIndex={-1}
+                  />
+                </div>
                 <button
                   onClick={() => { const d = new Date(calendarWeek); d.setDate(d.getDate() + 7); setCalendarWeek(d); }}
                   className="p-1 hover:bg-neutral-100 rounded"
