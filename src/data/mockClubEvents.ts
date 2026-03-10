@@ -976,6 +976,223 @@ export const mockClubEvents: ClubEvent[] = [
   },
 
   // ═══════════════════════════════════════════
+  // NO-FIELD EVENTS – visible in "Ohne Feld" panel
+  // Core: Lena + Patrick; occasionally Flurina + Max
+  // ═══════════════════════════════════════════
+
+  {
+    id: "evt_elternbeirat_fruehjahr",
+    title: "Elternbeirat Frühjahrsplanung",
+    description: "Planungstreffen des Elternbeirats: Abstimmung der Begleitdienste für Auswärtsspiele, Saisonende-Feier und Budgetübersicht.",
+    date: "2026-03-10",
+    startTime: "18:30",
+    endTime: "20:00",
+    location: "Vereinsheim",
+    audience: {
+      mode: "manual" as AudienceMode,
+      memberIds: ["lena_schneider", "patrick_steuble", "peter_hoffmann", "petra_weber"]
+    },
+    resolvedMemberCount: 4,
+    visibility: "private" as EventVisibility,
+    rsvpRequired: true,
+    rsvpDeadline: "2026-03-09T18:00:00",
+    rsvpStats: { invited: 4, confirmed: 3, declined: 0, pending: 1, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 5 }, { status: "published", daysAgo: 3 }),
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Sitzung",
+    // No fieldId – unassigned
+  },
+
+  {
+    id: "evt_vb_jugend_u12",
+    title: "Volleyball Jugend U12 Training",
+    description: "Reguläres Hallentraining für die U12-Mädchen. Bitte Hallenschuhe mitbringen.",
+    date: "2026-03-11",
+    startTime: "16:00",
+    endTime: "17:30",
+    location: "",
+    audience: {
+      mode: "manual" as AudienceMode,
+      memberIds: ["flurina_schneider", "anna_berger", "coach_katja", "lena_schneider"]
+    },
+    resolvedMemberCount: 4,
+    visibility: "private" as EventVisibility,
+    rsvpRequired: false,
+    rsvpStats: { invited: 4, confirmed: 4, declined: 0, pending: 0, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 6 }, { status: "published", daysAgo: 4 }),
+    createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Training",
+    // No fieldId – unassigned
+  },
+
+  {
+    id: "evt_fussball_u10_dienstag",
+    title: "Fußball Jugend U10 Training",
+    description: "Techniktraining mit kleinen Spielformen. Max und seine Mitspieler üben Passspiel und Torabschluss.",
+    date: "2026-03-11",
+    startTime: "17:00",
+    endTime: "18:30",
+    location: "",
+    audience: {
+      mode: "manual" as AudienceMode,
+      memberIds: ["max_schneider", "coach_marco", "patrick_steuble"]
+    },
+    resolvedMemberCount: 3,
+    visibility: "private" as EventVisibility,
+    rsvpRequired: false,
+    rsvpStats: { invited: 3, confirmed: 3, declined: 0, pending: 0, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 6 }, { status: "published", daysAgo: 4 }),
+    createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Training",
+    // No fieldId – unassigned
+  },
+
+  {
+    id: "evt_fitness_morgen_mi",
+    title: "Fitness Morgenrunde",
+    description: "Offene Morgenrunde für alle Mitglieder. Kraft, Ausdauer und Beweglichkeit. Keine Anmeldung nötig.",
+    date: "2026-03-12",
+    startTime: "07:00",
+    endTime: "08:00",
+    location: "",
+    audience: {
+      mode: "manual" as AudienceMode,
+      memberIds: ["lena_schneider", "patrick_steuble", "daniel_klein"]
+    },
+    resolvedMemberCount: 3,
+    visibility: "private" as EventVisibility,
+    rsvpRequired: false,
+    rsvpStats: { invited: 3, confirmed: 3, declined: 0, pending: 0, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 4 }, { status: "published", daysAgo: 2 }),
+    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Training",
+    // No fieldId – unassigned
+  },
+
+  {
+    id: "evt_vorstand_klausur",
+    title: "Vorstandsklausur Frühjahr",
+    description: "Halbtägige Klausur zur Saisonplanung und Finanzvorschau 2026/27. Tagesordnung vorab per E-Mail.",
+    date: "2026-03-13",
+    startTime: "14:00",
+    endTime: "17:30",
+    location: "Vereinsheim - Sitzungszimmer",
+    audience: {
+      mode: "manual" as AudienceMode,
+      memberIds: ["patrick_steuble", "thomas_mueller", "sabine_weber", "lena_schneider"]
+    },
+    resolvedMemberCount: 4,
+    visibility: "private" as EventVisibility,
+    rsvpRequired: true,
+    rsvpDeadline: "2026-03-11T18:00:00",
+    rsvpStats: { invited: 4, confirmed: 4, declined: 0, pending: 0, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 8 }, { status: "published", daysAgo: 5 }),
+    createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Sitzung",
+    // No fieldId – unassigned
+  },
+
+  {
+    id: "evt_familien_sportnachmittag",
+    title: "Familien-Sportnachmittag",
+    description: "Lockerer Sportnachmittag für Mitglieder und ihre Familien. Für alle Altersgruppen – von den Kleinsten bis zu den Erwachsenen.",
+    date: "2026-03-14",
+    startTime: "14:00",
+    endTime: "16:30",
+    location: "Sportgelände",
+    audience: {
+      mode: "manual" as AudienceMode,
+      memberIds: ["lena_schneider", "patrick_steuble", "flurina_schneider", "max_schneider", "peter_hoffmann", "petra_weber"]
+    },
+    resolvedMemberCount: 6,
+    visibility: "public" as EventVisibility,
+    rsvpRequired: true,
+    rsvpDeadline: "2026-03-13T12:00:00",
+    rsvpStats: { invited: 6, confirmed: 5, declined: 0, pending: 1, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 7 }, { status: "published", daysAgo: 4 }),
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Veranstaltung",
+    tags: ["Familie"],
+    // No fieldId – unassigned
+  },
+
+  {
+    id: "evt_fussball_u10_mo",
+    title: "Fußball U10 – Spielform & Taktik",
+    description: "Taktische Einheit mit 4-gegen-4 Spielformen. Fokus auf Positionierung und Zweikampfverhalten.",
+    date: "2026-03-17",
+    startTime: "15:30",
+    endTime: "17:00",
+    location: "",
+    audience: {
+      mode: "manual" as AudienceMode,
+      memberIds: ["max_schneider", "coach_marco", "lena_schneider"]
+    },
+    resolvedMemberCount: 3,
+    visibility: "private" as EventVisibility,
+    rsvpRequired: false,
+    rsvpStats: { invited: 3, confirmed: 3, declined: 0, pending: 0, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 3 }, { status: "published", daysAgo: 1 }),
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Training",
+    // No fieldId – unassigned
+  },
+
+  {
+    id: "evt_vb_vereinstraining",
+    title: "Volleyball Vereinstraining",
+    description: "Offenes Vereinstraining für alle Volleyball-Mitglieder. Flurina trainiert mit der Seniorengruppe als Gast.",
+    date: "2026-03-18",
+    startTime: "18:00",
+    endTime: "20:00",
+    location: "",
+    audience: {
+      mode: "manual" as AudienceMode,
+      memberIds: ["flurina_schneider", "coach_katja", "lena_schneider", "patrick_steuble", "petra_weber"]
+    },
+    resolvedMemberCount: 5,
+    visibility: "private" as EventVisibility,
+    rsvpRequired: false,
+    rsvpStats: { invited: 5, confirmed: 4, declined: 0, pending: 1, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 3 }, { status: "published", daysAgo: 1 }),
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Training",
+    // No fieldId – unassigned
+  },
+
+  // ═══════════════════════════════════════════
   // 15. HEIMSPIEL – full field booking, future match
   // ═══════════════════════════════════════════
   {
