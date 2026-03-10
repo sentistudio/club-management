@@ -1,8 +1,8 @@
 /**
  * FieldBooking – Platzbelegung admin page.
  * Two tabs:
+ *   - Belegung: day-view occupancy calendar per field (default)
  *   - Felder: field management (list, create, edit, delete)
- *   - Belegung: day-view occupancy calendar per field
  */
 
 import { useState, useMemo } from "react";
@@ -19,12 +19,20 @@ import {
   CheckCircle,
   Home,
   XCircle,
+  Wrench,
 } from "lucide-react";
 import { ZoneGrid } from "../components/fields/ZoneGrid";
 import { FieldFormDrawer } from "../components/fields/FieldFormDrawer";
-import { mockFields, getBookingsForField, fieldHasFutureBookings } from "../data/mockFields";
+import { FieldDetailModal } from "../components/fields/FieldDetailModal";
+import { MaintenanceBlockForm } from "../components/fields/MaintenanceBlockForm";
+import {
+  mockFields,
+  getBookingsForField,
+  fieldHasFutureBookings,
+  mockMaintenanceBlocks,
+} from "../data/mockFields";
 import { mockClubEvents } from "../data/mockClubEvents";
-import type { Field } from "../types/fields";
+import type { Field, MaintenanceBlock, WeekdayKey } from "../types/fields";
 import { FIELD_TYPE_ICONS, FIELD_TYPE_LABELS } from "../types/fields";
 import type { ClubEvent } from "../types/events";
 import { useLanguage } from "../i18n";
@@ -36,11 +44,6 @@ const TODAY = new Date().toISOString().split("T")[0];
 const fmtDay = (iso: string, lang: "de" | "en") =>
   new Date(iso).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
-const addDays = (iso: string, n: number) => {
-  const d = new Date(iso);
-  d.setDate(d.getDate() + n);
-  return d.toISOString().split("T")[0];
-};
 
 // Rough pixel offset for timeline (06:00 = 0%, 22:00 = 100%)
 const timeToPercent = (t: string) => {
@@ -56,13 +59,16 @@ const EVENT_COLORS: Record<string, string> = {
   event: "bg-violet-100 border-violet-300 text-violet-800",
 };
 
+// Map JS getDay() (0=Sun) to WeekdayKey
+const JS_DAY_TO_KEY: WeekdayKey[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
-type Tab = "felder" | "belegung";
+type Tab = "belegung" | "felder";
 
 export function FieldBooking() {
   const { t, lang, getWeekday } = useLanguage();
-  const [tab, setTab] = useState<Tab>("felder");
+  const [tab, setTab] = useState<Tab>("belegung");
   const [fields, setFields] = useState<Field[]>(mockFields);
   const [formField, setFormField] = useState<Field | null | undefined>(undefined); // undefined = closed
   const [deleteTarget, setDeleteTarget] = useState<Field | null>(null);
@@ -70,9 +76,12 @@ export function FieldBooking() {
   const [calendarWeek, setCalendarWeek] = useState(new Date());
   const [expandedFields, setExpandedFields] = useState<string[]>([]);
   const [detailEvent, setDetailEvent] = useState<ClubEvent | null>(null);
-
-  // All events (in a real app these would come from state/context)
-  const events = mockClubEvents;
+  const [detailField, setDetailField] = useState<Field | null>(null);
+  const [events, setEvents] = useState<ClubEvent[]>(mockClubEvents);
+  const [maintenanceBlocks, setMaintenanceBlocks] = useState<MaintenanceBlock[]>(mockMaintenanceBlocks);
+  const [maintenanceTarget, setMaintenanceTarget] = useState<{ field: Field } | null>(null);
+  const [showUnassigned, setShowUnassigned] = useState(false);
+  const [assignFieldMap, setAssignFieldMap] = useState<Record<string, string>>({}); // eventId -> fieldId selection
 
   const toggleExpand = (fieldId: string) =>
     setExpandedFields(prev =>
@@ -119,11 +128,62 @@ export function FieldBooking() {
   // ── Belegung tab ──────────────────────────────────────────────────────────
 
   const dayBookings = useMemo(
-    () => fields.map(f => ({ field: f, bookings: getBookingsForField(events, f.id, selectedDate) })),
-    [fields, events, selectedDate]
+    () => fields.map(f => ({
+      field: f,
+      bookings: getBookingsForField(events, f.id, selectedDate),
+      maintenance: maintenanceBlocks.filter(b => b.fieldId === f.id && b.date === selectedDate),
+    })),
+    [fields, events, selectedDate, maintenanceBlocks]
   );
 
-  const hasAnyBooking = dayBookings.some(d => d.bookings.length > 0);
+  const hasAnyBooking = dayBookings.some(d => d.bookings.length > 0 || d.maintenance.length > 0);
+
+  // Selected date weekday key
+  const selectedWeekdayKey: WeekdayKey = JS_DAY_TO_KEY[new Date(selectedDate + "T12:00:00").getDay()];
+
+  // Unassigned events on selectedDate
+  const unassignedEvents = useMemo(
+    () => events.filter(e => !e.fieldId && e.date === selectedDate),
+    [events, selectedDate]
+  );
+
+  const activeFields = fields.filter(f => f.isActive);
+
+  const handleAssignField = (eventId: string) => {
+    const fieldId = assignFieldMap[eventId];
+    if (!fieldId) return;
+    setEvents(prev =>
+      prev.map(e =>
+        e.id === eventId
+          ? { ...e, fieldId, bookingScope: "full_field" as const, bookedZoneIds: undefined }
+          : e
+      )
+    );
+    setAssignFieldMap(prev => {
+      const next = { ...prev };
+      delete next[eventId];
+      return next;
+    });
+  };
+
+  const handleRemoveBooking = (eventId: string) => {
+    setEvents(prev =>
+      prev.map(e =>
+        e.id === eventId
+          ? { ...e, fieldId: undefined, bookingScope: undefined, bookedZoneIds: undefined }
+          : e
+      )
+    );
+  };
+
+  const handleRemoveMaintenance = (blockId: string) => {
+    setMaintenanceBlocks(prev => prev.filter(b => b.id !== blockId));
+  };
+
+  const handleSaveMaintenance = (block: MaintenanceBlock) => {
+    setMaintenanceBlocks(prev => [...prev, block]);
+    setMaintenanceTarget(null);
+  };
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -137,20 +197,18 @@ export function FieldBooking() {
             {fields.filter(f => f.isActive).length} {t("fields.activeFields")} · {fields.length} {t("fields.total")}
           </p>
         </div>
-        {tab === "felder" && (
-          <button
-            onClick={() => setFormField(null)}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            {t("fields.addField")}
-          </button>
-        )}
+        <button
+          onClick={() => setFormField(null)}
+          className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          {t("fields.addField")}
+        </button>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-neutral-100 rounded-lg p-1 w-fit">
-        {(["felder", "belegung"] as Tab[]).map(tabKey => (
+        {(["belegung", "felder"] as Tab[]).map(tabKey => (
           <button
             key={tabKey}
             onClick={() => setTab(tabKey)}
@@ -164,6 +222,363 @@ export function FieldBooking() {
         ))}
       </div>
 
+      {/* ── BELEGUNG TAB ────────────────────────────────────────────────── */}
+      {tab === "belegung" && (
+        <div className="space-y-4">
+          {/* Date navigation */}
+          <div className="bg-white border border-neutral-200 rounded-xl p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => { const d = new Date(calendarWeek); d.setDate(d.getDate() - 7); setCalendarWeek(d); }}
+                  className="p-1 hover:bg-neutral-100 rounded"
+                >
+                  <ChevronLeft className="w-4 h-4 text-neutral-500" />
+                </button>
+                <span className="text-sm font-medium text-neutral-700 min-w-[120px] text-center">
+                  {calendarWeek.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}
+                </span>
+                <button
+                  onClick={() => { const d = new Date(calendarWeek); d.setDate(d.getDate() + 7); setCalendarWeek(d); }}
+                  className="p-1 hover:bg-neutral-100 rounded"
+                >
+                  <ChevronRight className="w-4 h-4 text-neutral-500" />
+                </button>
+                <button
+                  onClick={() => { setCalendarWeek(new Date()); setSelectedDate(TODAY); }}
+                  className="ml-2 text-xs px-2 py-1 text-[#004941] hover:bg-[#C8F2E0] rounded"
+                >
+                  {t("fields.today")}
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Unassigned toggle */}
+                <button
+                  onClick={() => setShowUnassigned(v => !v)}
+                  className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-medium transition-all ${
+                    showUnassigned
+                      ? "bg-violet-100 border-violet-300 text-violet-700"
+                      : "bg-white border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  Ohne Feld
+                  {unassignedEvents.length > 0 && (
+                    <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold ${
+                      showUnassigned ? "bg-violet-600 text-white" : "bg-neutral-200 text-neutral-600"
+                    }`}>
+                      {unassignedEvents.length}
+                    </span>
+                  )}
+                </button>
+                {selectedDate !== TODAY ? (
+                  <button
+                    onClick={() => setSelectedDate(TODAY)}
+                    className="text-xs px-2 py-1 bg-[#004941] text-white rounded flex items-center gap-1"
+                  >
+                    {new Date(selectedDate).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
+                    <XCircle className="w-3 h-3" />
+                  </button>
+                ) : (
+                  <span className="text-xs text-neutral-500">{fmtDay(selectedDate, lang)}</span>
+                )}
+              </div>
+            </div>
+            {/* Week strip */}
+            <div className="flex gap-1">
+              {(() => {
+                const startOfWeek = new Date(calendarWeek);
+                const dow = startOfWeek.getDay();
+                startOfWeek.setDate(startOfWeek.getDate() + (dow === 0 ? -6 : 1 - dow));
+                const todayDate = new Date();
+                todayDate.setHours(0, 0, 0, 0);
+                return Array.from({ length: 7 }, (_, i) => {
+                  const d = new Date(startOfWeek);
+                  d.setDate(d.getDate() + i);
+                  const dateStr = d.toISOString().split("T")[0];
+                  const isToday = d.toDateString() === todayDate.toDateString();
+                  const isSelected = selectedDate === dateStr;
+                  const hasBookings = events.some(e => e.fieldId && e.date === dateStr);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedDate(dateStr)}
+                      className={`flex-1 py-1.5 rounded text-center transition-all ${
+                        isSelected ? "bg-[#004941] text-white" : isToday ? "bg-[#C8F2E0] text-[#004941]" : hasBookings ? "bg-white hover:bg-neutral-100" : "hover:bg-white"
+                      }`}
+                    >
+                      <p className={`text-[10px] uppercase ${isSelected ? "text-white/70" : "text-neutral-400"}`}>
+                        {getWeekday(d)}
+                      </p>
+                      <p className={`text-sm font-bold ${isSelected ? "text-white" : isToday ? "text-[#004941]" : "text-neutral-700"}`}>
+                        {d.getDate()}
+                      </p>
+                      {hasBookings && (
+                        <div className={`w-1 h-1 rounded-full mx-auto mt-0.5 ${isSelected ? "bg-white" : "bg-[#004941]"}`} />
+                      )}
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+
+          {/* Unassigned events panel */}
+          {showUnassigned && (
+            <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+              <p className="text-sm font-semibold text-violet-800 mb-3">Veranstaltungen ohne Feldzuweisung</p>
+              {unassignedEvents.length === 0 ? (
+                <p className="text-sm text-violet-500 italic">Keine unzugewiesenen Veranstaltungen an diesem Tag.</p>
+              ) : (
+                <div className="space-y-2">
+                  {unassignedEvents.map(evt => (
+                    <div key={evt.id} className="flex items-center gap-3 bg-white rounded-lg p-3 border border-violet-100">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-neutral-900 truncate">{evt.title}</p>
+                        <p className="text-xs text-neutral-500">{evt.startTime}–{evt.endTime} Uhr</p>
+                      </div>
+                      <select
+                        value={assignFieldMap[evt.id] ?? ""}
+                        onChange={e => setAssignFieldMap(prev => ({ ...prev, [evt.id]: e.target.value }))}
+                        className="text-xs border border-neutral-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      >
+                        <option value="">Feld wählen...</option>
+                        {activeFields.map(f => (
+                          <option key={f.id} value={f.id}>{f.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleAssignField(evt.id)}
+                        disabled={!assignFieldMap[evt.id]}
+                        className="text-xs px-3 py-1.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Zuweisen
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Timeline header */}
+          <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
+            {/* Hour ruler */}
+            <div className="flex border-b border-neutral-200 pl-[160px]">
+              {[6, 8, 10, 12, 14, 16, 18, 20, 22].map(h => (
+                <div key={h} className="flex-1 text-[10px] text-neutral-400 text-center py-1.5 border-l border-neutral-100 first:border-l-0">
+                  {String(h).padStart(2, "0")}:00
+                </div>
+              ))}
+            </div>
+
+            {!hasAnyBooking && (
+              <div className="py-12 text-center">
+                <LayoutGrid className="w-8 h-8 text-neutral-200 mx-auto mb-2" />
+                <p className="text-sm text-neutral-500">{t("fields.noBookings")}</p>
+              </div>
+            )}
+
+            {/* Per-field rows */}
+            {dayBookings.map(({ field, bookings, maintenance }) => {
+              const isExpanded = expandedFields.includes(field.id);
+              const hasBookings = bookings.length > 0 || maintenance.length > 0;
+
+              // Opening hours for this field on this day
+              const dayHours = field.isActive ? field.openingHours?.[selectedWeekdayKey] : undefined;
+              const isClosed = dayHours ? !dayHours.open : false;
+              const openFrom = dayHours?.open ? dayHours.from : null;
+              const openTo = dayHours?.open ? dayHours.to : null;
+
+              return (
+                <div key={field.id} className="border-b border-neutral-100 last:border-0">
+                  {/* Field header row */}
+                  <div className="flex items-center">
+                    <div
+                      className={`w-[160px] flex-shrink-0 px-4 py-3 flex items-center gap-2 ${field.isDivisibleInto6 ? "cursor-pointer hover:bg-neutral-50" : ""}`}
+                      onClick={() => field.isDivisibleInto6 && toggleExpand(field.id)}
+                    >
+                      <span className="text-lg">{FIELD_TYPE_ICONS[field.type]}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-neutral-900 truncate">{field.name}</p>
+                        {field.isDivisibleInto6 && (
+                          <p className="text-[10px] text-neutral-400">{isExpanded ? `▲ ${t("fields.expandZones")}` : `▼ ${t("fields.expandZones")}`}</p>
+                        )}
+                      </div>
+                      {/* Maintenance button */}
+                      <button
+                        onClick={e => { e.stopPropagation(); setMaintenanceTarget({ field }); }}
+                        className="p-1 rounded hover:bg-amber-50 text-amber-500 hover:text-amber-700 transition-colors flex-shrink-0"
+                        title="Sperre hinzufügen"
+                      >
+                        <Wrench className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {/* Timeline track */}
+                    <div className="flex-1 relative h-12 border-l border-neutral-200 overflow-hidden">
+                      {/* Hour grid */}
+                      {[0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5, 100].map((p, i) => (
+                        <div
+                          key={i}
+                          className="absolute top-0 bottom-0 border-l border-neutral-100"
+                          style={{ left: `${p}%` }}
+                        />
+                      ))}
+
+                      {/* Opening hours overlays */}
+                      {field.isActive && dayHours && (
+                        <>
+                          {isClosed ? (
+                            /* Full day closed overlay */
+                            <div
+                              className="absolute top-0 bottom-0 bg-neutral-100/70 flex items-center justify-center z-0"
+                              style={{ left: "0%", width: "100%" }}
+                            >
+                              <span className="text-[10px] text-neutral-400 font-medium">Geschlossen</span>
+                            </div>
+                          ) : openFrom && openTo ? (
+                            <>
+                              {/* Before open: grey overlay */}
+                              {timeToPercent(openFrom) > 0 && (
+                                <div
+                                  className="absolute top-0 bottom-0 bg-neutral-200/50 z-0"
+                                  style={{ left: "0%", width: `${timeToPercent(openFrom)}%` }}
+                                />
+                              )}
+                              {/* Open band: teal */}
+                              <div
+                                className="absolute top-0 bottom-0 bg-teal-50/60 border-l border-r border-teal-200/60 z-0"
+                                style={{
+                                  left: `${timeToPercent(openFrom)}%`,
+                                  width: `${timeToPercent(openTo) - timeToPercent(openFrom)}%`,
+                                }}
+                              />
+                              {/* After close: grey overlay */}
+                              {timeToPercent(openTo) < 100 && (
+                                <div
+                                  className="absolute top-0 bottom-0 bg-neutral-200/50 z-0"
+                                  style={{ left: `${timeToPercent(openTo)}%`, width: `${100 - timeToPercent(openTo)}%` }}
+                                />
+                              )}
+                            </>
+                          ) : null}
+                        </>
+                      )}
+
+                      {/* Booking blocks */}
+                      {bookings.map(evt => {
+                        const start = timeToPercent(evt.startTime);
+                        const end = timeToPercent(evt.endTime);
+                        const width = Math.max(end - start, 2);
+                        const color = EVENT_COLORS[evt.category === "Training" ? "training" : evt.category === "Spiel" ? "match" : "event"] ?? EVENT_COLORS.event;
+                        return (
+                          <button
+                            key={evt.id}
+                            onClick={() => setDetailEvent(evt)}
+                            className={`absolute top-1 bottom-1 rounded border text-[10px] font-medium truncate px-1 z-10 ${color} hover:brightness-95 transition-all`}
+                            style={{ left: `${start}%`, width: `${width}%` }}
+                            title={`${evt.title} · ${evt.startTime}–${evt.endTime}`}
+                          >
+                            {evt.title}
+                          </button>
+                        );
+                      })}
+
+                      {/* Maintenance blocks */}
+                      {maintenance.map(block => {
+                        const start = timeToPercent(block.startTime);
+                        const end = timeToPercent(block.endTime);
+                        const width = Math.max(end - start, 2);
+                        return (
+                          <div
+                            key={block.id}
+                            className="absolute top-1 bottom-1 rounded border bg-amber-100 border-amber-400 text-amber-900 text-[10px] font-medium truncate px-1 z-10 flex items-center gap-0.5"
+                            style={{ left: `${start}%`, width: `${width}%` }}
+                            title={`🔧 ${block.title} · ${block.startTime}–${block.endTime}`}
+                          >
+                            🔧 {block.title}
+                          </div>
+                        );
+                      })}
+
+                      {!hasBookings && !isClosed && (
+                        <div className="absolute inset-0 flex items-center justify-start pl-3 z-10">
+                          <span className="text-[11px] text-neutral-300">{t("fields.free")}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expanded zone rows */}
+                  {field.isDivisibleInto6 && isExpanded && (
+                    <div className="border-t border-neutral-100">
+                      {field.zones.map(zone => {
+                        const zoneBookings = bookings.filter(e =>
+                          e.bookingScope === "full_field" ||
+                          (e.bookingScope === "zones" && e.bookedZoneIds?.includes(zone.id))
+                        );
+                        return (
+                          <div key={zone.id} className="flex items-center bg-neutral-50">
+                            <div className="w-[160px] flex-shrink-0 px-4 py-2 pl-10">
+                              <p className="text-xs text-neutral-500">{zone.name}</p>
+                            </div>
+                            <div className="flex-1 relative h-9 border-l border-neutral-200 overflow-hidden">
+                              {zoneBookings.map(evt => {
+                                const start = timeToPercent(evt.startTime);
+                                const end = timeToPercent(evt.endTime);
+                                const width = Math.max(end - start, 2);
+                                return (
+                                  <button
+                                    key={evt.id}
+                                    onClick={() => setDetailEvent(evt)}
+                                    className="absolute top-1 bottom-1 rounded bg-teal-100 border border-teal-300 text-[9px] text-teal-800 font-medium truncate px-1 hover:brightness-95 transition-all z-10"
+                                    style={{ left: `${start}%`, width: `${width}%` }}
+                                    title={evt.title}
+                                  >
+                                    {evt.title}
+                                  </button>
+                                );
+                              })}
+                              {zoneBookings.length === 0 && (
+                                <div className="absolute inset-0 flex items-center pl-3">
+                                  <span className="text-[10px] text-neutral-200">Frei</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-3 text-xs text-neutral-500">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-blue-200 border border-blue-300" /> {t("fields.training")}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-amber-200 border border-amber-300" /> {t("fields.match")}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-violet-200 border border-violet-300" /> {t("fields.event")}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-amber-100 border border-amber-400" /> Sperre
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-teal-50 border border-teal-200" /> Öffnungszeiten
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-neutral-200" /> Geschlossen
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ── FELDER TAB ──────────────────────────────────────────────────── */}
       {tab === "felder" && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -172,7 +587,8 @@ export function FieldBooking() {
             return (
               <div
                 key={field.id}
-                className={`bg-white rounded-xl border ${field.isActive ? "border-neutral-200" : "border-neutral-100 opacity-60"} p-5 flex flex-col gap-4 hover:shadow-sm transition-shadow`}
+                className={`bg-white rounded-xl border ${field.isActive ? "border-neutral-200" : "border-neutral-100 opacity-60"} p-5 flex flex-col gap-4 hover:shadow-sm transition-shadow cursor-pointer`}
+                onClick={() => setDetailField(field)}
               >
                 {/* Top row */}
                 <div className="flex items-start justify-between">
@@ -185,7 +601,7 @@ export function FieldBooking() {
                       <p className="text-sm text-neutral-500">{FIELD_TYPE_LABELS[field.type]}</p>
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                     <button
                       onClick={() => setFormField(field)}
                       className="p-2 hover:bg-neutral-100 rounded-lg transition-colors text-neutral-400 hover:text-neutral-700"
@@ -273,222 +689,6 @@ export function FieldBooking() {
         </div>
       )}
 
-      {/* ── BELEGUNG TAB ────────────────────────────────────────────────── */}
-      {tab === "belegung" && (
-        <div className="space-y-4">
-          {/* Date navigation – matches Events list view week strip */}
-          <div className="bg-white border border-neutral-200 rounded-xl p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => { const d = new Date(calendarWeek); d.setDate(d.getDate() - 7); setCalendarWeek(d); }}
-                  className="p-1 hover:bg-neutral-100 rounded"
-                >
-                  <ChevronLeft className="w-4 h-4 text-neutral-500" />
-                </button>
-                <span className="text-sm font-medium text-neutral-700 min-w-[120px] text-center">
-                  {calendarWeek.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}
-                </span>
-                <button
-                  onClick={() => { const d = new Date(calendarWeek); d.setDate(d.getDate() + 7); setCalendarWeek(d); }}
-                  className="p-1 hover:bg-neutral-100 rounded"
-                >
-                  <ChevronRight className="w-4 h-4 text-neutral-500" />
-                </button>
-                <button
-                  onClick={() => { setCalendarWeek(new Date()); setSelectedDate(TODAY); }}
-                  className="ml-2 text-xs px-2 py-1 text-[#004941] hover:bg-[#C8F2E0] rounded"
-                >
-                  {t("fields.today")}
-                </button>
-              </div>
-              {selectedDate !== TODAY ? (
-                <button
-                  onClick={() => setSelectedDate(TODAY)}
-                  className="text-xs px-2 py-1 bg-[#004941] text-white rounded flex items-center gap-1"
-                >
-                  {new Date(selectedDate).toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { weekday: "short", day: "numeric", month: "short" })}
-                  <XCircle className="w-3 h-3" />
-                </button>
-              ) : (
-                <span className="text-xs text-neutral-500">{fmtDay(selectedDate, lang)}</span>
-              )}
-            </div>
-            {/* Week strip */}
-            <div className="flex gap-1">
-              {(() => {
-                const startOfWeek = new Date(calendarWeek);
-                const dow = startOfWeek.getDay();
-                startOfWeek.setDate(startOfWeek.getDate() + (dow === 0 ? -6 : 1 - dow));
-                const todayDate = new Date();
-                todayDate.setHours(0, 0, 0, 0);
-                return Array.from({ length: 7 }, (_, i) => {
-                  const d = new Date(startOfWeek);
-                  d.setDate(d.getDate() + i);
-                  const dateStr = d.toISOString().split("T")[0];
-                  const isToday = d.toDateString() === todayDate.toDateString();
-                  const isSelected = selectedDate === dateStr;
-                  const hasBookings = events.some(e => e.fieldId && e.date === dateStr);
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedDate(dateStr)}
-                      className={`flex-1 py-1.5 rounded text-center transition-all ${
-                        isSelected ? "bg-[#004941] text-white" : isToday ? "bg-[#C8F2E0] text-[#004941]" : hasBookings ? "bg-white hover:bg-neutral-100" : "hover:bg-white"
-                      }`}
-                    >
-                      <p className={`text-[10px] uppercase ${isSelected ? "text-white/70" : "text-neutral-400"}`}>
-                        {getWeekday(d)}
-                      </p>
-                      <p className={`text-sm font-bold ${isSelected ? "text-white" : isToday ? "text-[#004941]" : "text-neutral-700"}`}>
-                        {d.getDate()}
-                      </p>
-                      {hasBookings && (
-                        <div className={`w-1 h-1 rounded-full mx-auto mt-0.5 ${isSelected ? "bg-white" : "bg-[#004941]"}`} />
-                      )}
-                    </button>
-                  );
-                });
-              })()}
-            </div>
-          </div>
-
-          {/* Timeline header */}
-          <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
-            {/* Hour ruler */}
-            <div className="flex border-b border-neutral-200 pl-[160px]">
-              {[6, 8, 10, 12, 14, 16, 18, 20, 22].map(h => (
-                <div key={h} className="flex-1 text-[10px] text-neutral-400 text-center py-1.5 border-l border-neutral-100 first:border-l-0">
-                  {String(h).padStart(2, "0")}:00
-                </div>
-              ))}
-            </div>
-
-            {!hasAnyBooking && (
-              <div className="py-12 text-center">
-                <LayoutGrid className="w-8 h-8 text-neutral-200 mx-auto mb-2" />
-                <p className="text-sm text-neutral-500">{t("fields.noBookings")}</p>
-              </div>
-            )}
-
-            {/* Per-field rows */}
-            {dayBookings.map(({ field, bookings }) => {
-              const isExpanded = expandedFields.includes(field.id);
-              const hasBookings = bookings.length > 0;
-
-              return (
-                <div key={field.id} className="border-b border-neutral-100 last:border-0">
-                  {/* Field header row */}
-                  <div className="flex items-center">
-                    <div
-                      className={`w-[160px] flex-shrink-0 px-4 py-3 flex items-center gap-2 ${field.isDivisibleInto6 ? "cursor-pointer hover:bg-neutral-50" : ""}`}
-                      onClick={() => field.isDivisibleInto6 && toggleExpand(field.id)}
-                    >
-                      <span className="text-lg">{FIELD_TYPE_ICONS[field.type]}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-neutral-900 truncate">{field.name}</p>
-                        {field.isDivisibleInto6 && (
-                          <p className="text-[10px] text-neutral-400">{isExpanded ? `▲ ${t("fields.expandZones")}` : `▼ ${t("fields.expandZones")}`}</p>
-                        )}
-                      </div>
-                    </div>
-                    {/* Timeline track */}
-                    <div className="flex-1 relative h-12 border-l border-neutral-200 overflow-hidden">
-                      {/* Hour grid */}
-                      {[0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5, 100].map((p, i) => (
-                        <div
-                          key={i}
-                          className="absolute top-0 bottom-0 border-l border-neutral-100"
-                          style={{ left: `${p}%` }}
-                        />
-                      ))}
-                      {/* Booking blocks */}
-                      {bookings.map(evt => {
-                        const start = timeToPercent(evt.startTime);
-                        const end = timeToPercent(evt.endTime);
-                        const width = Math.max(end - start, 2);
-                        const color = EVENT_COLORS[evt.category === "Training" ? "training" : evt.category === "Spiel" ? "match" : "event"] ?? EVENT_COLORS.event;
-                        return (
-                          <button
-                            key={evt.id}
-                            onClick={() => setDetailEvent(evt)}
-                            className={`absolute top-1 bottom-1 rounded border text-[10px] font-medium truncate px-1 ${color} hover:brightness-95 transition-all`}
-                            style={{ left: `${start}%`, width: `${width}%` }}
-                            title={`${evt.title} · ${evt.startTime}–${evt.endTime}`}
-                          >
-                            {evt.title}
-                          </button>
-                        );
-                      })}
-                      {!hasBookings && (
-                        <div className="absolute inset-0 flex items-center justify-start pl-3">
-                          <span className="text-[11px] text-neutral-300">{t("fields.free")}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Expanded zone rows */}
-                  {field.isDivisibleInto6 && isExpanded && (
-                    <div className="border-t border-neutral-100">
-                      {field.zones.map(zone => {
-                        const zoneBookings = bookings.filter(e =>
-                          e.bookingScope === "full_field" ||
-                          (e.bookingScope === "zones" && e.bookedZoneIds?.includes(zone.id))
-                        );
-                        return (
-                          <div key={zone.id} className="flex items-center bg-neutral-50">
-                            <div className="w-[160px] flex-shrink-0 px-4 py-2 pl-10">
-                              <p className="text-xs text-neutral-500">{zone.name}</p>
-                            </div>
-                            <div className="flex-1 relative h-9 border-l border-neutral-200 overflow-hidden">
-                              {zoneBookings.map(evt => {
-                                const start = timeToPercent(evt.startTime);
-                                const end = timeToPercent(evt.endTime);
-                                const width = Math.max(end - start, 2);
-                                return (
-                                  <button
-                                    key={evt.id}
-                                    onClick={() => setDetailEvent(evt)}
-                                    className="absolute top-1 bottom-1 rounded bg-teal-100 border border-teal-300 text-[9px] text-teal-800 font-medium truncate px-1 hover:brightness-95 transition-all"
-                                    style={{ left: `${start}%`, width: `${width}%` }}
-                                    title={evt.title}
-                                  >
-                                    {evt.title}
-                                  </button>
-                                );
-                              })}
-                              {zoneBookings.length === 0 && (
-                                <div className="absolute inset-0 flex items-center pl-3">
-                                  <span className="text-[10px] text-neutral-200">Frei</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Legend */}
-          <div className="flex flex-wrap gap-3 text-xs text-neutral-500">
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-blue-200 border border-blue-300" /> {t("fields.training")}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-amber-200 border border-amber-300" /> {t("fields.match")}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-violet-200 border border-violet-300" /> {t("fields.event")}
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* ── EVENT DETAIL POPUP (from Belegung) ──────────────────────────── */}
       {detailEvent && (
         <div
@@ -533,6 +733,28 @@ export function FieldBooking() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── FIELD DETAIL MODAL ───────────────────────────────────────────── */}
+      {detailField && (
+        <FieldDetailModal
+          field={detailField}
+          events={events}
+          maintenanceBlocks={maintenanceBlocks}
+          onClose={() => setDetailField(null)}
+          onRemoveBooking={handleRemoveBooking}
+          onRemoveMaintenance={handleRemoveMaintenance}
+        />
+      )}
+
+      {/* ── MAINTENANCE BLOCK FORM ───────────────────────────────────────── */}
+      {maintenanceTarget && (
+        <MaintenanceBlockForm
+          field={maintenanceTarget.field}
+          selectedDate={selectedDate}
+          onClose={() => setMaintenanceTarget(null)}
+          onSave={handleSaveMaintenance}
+        />
       )}
 
       {/* ── FIELD FORM DRAWER ────────────────────────────────────────────── */}

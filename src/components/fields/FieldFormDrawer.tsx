@@ -5,8 +5,15 @@
 
 import { useState, useEffect } from "react";
 import { X, Save } from "lucide-react";
-import type { Field, FieldFormData, FieldType, IndoorOutdoor } from "../../types/fields";
-import { DEFAULT_FIELD_FORM, FIELD_TYPE_LABELS, FIELD_TYPE_ICONS } from "../../types/fields";
+import type { Field, FieldFormData, FieldType, IndoorOutdoor, WeekdayKey } from "../../types/fields";
+import {
+  DEFAULT_FIELD_FORM,
+  FIELD_TYPE_LABELS,
+  FIELD_TYPE_ICONS,
+  WEEKDAY_KEYS,
+  WEEKDAY_LABELS,
+  DEFAULT_OPENING_HOURS,
+} from "../../types/fields";
 import { fieldHasFutureZoneBookings } from "../../data/mockFields";
 import { mockClubEvents } from "../../data/mockClubEvents";
 
@@ -33,6 +40,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
         indoorOutdoor: field.indoorOutdoor,
         isActive: field.isActive,
         isDivisibleInto6: field.isDivisibleInto6,
+        openingHours: field.openingHours ?? DEFAULT_OPENING_HOURS,
       });
     }
   }, [field]);
@@ -50,6 +58,19 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
     }
     setDivError(false);
     set("isDivisibleInto6", checked);
+  };
+
+  const setOpeningHoursDay = (day: WeekdayKey, key: "open" | "from" | "to", value: boolean | string) => {
+    setForm(prev => ({
+      ...prev,
+      openingHours: {
+        ...prev.openingHours,
+        [day]: {
+          ...prev.openingHours[day],
+          [key]: value,
+        },
+      },
+    }));
   };
 
   const handleSave = () => {
@@ -72,6 +93,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
       indoorOutdoor: form.indoorOutdoor,
       isActive: form.isActive,
       isDivisibleInto6: form.isDivisibleInto6,
+      openingHours: form.openingHours,
       sourceType: "manual",
       zones,
     });
@@ -179,6 +201,70 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
                   Nicht möglich: Dieses Feld hat noch zukünftige Zonen-Buchungen. Bitte erst diese entfernen.
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Opening Hours */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Öffnungszeiten</label>
+            <div className="border border-neutral-200 rounded-xl overflow-hidden">
+              <table className="w-full text-sm">
+                <tbody>
+                  {WEEKDAY_KEYS.map((day, idx) => {
+                    const dayData = form.openingHours[day];
+                    return (
+                      <tr
+                        key={day}
+                        className={`border-b border-neutral-100 last:border-0 ${idx % 2 === 0 ? "bg-white" : "bg-neutral-50/50"}`}
+                      >
+                        <td className="px-3 py-2 w-10">
+                          <input
+                            type="checkbox"
+                            checked={dayData.open}
+                            onChange={e => setOpeningHoursDay(day, "open", e.target.checked)}
+                            className="accent-teal-600 w-4 h-4"
+                          />
+                        </td>
+                        <td className="px-1 py-2 w-16">
+                          <span className={`text-xs font-medium ${dayData.open ? "text-neutral-700" : "text-neutral-400"}`}>
+                            {WEEKDAY_LABELS[day].short}
+                          </span>
+                        </td>
+                        {dayData.open ? (
+                          <>
+                            <td className="px-1 py-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs text-neutral-500 w-6">Von</span>
+                                <input
+                                  type="time"
+                                  value={dayData.from}
+                                  onChange={e => setOpeningHoursDay(day, "from", e.target.value)}
+                                  className="px-2 py-1 border border-neutral-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                />
+                              </div>
+                            </td>
+                            <td className="px-1 py-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs text-neutral-500 w-5">Bis</span>
+                                <input
+                                  type="time"
+                                  value={dayData.to}
+                                  onChange={e => setOpeningHoursDay(day, "to", e.target.value)}
+                                  className="px-2 py-1 border border-neutral-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                />
+                              </div>
+                            </td>
+                          </>
+                        ) : (
+                          <td colSpan={2} className="px-2 py-2 text-xs text-neutral-400 italic">
+                            Geschlossen
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
 

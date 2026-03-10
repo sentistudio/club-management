@@ -2,7 +2,7 @@
 // Mock Field Data – Sportfreunde Burkhardsfelden
 // ==========================================
 
-import type { Field, FieldZone, BookingScope } from "../types/fields";
+import type { Field, FieldZone, BookingScope, MaintenanceBlock } from "../types/fields";
 import type { ClubEvent } from "../types/events";
 
 // ── Helper to build zone objects ─────────────────────────────────────────────
@@ -31,6 +31,15 @@ export const mockFields: Field[] = [
     isDivisibleInto6: true,
     sourceType: "manual",
     zones: buildZones("field_hauptplatz"),
+    openingHours: {
+      mon: { open: true,  from: "07:00", to: "22:00" },
+      tue: { open: true,  from: "07:00", to: "22:00" },
+      wed: { open: true,  from: "07:00", to: "22:00" },
+      thu: { open: true,  from: "07:00", to: "22:00" },
+      fri: { open: true,  from: "07:00", to: "22:00" },
+      sat: { open: true,  from: "08:00", to: "21:00" },
+      sun: { open: true,  from: "09:00", to: "19:00" },
+    },
     createdAt: "2024-01-01T00:00:00",
     updatedAt: "2024-01-01T00:00:00",
   },
@@ -46,6 +55,15 @@ export const mockFields: Field[] = [
     isDivisibleInto6: true,
     sourceType: "manual",
     zones: buildZones("field_nebenplatz"),
+    openingHours: {
+      mon: { open: true,  from: "08:00", to: "21:00" },
+      tue: { open: true,  from: "08:00", to: "21:00" },
+      wed: { open: true,  from: "08:00", to: "21:00" },
+      thu: { open: true,  from: "08:00", to: "21:00" },
+      fri: { open: true,  from: "08:00", to: "21:00" },
+      sat: { open: true,  from: "09:00", to: "20:00" },
+      sun: { open: false, from: "09:00", to: "18:00" },
+    },
     createdAt: "2024-01-01T00:00:00",
     updatedAt: "2024-01-01T00:00:00",
   },
@@ -61,6 +79,15 @@ export const mockFields: Field[] = [
     isDivisibleInto6: false,
     sourceType: "manual",
     zones: [],
+    openingHours: {
+      mon: { open: true,  from: "06:00", to: "23:00" },
+      tue: { open: true,  from: "06:00", to: "23:00" },
+      wed: { open: true,  from: "06:00", to: "23:00" },
+      thu: { open: true,  from: "06:00", to: "23:00" },
+      fri: { open: true,  from: "06:00", to: "23:00" },
+      sat: { open: true,  from: "08:00", to: "22:00" },
+      sun: { open: true,  from: "09:00", to: "20:00" },
+    },
     createdAt: "2024-01-01T00:00:00",
     updatedAt: "2024-01-01T00:00:00",
   },
@@ -76,8 +103,53 @@ export const mockFields: Field[] = [
     isDivisibleInto6: true,
     sourceType: "manual",
     zones: buildZones("field_trainingswiese"),
+    openingHours: {
+      mon: { open: true,  from: "08:00", to: "21:00" },
+      tue: { open: true,  from: "08:00", to: "21:00" },
+      wed: { open: true,  from: "08:00", to: "21:00" },
+      thu: { open: true,  from: "08:00", to: "21:00" },
+      fri: { open: true,  from: "08:00", to: "21:00" },
+      sat: { open: true,  from: "09:00", to: "20:00" },
+      sun: { open: false, from: "09:00", to: "16:00" },
+    },
     createdAt: "2024-01-01T00:00:00",
     updatedAt: "2024-01-01T00:00:00",
+  },
+];
+
+// ==========================================
+// MAINTENANCE BLOCKS
+// ==========================================
+
+export let mockMaintenanceBlocks: MaintenanceBlock[] = [
+  {
+    id: "maint_1",
+    fieldId: "field_hauptplatz",
+    date: "2026-03-16",
+    startTime: "08:00",
+    endTime: "12:00",
+    title: "Rasenpflege",
+    note: "Mähen und Neumarkierung der Linien",
+    createdAt: "2026-03-01T09:00:00",
+  },
+  {
+    id: "maint_2",
+    fieldId: "field_nebenplatz",
+    date: "2026-03-18",
+    startTime: "09:00",
+    endTime: "11:00",
+    title: "Netz-Reparatur",
+    createdAt: "2026-03-01T09:00:00",
+  },
+  {
+    id: "maint_3",
+    fieldId: "field_sporthalle",
+    date: "2026-03-21",
+    startTime: "07:00",
+    endTime: "09:00",
+    title: "Bodenpflege & Wachs",
+    note: "Parkett wird behandelt, kein Hallenzugang bis 10 Uhr",
+    createdAt: "2026-03-05T08:00:00",
   },
 ];
 
