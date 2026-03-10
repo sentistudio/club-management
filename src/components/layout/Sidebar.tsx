@@ -54,15 +54,15 @@ const adminNavSections: NavSection[] = [
   },
   {
     items: [
-      { to: "/people", icon: Users, label: "Personen" },
-      { to: "/registration", icon: ClipboardList, label: "Registrierung" },
+      { to: "/people", icon: Users, label: "People" },
+      { to: "/registration", icon: ClipboardList, label: "Registration" },
       {
         to: "/matches",
         icon: Trophy,
-        label: "Spielbetrieb",
+        label: "Competitions",
         children: [
-          { to: "/matches", label: "Spiele" },
-          { to: "/player-passes", label: "Spielerpässe" }
+          { to: "/matches", label: "Matches" },
+          { to: "/player-passes", label: "Player Passes" }
         ]
       },
     ]
@@ -72,16 +72,16 @@ const adminNavSections: NavSection[] = [
       {
         to: "/products",
         icon: Package,
-        label: "Produkte & Zahlung",
+        label: "Products & Payment",
         children: [
-          { to: "/products", label: "Produkte" },
-          { to: "/subscriptions", label: "Abonnements" },
-          { to: "/invoices", label: "Rechnungen" },
+          { to: "/products", label: "Products" },
+          { to: "/subscriptions", label: "Subscriptions" },
+          { to: "/invoices", label: "Invoices" },
           { to: "/payment-links", label: "Payment Links" }
         ]
       },
-      { to: "/events", icon: Calendar, label: "Veranstaltungen" },
-      { to: "/fields", icon: LayoutGrid, label: "Platzbelegung" },
+      { to: "/events", icon: Calendar, label: "Events" },
+      { to: "/fields", icon: LayoutGrid, label: "Field Booking" },
     ]
   },
   {
@@ -89,20 +89,20 @@ const adminNavSections: NavSection[] = [
       {
         to: "/departments",
         icon: Building2,
-        label: "Vereinsverwaltung",
+        label: "Club Management",
         children: [
-          { to: "/departments", label: "Abteilungen" },
-          { to: "/committees", label: "Gremien" },
-          { to: "/volunteering", label: "Ehrenamt" }
+          { to: "/departments", label: "Departments" },
+          { to: "/committees", label: "Committees" },
+          { to: "/volunteering", label: "Volunteering" }
         ]
       },
       {
         to: "/finance",
         icon: Wallet,
-        label: "Finanzen",
+        label: "Finance",
         children: [
-          { to: "/transactions", label: "Transaktionen" },
-          { to: "/finance", label: "Buchungen" }
+          { to: "/transactions", label: "Transactions" },
+          { to: "/finance", label: "Bookings" }
         ]
       },
     ]
@@ -111,17 +111,17 @@ const adminNavSections: NavSection[] = [
     items: [
       {
         icon: MessageSquare,
-        label: "Kommunikation",
+        label: "Communication",
         badge: myOpenTickets,
         children: [
-          { to: "/pilot/inbox", label: "Postfach (Pilot)" },
-          { to: "/pilot/chat-moderation", label: "Chat-Moderation" },
-          { to: "/inbox", label: "Postfach (MVP)" },
+          { to: "/pilot/inbox", label: "Inbox (Pilot)" },
+          { to: "/pilot/chat-moderation", label: "Chat Moderation" },
+          { to: "/inbox", label: "Inbox (MVP)" },
           { to: "/club-news", label: "Club News" }
         ]
       },
-      { to: "/documents", icon: FolderOpen, label: "Dokumente" },
-      { to: "/settings", icon: Settings, label: "Einstellungen" },
+      { to: "/documents", icon: FolderOpen, label: "Documents" },
+      { to: "/settings", icon: Settings, label: "Settings" },
     ]
   }
 ];
@@ -129,16 +129,16 @@ const adminNavSections: NavSection[] = [
 const memberNavSections: NavSection[] = [
   {
     items: [
-      { to: "/member", icon: Home, label: "Übersicht" },
-      { to: "/member/calendar", icon: Calendar, label: "Termine" },
-      { to: "/member/chats", icon: MessageSquare, label: "Nachrichten" },
+      { to: "/member", icon: Home, label: "Overview" },
+      { to: "/member/calendar", icon: Calendar, label: "Events" },
+      { to: "/member/chats", icon: MessageSquare, label: "Messages" },
       { to: "/member/news", icon: Newspaper, label: "News" },
     ]
   },
   {
     items: [
-      { to: "/member/profile", icon: User, label: "Profil" },
-      { to: "/member/settings", icon: Settings, label: "Einstellungen" },
+      { to: "/member/profile", icon: User, label: "Profile" },
+      { to: "/member/settings", icon: Settings, label: "Settings" },
     ]
   }
 ];
@@ -213,7 +213,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-neutral-900 text-sm truncate">Sportfreunde Burkhardsfelden</p>
               <p className="text-xs text-neutral-400">
-                {isMemberMode ? `${memberSubtitle} · Mitglied` : "Vereinsverwaltung"}
+                {isMemberMode ? `${memberSubtitle} · Member` : "Club Administration"}
               </p>
             </div>
           </div>
@@ -232,7 +232,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 }`}
               >
                 <Building2 className="w-3.5 h-3.5" />
-                Verein
+                Club
               </button>
               <button
                 onClick={switchToMember}
@@ -243,7 +243,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 }`}
               >
                 <User className="w-3.5 h-3.5" />
-                Ich
+                Me
               </button>
             </div>
           </div>
@@ -252,7 +252,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* ── Person selector (member mode + has linked children) ── */}
         {isMemberMode && (user.linkedChildren?.length ?? 0) > 0 && (
           <div className="px-3 py-3 border-b border-neutral-100 flex-shrink-0">
-            <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">Ansicht für</p>
+            <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">View for</p>
             <div className="flex flex-wrap gap-1.5">
               {/* Self */}
               <button
