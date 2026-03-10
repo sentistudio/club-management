@@ -5,7 +5,7 @@
  *   - Felder: field management (list, create, edit, delete)
  */
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import {
   Plus,
   Edit2,
@@ -26,6 +26,7 @@ import { ZoneGrid } from "../components/fields/ZoneGrid";
 import { FieldFormDrawer } from "../components/fields/FieldFormDrawer";
 import { FieldDetailModal } from "../components/fields/FieldDetailModal";
 import { MaintenanceBlockForm } from "../components/fields/MaintenanceBlockForm";
+import { CalendarPicker } from "../components/fields/CalendarPicker";
 import {
   mockFields,
   getBookingsForField,
@@ -69,7 +70,7 @@ type Tab = "belegung" | "felder";
 
 export function FieldBooking() {
   const { t, lang, getWeekday } = useLanguage();
-  const dateInputRef = useRef<HTMLInputElement>(null);
+  const [showCalPicker, setShowCalPicker] = useState(false);
   const [tab, setTab] = useState<Tab>("belegung");
   const [fields, setFields] = useState<Field[]>(mockFields);
   const [formField, setFormField] = useState<Field | null | undefined>(undefined); // undefined = closed
@@ -239,26 +240,27 @@ export function FieldBooking() {
                 </button>
                 <div className="relative">
                   <button
-                    onClick={() => dateInputRef.current?.showPicker()}
-                    className="flex items-center gap-1.5 px-2 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100 rounded min-w-[130px] justify-center"
+                    onClick={() => setShowCalPicker(v => !v)}
+                    className={`flex items-center gap-1.5 px-2 py-1 text-sm font-medium rounded transition-colors min-w-[150px] justify-center ${
+                      showCalPicker
+                        ? "bg-[#004941] text-white"
+                        : "text-neutral-700 hover:bg-neutral-100"
+                    }`}
                     title={t("fields.jumpToDate")}
                   >
-                    <CalendarDays className="w-3.5 h-3.5 text-neutral-400" />
+                    <CalendarDays className="w-3.5 h-3.5" />
                     {calendarWeek.toLocaleDateString(lang === "de" ? "de-DE" : "en-US", { month: "long", year: "numeric" })}
                   </button>
-                  <input
-                    ref={dateInputRef}
-                    type="date"
-                    value={selectedDate}
-                    onChange={e => {
-                      const val = e.target.value;
-                      if (!val) return;
-                      setSelectedDate(val);
-                      setCalendarWeek(new Date(val + "T12:00:00"));
-                    }}
-                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                    tabIndex={-1}
-                  />
+                  {showCalPicker && (
+                    <CalendarPicker
+                      selectedDate={selectedDate}
+                      onSelect={date => {
+                        setSelectedDate(date);
+                        setCalendarWeek(new Date(date + "T12:00:00"));
+                      }}
+                      onClose={() => setShowCalPicker(false)}
+                    />
+                  )}
                 </div>
                 <button
                   onClick={() => { const d = new Date(calendarWeek); d.setDate(d.getDate() + 7); setCalendarWeek(d); }}
