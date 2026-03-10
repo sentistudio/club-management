@@ -421,6 +421,13 @@ const PERSON_DEPARTMENTS: Record<string, string[]> = {
   patrick_steuble: ["dept_football"],
 };
 
+const PERSON_GROUPS: Record<string, string[]> = {
+  lena_schneider: ["grp_elternbeirat", "grp_ok_fasching", "grp_helfer_pool"],
+  patrick_steuble: ["grp_vorstand", "grp_ok_fasching"],
+  flurina: [],
+  max: [],
+};
+
 const PERSONA_MEMBER_IDS: Record<string, string> = {
   patrick_steuble: "patrick_steuble",
   lena_schneider: "lena_schneider",
@@ -431,12 +438,16 @@ const PERSONA_MEMBER_IDS: Record<string, string> = {
 /** Returns published club-wide/department events relevant to the person list, as EnhancedEvent */
 const getClubEventsForPersons = (resolvedIds: string[]): EnhancedEvent[] => {
   const depts = resolvedIds.flatMap(id => PERSON_DEPARTMENTS[id] ?? []);
+  const groups = resolvedIds.flatMap(id => PERSON_GROUPS[id] ?? []);
   return mockClubEvents
     .filter(evt => evt.status === "published")
     .filter(evt => {
       if (evt.audience.mode === "all") return true;
       if (evt.audience.mode === "departments") {
         return evt.audience.departmentIds?.some(d => depts.includes(d)) ?? false;
+      }
+      if (evt.audience.mode === "groups") {
+        return evt.audience.groupIds?.some(g => groups.includes(g)) ?? false;
       }
       if (evt.audience.mode === "manual") {
         const memberIds = resolvedIds.map(id => PERSONA_MEMBER_IDS[id] ?? id);

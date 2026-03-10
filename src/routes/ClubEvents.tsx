@@ -14,6 +14,7 @@ import { Card, Button } from "../components/ui";
 import { EventDetailDrawer, EventFormDrawer } from "../components/events";
 import {
   mockClubEvents,
+  mockClubMembers,
   ADMIN_USER
 } from "../data/mockClubEvents";
 import type { ClubEvent, EventStatus, EventVisibility, AudienceMode } from "../types/events";
@@ -294,6 +295,10 @@ export function ClubEvents() {
   // Personal events: filter eventsWithComputedStatus by persona member ID
   const personalEventsKey = viewContext === "me" ? user.id : viewContext;
   const personaMemberId = PERSONA_MEMBER_ID[personalEventsKey] ?? personalEventsKey;
+  const personaMember = useMemo(
+    () => mockClubMembers.find(m => m.id === personaMemberId),
+    [personaMemberId]
+  );
   const currentPersonalEvents = useMemo(() =>
     eventsWithComputedStatus
       .filter(e => {
@@ -302,10 +307,12 @@ export function ClubEvents() {
         if (eventEnd < now) return false;
         if (e.audience.mode === "all") return true;
         if (e.audience.mode === "manual" && e.audience.memberIds?.includes(personaMemberId)) return true;
+        if (e.audience.mode === "departments" && personaMember?.departmentIds.some(d => e.audience.departmentIds?.includes(d))) return true;
+        if (e.audience.mode === "groups" && personaMember?.groupIds.some(g => e.audience.groupIds?.includes(g))) return true;
         return false;
       })
       .sort((a, b) => new Date(`${a.date}T${a.startTime}`).getTime() - new Date(`${b.date}T${b.startTime}`).getTime()),
-    [eventsWithComputedStatus, personaMemberId, now]
+    [eventsWithComputedStatus, personaMemberId, personaMember, now]
   );
 
   return (
