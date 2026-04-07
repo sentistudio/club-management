@@ -46,7 +46,7 @@ export const COACH_MARCO: DemoPersona = {
   avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
   role: "Trainer",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_football",
@@ -70,7 +70,7 @@ export const COACH_KATJA: DemoPersona = {
   avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&crop=face",
   role: "Trainer",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_volleyball",
@@ -94,7 +94,7 @@ export const TRAINER_SANDRA: DemoPersona = {
   avatar: "https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=150&h=150&fit=crop&crop=face",
   role: "Trainer",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_fitness",
@@ -121,7 +121,7 @@ export const LENA_SCHNEIDER: DemoPersona = {
   avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face",
   role: "Mitglied",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_fitness",
@@ -162,7 +162,7 @@ export const FLURINA_SCHNEIDER: DemoPersona = {
   parentId: "lena_schneider",
   birthDate: "2010-05-12",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_volleyball",
@@ -195,7 +195,7 @@ export const MAX_SCHNEIDER: DemoPersona = {
   parentId: "lena_schneider",
   birthDate: "2014-08-03",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_football",
@@ -226,7 +226,7 @@ export const PETER_HOFFMANN: DemoPersona = {
   avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
   role: "Elternteil",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_football",
@@ -252,7 +252,7 @@ export const NOAH_HOFFMANN: DemoPersona = {
   parentId: "peter_hoffmann",
   birthDate: "2013-11-15",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_football",
@@ -278,7 +278,7 @@ export const DANIEL_KLEIN: DemoPersona = {
   avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face",
   role: "Elternteil",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_football",
@@ -304,7 +304,7 @@ export const SOPHIE_KLEIN: DemoPersona = {
   parentId: "daniel_klein",
   birthDate: "2014-03-22",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_football",
@@ -330,7 +330,7 @@ export const PETRA_WEBER: DemoPersona = {
   avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
   role: "Elternteil",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_volleyball",
@@ -353,7 +353,7 @@ export const ANNA_BAUER: DemoPersona = {
   avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
   role: "Spieler",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_volleyball",
@@ -379,7 +379,7 @@ export const THOMAS_MUELLER: DemoPersona = {
   avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
   role: "Vorstand",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     {
       departmentId: "dept_football",

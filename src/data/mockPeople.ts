@@ -25,8 +25,8 @@ import type {
 // ORGANIZATION DATA (matches existing mockClub)
 // ==========================================
 export const MOCK_ORG = {
-  id: "org_sfb",
-  name: "Sportfreunde Burkhardsfelden"
+  id: "00ES8GN8N400008VVV0AG08LVUPGND5I",
+  name: "BV BORUSSIA 09 DORTMUND E.V."
 };
 
 export const MOCK_DEPARTMENTS = [

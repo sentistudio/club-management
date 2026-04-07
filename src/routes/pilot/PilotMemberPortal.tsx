@@ -740,7 +740,7 @@ const LENA_PROFILE: MemberProfile = {
   email: "lena.schneider@example.com",
   avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     { 
       departmentId: "dept_fitness", 
@@ -852,7 +852,7 @@ const LENA_PROFILE: MemberProfile = {
     },
     {
       id: "lena_chat3",
-      name: "Sportfreunde Burkhardsfelden",
+      name: "Borussia Dortmund",
       avatar: null,
       isClub: true,
       lastMessage: "Verein: Einladung zur Jahreshauptversammlung am 15.02.",
@@ -976,7 +976,7 @@ const FLURINA_PROFILE: MemberProfile = {
   parentId: "p11",
   birthDate: "2010-05-12",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     { 
       departmentId: "dept_volleyball", 
@@ -1152,7 +1152,7 @@ const ANNA_PROFILE: MemberProfile = {
   parentId: undefined,  // NO GUARDIAN LINKED!
   birthDate: "2011-09-15", // 14 years old
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     { 
       departmentId: "dept_volleyball", 
@@ -1292,7 +1292,7 @@ const MAX_PROFILE: MemberProfile = {
   parentId: "p11",
   birthDate: "2014-08-03",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     { 
       departmentId: "dept_football", 
@@ -1653,7 +1653,7 @@ const OTHER_CLUBS = [
 
 // Mock club data
 const CLUB_DATA = {
-  name: "Sportfreunde Burkhardsfelden",
+  name: "Borussia Dortmund",
   shortName: "SfB",
   logo: "https://derivates.kicker.de/image/upload/w_200,h_200,q_auto/v1709736234/amateur/prod/njjum6unwt8ayahzcpvx.png"
 };
@@ -1910,7 +1910,7 @@ const MOCK_ENHANCED_EVENTS: EnhancedEvent[] = [
     date: "2026-03-22",
     startTime: "09:00",
     endTime: "17:00",
-    location: "Sporthalle Burkhardsfelden",
+    location: "Fußballpark BVB Hohenbuschei",
     scope: "club",
     type: "general",
     visibility: ["all"],
@@ -2044,7 +2044,7 @@ const MOCK_MESSAGES = [
   },
   {
     id: "msg3",
-    name: "Sportfreunde Burkhardsfelden",
+    name: "Borussia Dortmund",
     avatar: null,
     isClub: true,
     lastMessage: "Verein: Die Mitgliederversammlung findet am 15.06. statt.",

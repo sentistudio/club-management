@@ -1,117 +1,340 @@
 // ==========================================
-// Mock Field Data – Sportfreunde Burkhardsfelden
+// Mock Field Data – BV Borussia 09 Dortmund e.V.
 // ==========================================
 
-import type { Field, FieldZone, BookingScope, MaintenanceBlock } from "../types/fields";
+import type { Field, FieldZone, BookingScope, MaintenanceBlock, Venue } from "../types/fields";
 import type { ClubEvent } from "../types/events";
+export { groupDfbPitchesIntoSpielstaetten, importDfbPitches } from "../utils/dfbImport";
+export type { DfbPitch, DfbSpielstaette } from "../utils/dfbImport";
 
-// ── Helper to build zone objects ─────────────────────────────────────────────
-const buildZones = (fieldId: string): FieldZone[] =>
-  ([1, 2, 3, 4, 5, 6] as const).map(n => ({
-    id: `${fieldId}_z${n}`,
+const CLUB_ID = "00ES8GN8N400008VVV0AG08LVUPGND5I";
+
+// ── Helper to build zone objects for any count ───────────────────────────────
+const buildZones = (fieldId: string, count: number): FieldZone[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `${fieldId}_z${i + 1}`,
     fieldId,
-    zoneNumber: n,
-    name: `Zone ${n}`,
+    zoneNumber: i + 1,
+    name: `Zone ${i + 1}`,
   }));
 
 // ==========================================
-// FIELDS
+// VENUES (Spielstätten) – grouped by address from DFB data
+// ==========================================
+
+export const mockVenues: Venue[] = [
+  {
+    id: "venue_hohenbuschei",
+    clubId: CLUB_ID,
+    name: "Fußballpark BVB Hohenbuschei",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
+    description: "Trainingsgelände des BVB mit 9 Plätzen – Rasen- und Kunstrasenplätze",
+    isActive: true,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    // Edge case: SIGNAL IDUNA PARK and Stadion Rote Erde share the same
+    // address (Strobelallee 50) but are two distinct Spielstätten.
+    // The name-prefix algorithm correctly splits them (no common prefix).
+    id: "venue_signal_iduna_park",
+    clubId: CLUB_ID,
+    name: "SIGNAL IDUNA PARK",
+    address: "Strobelallee 50, 44139 Dortmund",
+    description: "Heimstadion des BVB mit ca. 81.365 Plätzen",
+    isActive: true,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "venue_rote_erde",
+    clubId: CLUB_ID,
+    name: "Stadion Rote Erde",
+    address: "Strobelallee 50, 44139 Dortmund",
+    description: "Historisches Stadion neben dem Signal Iduna Park",
+    isActive: true,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "venue_brauksweg",
+    clubId: CLUB_ID,
+    name: "Sportplatz Brauksweg",
+    address: "Brauksweg, 44309 Dortmund",
+    description: "Kunstrasenplatz Brauksweg",
+    isActive: true,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "venue_rabenloh",
+    clubId: CLUB_ID,
+    name: "Sportplatz im Rabenloh",
+    address: "Im Rabenloh, 44139 Dortmund",
+    description: "Kunstrasenplatz im Rabenloh",
+    isActive: true,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+];
+
+// ==========================================
+// FIELDS (Plätze / Pitches) – imported from DFB
 // ==========================================
 
 export const mockFields: Field[] = [
+  // ── Fußballpark BVB Hohenbuschei ─────────────────────────────────────────
   {
-    id: "field_hauptplatz",
-    clubId: "club1",
-    name: "Hauptplatz",
-    type: "football",
-    description: "Naturrasenplatz mit Flutlicht, Kapazität 500 Zuschauer",
-    address: "Sportanlage Burkhardsfelden, Platz 1",
+    id: "00RDTVBKM0000000VTVG0001VUGVU8PO",
+    clubId: CLUB_ID,
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei Platz 1",
+    type: "grass",
+    description: "Rasenplatz",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
     indoorOutdoor: "outdoor",
     isActive: true,
-    isDivisibleInto6: true,
-    sourceType: "manual",
-    zones: buildZones("field_hauptplatz"),
-    openingHours: {
-      mon: { open: true,  from: "07:00", to: "22:00" },
-      tue: { open: true,  from: "07:00", to: "22:00" },
-      wed: { open: true,  from: "07:00", to: "22:00" },
-      thu: { open: true,  from: "07:00", to: "22:00" },
-      fri: { open: true,  from: "07:00", to: "22:00" },
-      sat: { open: true,  from: "08:00", to: "21:00" },
-      sun: { open: true,  from: "09:00", to: "19:00" },
-    },
-    createdAt: "2024-01-01T00:00:00",
-    updatedAt: "2024-01-01T00:00:00",
-  },
-  {
-    id: "field_nebenplatz",
-    clubId: "club1",
-    name: "Nebenplatz",
-    type: "football",
-    description: "Kunstrasenplatz für Trainings und Jugendspiele",
-    address: "Sportanlage Burkhardsfelden, Platz 2",
-    indoorOutdoor: "outdoor",
-    isActive: true,
-    isDivisibleInto6: true,
-    sourceType: "manual",
-    zones: buildZones("field_nebenplatz"),
-    openingHours: {
-      mon: { open: true,  from: "08:00", to: "21:00" },
-      tue: { open: true,  from: "08:00", to: "21:00" },
-      wed: { open: true,  from: "08:00", to: "21:00" },
-      thu: { open: true,  from: "08:00", to: "21:00" },
-      fri: { open: true,  from: "08:00", to: "21:00" },
-      sat: { open: true,  from: "09:00", to: "20:00" },
-      sun: { open: false, from: "09:00", to: "18:00" },
-    },
-    createdAt: "2024-01-01T00:00:00",
-    updatedAt: "2024-01-01T00:00:00",
-  },
-  {
-    id: "field_sporthalle",
-    clubId: "club1",
-    name: "Sporthalle",
-    type: "general",
-    description: "Dreifachturnhalle für Volleyball, Fitness und Vereinsveranstaltungen",
-    address: "Sportanlage Burkhardsfelden, Halle",
-    indoorOutdoor: "indoor",
-    isActive: true,
-    isDivisibleInto6: false,
-    sourceType: "manual",
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "00RDTVBKM0000000VTVG0001VUGVU8PO",
     zones: [],
-    openingHours: {
-      mon: { open: true,  from: "06:00", to: "23:00" },
-      tue: { open: true,  from: "06:00", to: "23:00" },
-      wed: { open: true,  from: "06:00", to: "23:00" },
-      thu: { open: true,  from: "06:00", to: "23:00" },
-      fri: { open: true,  from: "06:00", to: "23:00" },
-      sat: { open: true,  from: "08:00", to: "22:00" },
-      sun: { open: true,  from: "09:00", to: "20:00" },
-    },
+    openingHours: undefined,
     createdAt: "2024-01-01T00:00:00",
     updatedAt: "2024-01-01T00:00:00",
   },
   {
-    id: "field_trainingswiese",
-    clubId: "club1",
-    name: "Trainingswiese",
-    type: "general",
-    description: "Naturrasen-Trainingsgelände für Kleinfeld und Aufwärmen",
-    address: "Sportanlage Burkhardsfelden, Wiese",
+    id: "00SKEVKLJG000000VTVG0001VSUSTTPB",
+    clubId: CLUB_ID,
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei Platz 2 (Profis)",
+    type: "grass",
+    description: "Rasenplatz (Profis)",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
     indoorOutdoor: "outdoor",
     isActive: true,
-    isDivisibleInto6: true,
-    sourceType: "manual",
-    zones: buildZones("field_trainingswiese"),
-    openingHours: {
-      mon: { open: true,  from: "08:00", to: "21:00" },
-      tue: { open: true,  from: "08:00", to: "21:00" },
-      wed: { open: true,  from: "08:00", to: "21:00" },
-      thu: { open: true,  from: "08:00", to: "21:00" },
-      fri: { open: true,  from: "08:00", to: "21:00" },
-      sat: { open: true,  from: "09:00", to: "20:00" },
-      sun: { open: false, from: "09:00", to: "16:00" },
-    },
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "00SKEVKLJG000000VTVG0001VSUSTTPB",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "02FJ0TJQB0000000VS5489B4VU45R60J",
+    clubId: CLUB_ID,
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei Platz 3 (Profis)",
+    type: "grass",
+    description: "Rasenplatz (Profis)",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "02FJ0TJQB0000000VS5489B4VU45R60J",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "00SKF050G8000000VTVG0001VSUSTTPB",
+    clubId: CLUB_ID,
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei Platz 4 Kunstrasen",
+    type: "artificial",
+    description: "Kunstrasenplatz",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "00SKF050G8000000VTVG0001VSUSTTPB",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "02FJ0UGE80000000VS5489B4VU45R60J",
+    clubId: CLUB_ID,
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei Platz 5",
+    type: "grass",
+    description: "Rasenplatz",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "02FJ0UGE80000000VS5489B4VU45R60J",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "01RCGI6EVS000000VS54898DVSK0F3HF",
+    clubId: CLUB_ID,
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei Platz 6 Kleinfeld",
+    type: "small_pitch",
+    description: "Kleinfeld – Kunstrasen",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "01RCGI6EVS000000VS54898DVSK0F3HF",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "01RCGK2S5S000000VS54898DVSK0F3HF",
+    clubId: CLUB_ID,
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei Platz 7 Kleinfeld",
+    type: "small_pitch",
+    description: "Kleinfeld – Kunstrasen",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "01RCGK2S5S000000VS54898DVSK0F3HF",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "01RCGL2ER8000000VS54898DVSK0F3HF",
+    clubId: CLUB_ID,
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei Platz 8",
+    type: "grass",
+    description: "Rasenplatz",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "01RCGL2ER8000000VS54898DVSK0F3HF",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "028CTTQN00000000VS5489B3VT62FKQD",
+    clubId: CLUB_ID,
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei Platz 9",
+    type: "artificial",
+    description: "Kunstrasenplatz",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "028CTTQN00000000VS5489B3VT62FKQD",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+
+  // ── Strobelallee – two distinct Spielstätten at the same address ──────────
+  // (name-prefix algorithm splits them: "SIGNAL…" ≠ "Stadion…")
+  {
+    id: "00GR814JLG000000VTVG0001VSQ88KDJ",
+    clubId: CLUB_ID,
+    venueId: "venue_signal_iduna_park",
+    name: "SIGNAL IDUNA PARK",
+    type: "grass",
+    description: "Heimstadion des BVB – Rasenplatz mit ca. 81.365 Plätzen",
+    address: "Strobelallee 50, 44139 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "00GR814JLG000000VTVG0001VSQ88KDJ",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "00KVAR728G000000VTVG0001VSL6B7B3",
+    clubId: CLUB_ID,
+    venueId: "venue_rote_erde",
+    name: "Stadion Rote Erde",
+    type: "grass",
+    description: "Historisches Stadion neben dem Signal Iduna Park",
+    address: "Strobelallee 50, 44139 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "00KVAR728G000000VTVG0001VSL6B7B3",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+
+  // ── Brauksweg ─────────────────────────────────────────────────────────────
+  {
+    id: "00R46QV83G000000VTVG0001VTS15VMH",
+    clubId: CLUB_ID,
+    venueId: "venue_brauksweg",
+    name: "Sportplatz Brauksweg",
+    type: "artificial",
+    description: "Kunstrasenplatz",
+    address: "Brauksweg, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "00R46QV83G000000VTVG0001VTS15VMH",
+    zones: [],
+    openingHours: undefined,
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+
+  // ── Im Rabenloh ───────────────────────────────────────────────────────────
+  {
+    id: "0135M5LMB0000000VV0AG812VUMGC9SR",
+    clubId: CLUB_ID,
+    venueId: "venue_rabenloh",
+    name: "Sportplatz im Rabenloh",
+    type: "artificial",
+    description: "Kunstrasenplatz",
+    address: "Im Rabenloh, 44139 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "0135M5LMB0000000VV0AG812VUMGC9SR",
+    zones: [],
+    openingHours: undefined,
     createdAt: "2024-01-01T00:00:00",
     updatedAt: "2024-01-01T00:00:00",
   },
@@ -133,7 +356,7 @@ const daysFromToday = (n: number): string => {
 export let mockMaintenanceBlocks: MaintenanceBlock[] = [
   {
     id: "maint_1",
-    fieldId: "field_hauptplatz",
+    fieldId: "00RDTVBKM0000000VTVG0001VUGVU8PO",
     date: daysFromToday(6),
     startTime: "08:00",
     endTime: "12:00",
@@ -143,22 +366,12 @@ export let mockMaintenanceBlocks: MaintenanceBlock[] = [
   },
   {
     id: "maint_2",
-    fieldId: "field_nebenplatz",
+    fieldId: "00SKF050G8000000VTVG0001VSUSTTPB",
     date: daysFromToday(8),
     startTime: "09:00",
     endTime: "11:00",
-    title: "Netz-Reparatur",
+    title: "Kunstrasen-Inspektion",
     createdAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "maint_3",
-    fieldId: "field_sporthalle",
-    date: daysFromToday(11),
-    startTime: "07:00",
-    endTime: "09:00",
-    title: "Bodenpflege & Wachs",
-    note: "Parkett wird behandelt, kein Hallenzugang bis 10 Uhr",
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
@@ -169,8 +382,14 @@ export let mockMaintenanceBlocks: MaintenanceBlock[] = [
 export const getFieldById = (id: string): Field | undefined =>
   mockFields.find(f => f.id === id);
 
+export const getVenueById = (id: string): Venue | undefined =>
+  mockVenues.find(v => v.id === id);
+
 export const getActiveFields = (): Field[] =>
   mockFields.filter(f => f.isActive);
+
+export const getFieldsByVenue = (venueId: string): Field[] =>
+  mockFields.filter(f => f.venueId === venueId);
 
 /** Returns all events (from the provided list) booked on a given field, optionally filtered by date. */
 export const getBookingsForField = (
@@ -189,9 +408,6 @@ export const getZonesById = (field: Field, zoneIds: string[]): FieldZone[] =>
 /**
  * Conflict detection.
  * Returns events that overlap with the proposed booking.
- * Overlap logic:
- *   - full_field booking conflicts with ANY booking on the same field at the same time
- *   - zones booking conflicts with full_field bookings OR zone bookings that share at least one zone
  */
 export const checkConflict = (
   events: ClubEvent[],
@@ -211,14 +427,11 @@ export const checkConflict = (
   );
 
   return sameDay.filter(e => {
-    // Time overlap check
     if (!timesOverlap(startTime, endTime, e.startTime, e.endTime)) return false;
 
     if (bookingScope === "full_field") {
-      // Full field conflicts with anything on this field at this time
       return true;
     } else {
-      // Zone booking conflicts with full_field bookings or overlapping zones
       if (e.bookingScope === "full_field") return true;
       if (e.bookingScope === "zones" && e.bookedZoneIds) {
         return bookedZoneIds.some(z => e.bookedZoneIds!.includes(z));
@@ -228,7 +441,6 @@ export const checkConflict = (
   });
 };
 
-/** Returns true if [startA, endA) and [startB, endB) overlap. Times are "HH:mm" strings. */
 const timesOverlap = (
   startA: string,
   endA: string,
@@ -267,4 +479,69 @@ export const fieldHasFutureZoneBookings = (
       e.bookingScope === "zones" &&
       e.date >= today
   );
+};
+
+// ==========================================
+// DFB IMPORT HELPERS
+// ==========================================
+
+/**
+ * The preferred grouped JSON structure for DFB Spielstätten import.
+ *
+ * Grouping rules applied:
+ *  1. Address grouping  – pitches with the same street + zipCode are candidates.
+ *  2. Name-prefix split – within an address bucket, pitches whose names share
+ *     fewer than 2 common words are placed in separate Spielstätten.
+ *
+ * Edge case: SIGNAL IDUNA PARK and Stadion Rote Erde both sit at
+ * "Strobelallee 50, 44139 Dortmund" with identical coordinates, but their
+ * names share no common prefix → correctly split into two distinct venues.
+ */
+export const BVB_DFB_SPIELSTAETTEN_JSON = {
+  spielstaetten: [
+    {
+      name: "Fußballpark BVB Hohenbuschei",
+      address: { street: "Adi-Preißler-Allee 9", zipCode: "44309", city: "Dortmund", latitude: 51.5386, longitude: 7.5544 },
+      pitches: [
+        { id: "00RDTVBKM0000000VTVG0001VUGVU8PO", name: "Fußballpark BVB Hohenbuschei Platz 1", type: "GRASS_PITCH" },
+        { id: "00SKEVKLJG000000VTVG0001VSUSTTPB", name: "Fußballpark BVB Hohenbuschei Platz 2 (Profis)", type: "GRASS_PITCH" },
+        { id: "02FJ0TJQB0000000VS5489B4VU45R60J", name: "Fußballpark BVB Hohenbuschei Platz 3 (Profis)", type: "GRASS_PITCH" },
+        { id: "00SKF050G8000000VTVG0001VSUSTTPB", name: "Fußballpark BVB Hohenbuschei Platz 4 Kunstrasen", type: "ARTIFICIAL_PITCH" },
+        { id: "02FJ0UGE80000000VS5489B4VU45R60J", name: "Fußballpark BVB Hohenbuschei Platz 5", type: "GRASS_PITCH" },
+        { id: "01RCGI6EVS000000VS54898DVSK0F3HF", name: "Fußballpark BVB Hohenbuschei Platz 6 Kleinfeld", type: "SMALL_PITCH" },
+        { id: "01RCGK2S5S000000VS54898DVSK0F3HF", name: "Fußballpark BVB Hohenbuschei Platz 7 Kleinfeld", type: "SMALL_PITCH" },
+        { id: "01RCGL2ER8000000VS54898DVSK0F3HF", name: "Fußballpark BVB Hohenbuschei Platz 8", type: "GRASS_PITCH" },
+        { id: "028CTTQN00000000VS5489B3VT62FKQD", name: "Fußballpark BVB Hohenbuschei Platz 9", type: "ARTIFICIAL_PITCH" },
+      ],
+    },
+    {
+      // "SIGNAL…" and "Stadion…" share no common word prefix → split
+      name: "SIGNAL IDUNA PARK",
+      address: { street: "Strobelallee 50", zipCode: "44139", city: "Dortmund", latitude: 51.4925, longitude: 7.4519 },
+      pitches: [
+        { id: "00GR814JLG000000VTVG0001VSQ88KDJ", name: "SIGNAL IDUNA PARK", type: "GRASS_PITCH" },
+      ],
+    },
+    {
+      name: "Stadion Rote Erde",
+      address: { street: "Strobelallee 50", zipCode: "44139", city: "Dortmund", latitude: 51.4925, longitude: 7.4519 },
+      pitches: [
+        { id: "00KVAR728G000000VTVG0001VSL6B7B3", name: "Stadion Rote Erde", type: "GRASS_PITCH" },
+      ],
+    },
+    {
+      name: "Sportplatz Brauksweg",
+      address: { street: "Brauksweg", zipCode: "44309", city: "Dortmund", latitude: 51.5327, longitude: 7.5362 },
+      pitches: [
+        { id: "00R46QV83G000000VTVG0001VTS15VMH", name: "Sportplatz Brauksweg", type: "ARTIFICIAL_PITCH" },
+      ],
+    },
+    {
+      name: "Sportplatz im Rabenloh",
+      address: { street: "Im Rabenloh", zipCode: "44139", city: "Dortmund", latitude: 51.4943, longitude: 7.4504 },
+      pitches: [
+        { id: "0135M5LMB0000000VV0AG812VUMGC9SR", name: "Sportplatz im Rabenloh", type: "ARTIFICIAL_PITCH" },
+      ],
+    },
+  ],
 };

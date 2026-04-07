@@ -98,7 +98,7 @@ export function Login() {
         {/* Club Info */}
         <div className="mt-6 text-center">
           <p className="text-teal-100 text-sm">
-            Demo: Sportfreunde Burkhardsfelden
+            Demo: Borussia Dortmund
           </p>
         </div>
       </div>

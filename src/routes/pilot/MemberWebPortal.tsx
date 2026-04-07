@@ -132,7 +132,7 @@ const LENA_PROFILE: MemberProfile = {
   email: "lena.schneider@example.com",
   avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     { 
       departmentId: "dept_fitness", 
@@ -184,7 +184,7 @@ const LENA_PROFILE: MemberProfile = {
       title: "Freundschaftsspiel vs. TuS Mainberg",
       date: "2026-01-26",
       time: "15:00",
-      location: "Sportplatz Burkhardsfelden",
+      location: "Fußballpark BVB Hohenbuschei",
       type: "match",
       teamIcon: "⚽",
       status: "confirmed"
@@ -203,7 +203,7 @@ const PATRICK_PROFILE: MemberProfile = {
   email: "patrick.steuble@sfb.de",
   avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
   clubId: "sfb",
-  clubName: "Sportfreunde Burkhardsfelden",
+  clubName: "Borussia Dortmund",
   memberships: [
     { 
       departmentId: "dept_football", 
@@ -233,7 +233,7 @@ const PATRICK_PROFILE: MemberProfile = {
       title: "Training Männer Ü40",
       date: "2026-01-28",
       time: "19:30 - 21:00",
-      location: "Sportplatz Burkhardsfelden",
+      location: "Fußballpark BVB Hohenbuschei",
       type: "training",
       teamIcon: "⚽",
       status: "confirmed"
@@ -449,7 +449,7 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
     date: "2026-01-28",
     startTime: "19:30",
     endTime: "21:00",
-    location: "Sportplatz Burkhardsfelden",
+    location: "Fußballpark BVB Hohenbuschei",
     type: "training",
     teamIcon: "⚽",
     scope: "team",
@@ -709,7 +709,7 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages, curren
         </div>
         <div>
           <p className="text-sm font-medium text-neutral-900">{t("nav.memberPortal")}</p>
-          <p className="text-xs text-neutral-500">Sportfreunde Burkhardsfelden</p>
+          <p className="text-xs text-neutral-500">Borussia Dortmund</p>
         </div>
       </div>
 

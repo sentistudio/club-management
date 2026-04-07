@@ -6,14 +6,27 @@ export interface Organization {
   type: "club-group" | "federation" | "academy";
 }
 
+export interface ClubAddress {
+  street: string;
+  zipCode: string;
+  city: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 export interface Club {
   id: string;
   organizationId: string;
   name: string;
   shortName: string;
+  threeLetterCode?: string;
+  dfbId?: string;
+  dfbNumber?: string;
   association: string;
   city: string;
   country: string;
+  logoUrl?: string;
+  address?: ClubAddress;
 }
 
 export type DepartmentKind = "sport" | "admin";

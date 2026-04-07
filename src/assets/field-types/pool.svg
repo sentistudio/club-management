@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <rect width="40" height="40" fill="#38bdf8"/>
+  <!-- lane dividers (dashed lines) -->
+  <line x1="0" y1="10" x2="40" y2="10" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <line x1="0" y1="20" x2="40" y2="20" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <line x1="0" y1="30" x2="40" y2="30" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <!-- subtle wave highlights -->
+  <path d="M0 5 Q5 3.5 10 5 Q15 6.5 20 5 Q25 3.5 30 5 Q35 6.5 40 5" fill="none" stroke="white" stroke-width="0.8" opacity="0.5"/>
+  <path d="M0 15 Q5 13.5 10 15 Q15 16.5 20 15 Q25 13.5 30 15 Q35 16.5 40 15" fill="none" stroke="white" stroke-width="0.8" opacity="0.5"/>
+  <path d="M0 25 Q5 23.5 10 25 Q15 26.5 20 25 Q25 23.5 30 25 Q35 26.5 40 25" fill="none" stroke="white" stroke-width="0.8" opacity="0.5"/>
+  <path d="M0 35 Q5 33.5 10 35 Q15 36.5 20 35 Q25 33.5 30 35 Q35 36.5 40 35" fill="none" stroke="white" stroke-width="0.8" opacity="0.5"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <rect width="40" height="40" fill="#d1d5db"/>
+  <!-- horizontal joints -->
+  <line x1="0" y1="13" x2="40" y2="13" stroke="#9ca3af" stroke-width="1"/>
+  <line x1="0" y1="26" x2="40" y2="26" stroke="#9ca3af" stroke-width="1"/>
+  <!-- vertical joints staggered per row -->
+  <line x1="20" y1="0"  x2="20" y2="13" stroke="#9ca3af" stroke-width="1"/>
+  <line x1="10" y1="13" x2="10" y2="26" stroke="#9ca3af" stroke-width="1"/>
+  <line x1="30" y1="13" x2="30" y2="26" stroke="#9ca3af" stroke-width="1"/>
+  <line x1="20" y1="26" x2="20" y2="40" stroke="#9ca3af" stroke-width="1"/>
+</svg>

@@ -1,6 +1,6 @@
 // ========= ENHANCED CHATS FEATURE =========
 // Based on Chat Logic Design System (Section 6-7)
-// STORY: The Schneider Family at Sportfreunde Burkhardsfelden
+// STORY: The Schneider Family at Borussia Dortmund
 // - Lena (p11, Mother): Fitness Morgengruppe, Frauen Ü40 Football
 // - Flurina (p12, Daughter, 15): Volleyball U16 Mädchen
 // - Max (p13, Son, 11): Fußball U12
@@ -756,7 +756,7 @@ export const mockChatMessages: ChatMessage[] = [
   {
     id: "ann_vb_3", chatId: "announce_vb_u16",
     senderId: "katja", senderName: "Trainerin Katja", senderRole: "coach",
-    content: "📣 Kreismeisterschaft Anmeldung: Wir nehmen teil! Datum: 22. Februar in der Sporthalle Burkhardsfelden. Eltern sind herzlich eingeladen zuzuschauen.",
+    content: "📣 Kreismeisterschaft Anmeldung: Wir nehmen teil! Datum: 22. Februar in der Fußballpark BVB Hohenbuschei. Eltern sind herzlich eingeladen zuzuschauen.",
     createdAt: "2026-01-07T17:00:00", isRead: true
   },
   {

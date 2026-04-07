@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import { mockClub } from "../../data/mockClub";
 import {
   LayoutDashboard,
   Users,
@@ -19,9 +20,10 @@ import {
   ClipboardList,
   LayoutGrid
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { mockTickets, CURRENT_STAFF_ID } from "../../data/mockInbox";
 import { useRole, UserSwitcher } from "../../contexts";
+import { useLanguage } from "../../i18n";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -45,108 +47,109 @@ const myOpenTickets = mockTickets.filter(
   t => t.assignedToId === CURRENT_STAFF_ID && (t.status === "open" || t.status === "pending")
 ).length;
 
-const adminNavSections: NavSection[] = [
-  {
-    items: [
-      { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-      { to: "/teams", icon: Shield, label: "Teams" },
-    ]
-  },
-  {
-    items: [
-      { to: "/people", icon: Users, label: "People" },
-      { to: "/registration", icon: ClipboardList, label: "Registration" },
-      {
-        to: "/matches",
-        icon: Trophy,
-        label: "Competitions",
-        children: [
-          { to: "/matches", label: "Matches" },
-          { to: "/player-passes", label: "Player Passes" }
-        ]
-      },
-    ]
-  },
-  {
-    items: [
-      {
-        to: "/products",
-        icon: Package,
-        label: "Products & Payment",
-        children: [
-          { to: "/products", label: "Products" },
-          { to: "/subscriptions", label: "Subscriptions" },
-          { to: "/invoices", label: "Invoices" },
-          { to: "/payment-links", label: "Payment Links" }
-        ]
-      },
-      { to: "/events", icon: Calendar, label: "Events" },
-      { to: "/fields", icon: LayoutGrid, label: "Field Booking" },
-    ]
-  },
-  {
-    items: [
-      {
-        to: "/departments",
-        icon: Building2,
-        label: "Club Management",
-        children: [
-          { to: "/departments", label: "Departments" },
-          { to: "/committees", label: "Committees" },
-          { to: "/volunteering", label: "Volunteering" }
-        ]
-      },
-      {
-        to: "/finance",
-        icon: Wallet,
-        label: "Finance",
-        children: [
-          { to: "/transactions", label: "Transactions" },
-          { to: "/finance", label: "Bookings" }
-        ]
-      },
-    ]
-  },
-  {
-    items: [
-      {
-        icon: MessageSquare,
-        label: "Communication",
-        badge: myOpenTickets,
-        children: [
-          { to: "/pilot/inbox", label: "Inbox (Pilot)" },
-          { to: "/pilot/chat-moderation", label: "Chat Moderation" },
-          { to: "/inbox", label: "Inbox (MVP)" },
-          { to: "/club-news", label: "Club News" }
-        ]
-      },
-      { to: "/documents", icon: FolderOpen, label: "Documents" },
-      { to: "/settings", icon: Settings, label: "Settings" },
-    ]
-  }
-];
-
-const memberNavSections: NavSection[] = [
-  {
-    items: [
-      { to: "/member", icon: Home, label: "Overview" },
-      { to: "/member/calendar", icon: Calendar, label: "Events" },
-      { to: "/member/chats", icon: MessageSquare, label: "Messages" },
-      { to: "/member/news", icon: Newspaper, label: "News" },
-    ]
-  },
-  {
-    items: [
-      { to: "/member/profile", icon: User, label: "Profile" },
-      { to: "/member/settings", icon: Settings, label: "Settings" },
-    ]
-  }
-];
-
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const { user, activeRole, setActiveRole, canSwitchRoles, selectedPersons, togglePerson } = useRole();
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const adminNavSections: NavSection[] = useMemo(() => [
+    {
+      items: [
+        { to: "/dashboard", icon: LayoutDashboard, label: t("sidebar.dashboard") },
+        { to: "/teams", icon: Shield, label: t("sidebar.teams") },
+      ]
+    },
+    {
+      items: [
+        { to: "/people", icon: Users, label: t("sidebar.people") },
+        { to: "/registration", icon: ClipboardList, label: t("sidebar.registration") },
+        {
+          to: "/matches",
+          icon: Trophy,
+          label: t("sidebar.competitions"),
+          children: [
+            { to: "/matches", label: t("sidebar.matches") },
+            { to: "/player-passes", label: t("sidebar.playerPasses") }
+          ]
+        },
+      ]
+    },
+    {
+      items: [
+        {
+          to: "/products",
+          icon: Package,
+          label: t("sidebar.productsPayment"),
+          children: [
+            { to: "/products", label: t("sidebar.products") },
+            { to: "/subscriptions", label: t("sidebar.subscriptions") },
+            { to: "/invoices", label: t("sidebar.invoices") },
+            { to: "/payment-links", label: t("sidebar.paymentLinks") }
+          ]
+        },
+        { to: "/events", icon: Calendar, label: t("sidebar.events") },
+        { to: "/fields", icon: LayoutGrid, label: t("sidebar.fieldBooking") },
+      ]
+    },
+    {
+      items: [
+        {
+          to: "/departments",
+          icon: Building2,
+          label: t("sidebar.clubManagement"),
+          children: [
+            { to: "/departments", label: t("sidebar.departments") },
+            { to: "/committees", label: t("sidebar.committees") },
+            { to: "/volunteering", label: t("sidebar.volunteering") }
+          ]
+        },
+        {
+          to: "/finance",
+          icon: Wallet,
+          label: t("sidebar.finance"),
+          children: [
+            { to: "/transactions", label: t("sidebar.transactions") },
+            { to: "/finance", label: t("sidebar.bookings") }
+          ]
+        },
+      ]
+    },
+    {
+      items: [
+        {
+          icon: MessageSquare,
+          label: t("sidebar.communication"),
+          badge: myOpenTickets,
+          children: [
+            { to: "/pilot/inbox", label: t("sidebar.inboxPilot") },
+            { to: "/pilot/chat-moderation", label: t("sidebar.chatModeration") },
+            { to: "/inbox", label: t("sidebar.inboxMvp") },
+            { to: "/club-news", label: t("sidebar.clubNews") }
+          ]
+        },
+        { to: "/documents", icon: FolderOpen, label: t("sidebar.documents") },
+        { to: "/settings", icon: Settings, label: t("sidebar.settings") },
+      ]
+    }
+  ], [t]);
+
+  const memberNavSections: NavSection[] = useMemo(() => [
+    {
+      items: [
+        { to: "/member", icon: Home, label: t("sidebar.overview") },
+        { to: "/member/calendar", icon: Calendar, label: t("sidebar.events") },
+        { to: "/member/chats", icon: MessageSquare, label: t("sidebar.messages") },
+        { to: "/member/news", icon: Newspaper, label: t("sidebar.news") },
+      ]
+    },
+    {
+      items: [
+        { to: "/member/profile", icon: User, label: t("sidebar.profile") },
+        { to: "/member/settings", icon: Settings, label: t("sidebar.settings") },
+      ]
+    }
+  ], [t]);
 
   const isMemberMode = activeRole === "member";
   const navSections = isMemberMode ? memberNavSections : adminNavSections;
@@ -207,13 +210,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Club identity */}
         <div className="px-4 py-3 border-b border-neutral-200 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold">SfB</span>
-            </div>
+            {mockClub.logoUrl ? (
+              <img
+                src={mockClub.logoUrl}
+                alt={mockClub.shortName}
+                className="w-10 h-10 object-contain flex-shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold">{mockClub.shortName?.slice(0, 3)}</span>
+              </div>
+            )}
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-neutral-900 text-sm truncate">Sportfreunde Burkhardsfelden</p>
+              <p className="font-semibold text-neutral-900 text-sm truncate">{mockClub.shortName}</p>
               <p className="text-xs text-neutral-400">
-                {isMemberMode ? `${memberSubtitle} · Member` : "Club Administration"}
+                {isMemberMode ? `${memberSubtitle} · ${t("sidebar.memberSubtitle")}` : t("sidebar.clubAdminSubtitle")}
               </p>
             </div>
           </div>
@@ -232,7 +243,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 }`}
               >
                 <Building2 className="w-3.5 h-3.5" />
-                Club
+                {t("sidebar.clubToggle")}
               </button>
               <button
                 onClick={switchToMember}
@@ -243,7 +254,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 }`}
               >
                 <User className="w-3.5 h-3.5" />
-                Me
+                {t("sidebar.meToggle")}
               </button>
             </div>
           </div>
@@ -252,7 +263,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* ── Person selector (member mode + has linked children) ── */}
         {isMemberMode && (user.linkedChildren?.length ?? 0) > 0 && (
           <div className="px-3 py-3 border-b border-neutral-100 flex-shrink-0">
-            <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">View for</p>
+            <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">{t("sidebar.viewFor")}</p>
             <div className="flex flex-wrap gap-1.5">
               {/* Self */}
               <button

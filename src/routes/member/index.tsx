@@ -27,7 +27,8 @@ import {
   User,
   Inbox,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  LayoutGrid
 } from "lucide-react";
 import { Card, Badge, Button } from "../../components/ui";
 import { useLanguage } from "../../i18n";
@@ -36,6 +37,7 @@ import { mockChats, mockChatMessages, type Chat, type ChatMessage } from "../../
 import { mockClubEvents } from "../../data/mockClubEvents";
 import { mockTickets } from "../../data/mockInbox";
 import { getFieldById } from "../../data/mockFields";
+import { fieldIsDivisible } from "../../types/fields";
 import { ZoneGrid } from "../../components/fields/ZoneGrid";
 
 // ==========================================
@@ -90,7 +92,7 @@ const MOCK_PATRICK_EVENTS: EnhancedEvent[] = [
     date: dft(0),
     startTime: "19:30",
     endTime: "21:00",
-    location: "Sportplatz Burkhardsfelden",
+    location: "Fußballpark BVB Hohenbuschei",
     type: "training",
     teamIcon: "⚽",
     scope: "team",
@@ -543,10 +545,15 @@ export function MemberHome() {
 
   // Merge + sort events from all selected persons + club events, deduplicate by id
   const upcomingEvents = useMemo(() => {
+    const todayStr = new Date().toISOString().slice(0, 10);
     const seen = new Set<string>();
     const clubEvts = getClubEventsForPersons(resolvedIds);
     return [...resolvedIds.flatMap(id => getUserEvents(id)), ...clubEvts]
-      .filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
+      .filter(e => {
+        if (seen.has(e.id)) return false;
+        seen.add(e.id);
+        return e.date >= todayStr;
+      })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(0, 5);
   }, [resolvedIds.join(",")]);
@@ -816,7 +823,8 @@ export function MemberCalendar() {
 
   // Filter events
   const filteredEvents = useMemo(() => {
-    let events = [...allEvents];
+    const todayStr = new Date().toISOString().slice(0, 10);
+    let events = [...allEvents].filter(e => e.date >= todayStr);
 
     // Type filter
     if (typeFilter !== "all") {
@@ -974,7 +982,7 @@ export function MemberCalendar() {
                     <MapPin className="w-5 h-5 text-neutral-400 mt-0.5" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-neutral-700">{field.name}</p>
-                      {field.isDivisibleInto6 && (
+                      {fieldIsDivisible(field) && (
                         <div className="mt-1.5">
                           <ZoneGrid
                             zones={field.zones}
@@ -1303,9 +1311,22 @@ export function MemberCalendar() {
                               <span className="truncate max-w-[180px]">{event.location}</span>
                             </span>
                           )}
+                          {event.fieldId && (() => {
+                            const field = getFieldById(event.fieldId);
+                            if (!field) return null;
+                            const zoneLabel = event.bookingScope === "zones" && event.bookedZoneIds?.length
+                              ? ` · Zone ${event.bookedZoneIds.map(zid => field.zones?.find(z => z.id === zid)?.zoneNumber).filter(Boolean).join(", ")}`
+                              : "";
+                            return (
+                              <span className="flex items-center gap-1 text-teal-600">
+                                <LayoutGrid className="w-3.5 h-3.5" />
+                                <span className="truncate max-w-[180px]">{field.name}{zoneLabel}</span>
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
-                      
+
                       {/* Arrow */}
                       <ChevronRight className="w-5 h-5 text-neutral-300 group-hover:text-neutral-500 flex-shrink-0" />
                     </div>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80">
+  <!-- Kleinfeld / Small pitch – green grass, smaller dimensions -->
+  <rect width="120" height="80" fill="#16a34a" rx="4"/>
+  <!-- Grass stripe pattern -->
+  <rect x="0" y="0" width="120" height="80" fill="url(#stripes_sp)" rx="4"/>
+  <defs>
+    <pattern id="stripes_sp" x="0" y="0" width="20" height="80" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="10" height="80" fill="#15803d" opacity="0.5"/>
+    </pattern>
+  </defs>
+  <!-- Small field outline (centered, proportionally smaller) -->
+  <rect x="18" y="12" width="84" height="56" fill="none" stroke="white" stroke-width="2" rx="1"/>
+  <line x1="60" y1="12" x2="60" y2="68" stroke="white" stroke-width="1.5"/>
+  <circle cx="60" cy="40" r="9" fill="none" stroke="white" stroke-width="1.5"/>
+  <!-- Goals (small) -->
+  <rect x="18" y="32" width="6" height="16" fill="none" stroke="white" stroke-width="1.5"/>
+  <rect x="96" y="32" width="6" height="16" fill="none" stroke="white" stroke-width="1.5"/>
+  <!-- Center dot -->
+  <circle cx="60" cy="40" r="1.5" fill="white"/>
+</svg>

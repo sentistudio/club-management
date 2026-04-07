@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80">
+  <!-- Halle / Indoor pitch – parquet wood floor -->
+  <rect width="120" height="80" fill="#c8a96e" rx="4"/>
+  <!-- Wood plank lines -->
+  <line x1="0" y1="10" x2="120" y2="10" stroke="#a07840" stroke-width="1" opacity="0.5"/>
+  <line x1="0" y1="20" x2="120" y2="20" stroke="#a07840" stroke-width="1" opacity="0.5"/>
+  <line x1="0" y1="30" x2="120" y2="30" stroke="#a07840" stroke-width="1" opacity="0.5"/>
+  <line x1="0" y1="40" x2="120" y2="40" stroke="#a07840" stroke-width="1" opacity="0.5"/>
+  <line x1="0" y1="50" x2="120" y2="50" stroke="#a07840" stroke-width="1" opacity="0.5"/>
+  <line x1="0" y1="60" x2="120" y2="60" stroke="#a07840" stroke-width="1" opacity="0.5"/>
+  <line x1="0" y1="70" x2="120" y2="70" stroke="#a07840" stroke-width="1" opacity="0.5"/>
+  <!-- Field markings -->
+  <rect x="6" y="6" width="108" height="68" fill="none" stroke="white" stroke-width="2" rx="1"/>
+  <line x1="60" y1="6" x2="60" y2="74" stroke="white" stroke-width="1.5"/>
+  <circle cx="60" cy="40" r="12" fill="none" stroke="white" stroke-width="1.5"/>
+  <!-- Roof arch outline -->
+  <path d="M0 0 Q60 -8 120 0" fill="none" stroke="#7c5c2a" stroke-width="2" opacity="0.4"/>
+</svg>
