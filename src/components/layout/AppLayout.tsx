@@ -42,22 +42,22 @@ export function AppLayout() {
   const actions = pageActions[location.pathname];
 
   return (
-    <div className="flex min-h-screen bg-neutral-100">
+    <div className="flex h-screen overflow-hidden bg-neutral-100">
       {/* Sync role with current route */}
       <RoleRouteSync />
-      
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
-      
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar 
+
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Topbar
           onMenuClick={() => setSidebarOpen(true)}
           actions={actions && <div className="hidden md:flex items-center gap-2">{actions}</div>}
         />
-        
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+
+        <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
           <div className="max-w-7xl mx-auto animate-fade-in">
             <Outlet />
           </div>

@@ -147,33 +147,21 @@ export function Settings() {
   const totalImportedVenues = catalogEntries.filter(e => e.venueImported).length;
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Einstellungen</h1>
-        <p className="text-slate-500 mt-1">
-          Verwalten Sie die Stammdaten Ihres Vereins
-        </p>
-      </div>
-
-      {/* Organization Info */}
-      <Card>
-        <CardHeader
-          title="Organisation"
-          subtitle="Übergeordnete Organisationsstruktur"
-        />
-        <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl">
-          <div className="p-3 rounded-lg bg-violet-100">
-            <Globe className="w-6 h-6 text-violet-600" />
-          </div>
-          <div>
-            <p className="font-medium text-slate-800">{mockOrganization.name}</p>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Typ: {mockOrganization.type === "club-group" ? "Vereinsgruppe" : mockOrganization.type}
-            </p>
-          </div>
+    <div className="space-y-4 max-w-3xl">
+      {/* Page Header + Organisation inline */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Einstellungen</h1>
+          <p className="text-slate-500 mt-0.5 text-sm">
+            Verwalten Sie die Stammdaten Ihres Vereins
+          </p>
         </div>
-      </Card>
+        <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm flex-shrink-0">
+          <Globe className="w-4 h-4 text-violet-500 flex-shrink-0" />
+          <span className="text-slate-600 font-medium">{mockOrganization.name}</span>
+          <span className="text-slate-400 hidden sm:inline">· Vereinsgruppe</span>
+        </div>
+      </div>
 
       {/* Club Profile */}
       <Card>
@@ -182,7 +170,7 @@ export function Settings() {
           subtitle="Grundlegende Informationen zu Ihrem Verein"
         />
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Club Logo + DFB Badge */}
           <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
             {club.logoUrl ? (
