@@ -84,7 +84,7 @@ export function Settings() {
     });
   };
 
-  const toggleAllPitchesForVenue = (venueId: string, pendingIds: string[]) => {
+  const toggleAllPitchesForVenue = (_venueId: string, pendingIds: string[]) => {
     const allSelected = pendingIds.every(id => selectedPitchIds.has(id));
     setSelectedPitchIds(prev => {
       const next = new Set(prev);

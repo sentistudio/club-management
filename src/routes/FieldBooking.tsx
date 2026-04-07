@@ -26,7 +26,6 @@ import {
   CalendarDays,
   List,
 } from "lucide-react";
-import { ZoneGrid } from "../components/fields/ZoneGrid";
 import { FieldFormDrawer } from "../components/fields/FieldFormDrawer";
 import { FieldDetailModal } from "../components/fields/FieldDetailModal";
 import { MaintenanceBlockForm } from "../components/fields/MaintenanceBlockForm";
