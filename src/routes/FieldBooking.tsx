@@ -684,26 +684,22 @@ export function FieldBooking() {
                                 <div key={i} className="absolute top-0 bottom-0 border-l border-neutral-100" style={{ left: `${p}%` }} />
                               ))}
                               {field.isActive && dayHours && (
-                                <>
-                                  {isClosed ? (
-                                    <div className="absolute top-0 bottom-0 bg-neutral-100/70 flex items-center justify-center z-0" style={{ left: "0%", width: "100%" }}>
-                                      <FieldClosedBadge />
-                                    </div>
-                                  ) : openFrom && openTo ? (
-                                    <>
-                                      {timeToPercent(openFrom) > 0 && (
-                                        <div className="absolute top-0 bottom-0 bg-neutral-200/50 z-0" style={{ left: "0%", width: `${timeToPercent(openFrom)}%` }} />
-                                      )}
-                                      <div
-                                        className="absolute top-0 bottom-0 bg-white z-0"
-                                        style={{ left: `${timeToPercent(openFrom)}%`, width: `${timeToPercent(openTo) - timeToPercent(openFrom)}%` }}
-                                      />
-                                      {timeToPercent(openTo) < 100 && (
-                                        <div className="absolute top-0 bottom-0 bg-neutral-200/50 z-0" style={{ left: `${timeToPercent(openTo)}%`, width: `${100 - timeToPercent(openTo)}%` }} />
-                                      )}
-                                    </>
-                                  ) : null}
-                                </>
+                                isClosed ? (
+                                  /* Fully closed day – grey overlay */
+                                  <div className="absolute top-0 bottom-0 bg-neutral-100/70 flex items-center justify-center z-0" style={{ left: "0%", width: "100%" }}>
+                                    <FieldClosedBadge />
+                                  </div>
+                                ) : openFrom && openTo ? (
+                                  /* Has opening hours – grey only outside open window; open window stays transparent so grid shows */
+                                  <>
+                                    {timeToPercent(openFrom) > 0 && (
+                                      <div className="absolute top-0 bottom-0 bg-neutral-200/50 z-0" style={{ left: "0%", width: `${timeToPercent(openFrom)}%` }} />
+                                    )}
+                                    {timeToPercent(openTo) < 100 && (
+                                      <div className="absolute top-0 bottom-0 bg-neutral-200/50 z-0" style={{ left: `${timeToPercent(openTo)}%`, width: `${100 - timeToPercent(openTo)}%` }} />
+                                    )}
+                                  </>
+                                ) : null
                               )}
                               {maintenance.map(block => {
                                 const start = timeToPercent(block.startTime);
@@ -806,7 +802,7 @@ export function FieldBooking() {
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-violet-200 border border-violet-300" /> {t("fields.event")}</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-400" /> {t("fields.maintenance")}</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-100 border border-blue-300 ring-1 ring-amber-400" /><AlertTriangle className="w-2.5 h-2.5 text-amber-500" /> {lang === "de" ? "Nicht bestätigt" : "Not confirmed"}</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-white border border-neutral-300" /> {t("fields.openingHours")}</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border border-neutral-200" /> {t("fields.openingHours")}</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-neutral-200" /> {t("fields.closed")}</span>
               </div>
             </div>
