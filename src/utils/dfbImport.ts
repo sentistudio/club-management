@@ -159,6 +159,8 @@ export function dfbSpielstaetteToInternal(
     name: spielstaette.name,
     address: `${addr.street}, ${addr.zipCode} ${addr.city}`,
     isActive: true,
+    sourceType: "imported",
+    externalSource: "dfb",
     createdAt: now,
     updatedAt: now,
   };

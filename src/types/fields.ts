@@ -77,6 +77,8 @@ export interface Venue {
   address?: string;
   description?: string;
   isActive: boolean;
+  sourceType: FieldSourceType;
+  externalSource?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -24,12 +24,25 @@ const buildZones = (fieldId: string, count: number): FieldZone[] =>
 
 export const mockVenues: Venue[] = [
   {
+    id: "venue_trainingsanlage",
+    clubId: CLUB_ID,
+    name: "BVB Trainingsanlage",
+    address: "Adi-Preißler-Allee 1, 44309 Dortmund",
+    description: "Manuell verwaltete Trainingsfelder und Sporthalle",
+    isActive: true,
+    sourceType: "manual",
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
     id: "venue_hohenbuschei",
     clubId: CLUB_ID,
     name: "Fußballpark BVB Hohenbuschei",
     address: "Adi-Preißler-Allee 9, 44309 Dortmund",
     description: "Trainingsgelände des BVB mit 9 Plätzen – Rasen- und Kunstrasenplätze",
     isActive: true,
+    sourceType: "imported",
+    externalSource: "dfb",
     createdAt: "2024-01-01T00:00:00",
     updatedAt: "2024-01-01T00:00:00",
   },
@@ -43,6 +56,8 @@ export const mockVenues: Venue[] = [
     address: "Strobelallee 50, 44139 Dortmund",
     description: "Heimstadion des BVB mit ca. 81.365 Plätzen",
     isActive: true,
+    sourceType: "imported",
+    externalSource: "dfb",
     createdAt: "2024-01-01T00:00:00",
     updatedAt: "2024-01-01T00:00:00",
   },
@@ -53,29 +68,14 @@ export const mockVenues: Venue[] = [
     address: "Strobelallee 50, 44139 Dortmund",
     description: "Historisches Stadion neben dem Signal Iduna Park",
     isActive: true,
+    sourceType: "imported",
+    externalSource: "dfb",
     createdAt: "2024-01-01T00:00:00",
     updatedAt: "2024-01-01T00:00:00",
   },
-  {
-    id: "venue_brauksweg",
-    clubId: CLUB_ID,
-    name: "Sportplatz Brauksweg",
-    address: "Brauksweg, 44309 Dortmund",
-    description: "Kunstrasenplatz Brauksweg",
-    isActive: true,
-    createdAt: "2024-01-01T00:00:00",
-    updatedAt: "2024-01-01T00:00:00",
-  },
-  {
-    id: "venue_rabenloh",
-    clubId: CLUB_ID,
-    name: "Sportplatz im Rabenloh",
-    address: "Im Rabenloh, 44139 Dortmund",
-    description: "Kunstrasenplatz im Rabenloh",
-    isActive: true,
-    createdAt: "2024-01-01T00:00:00",
-    updatedAt: "2024-01-01T00:00:00",
-  },
+  // venue_brauksweg and venue_rabenloh are NOT in the initial set —
+  // they appear in the DFB catalog but haven't been imported yet.
+  // Use DFB_PENDING_VENUES["venue_brauksweg"] / ["venue_rabenloh"] to import them.
 ];
 
 // ==========================================
@@ -83,6 +83,110 @@ export const mockVenues: Venue[] = [
 // ==========================================
 
 export const mockFields: Field[] = [
+  // ── Manually created fields (sourceType: "manual") ───────────────────────
+  // These are managed directly in the app and have bookings in the calendar.
+  {
+    id: "field_hauptplatz",
+    clubId: CLUB_ID,
+    venueId: "venue_trainingsanlage",
+    name: "Hauptplatz",
+    type: "grass",
+    description: "Haupttrainingsplatz mit Flutlicht",
+    address: "Adi-Preißler-Allee 1, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: 6,
+    sourceType: "manual",
+    zones: buildZones("field_hauptplatz", 6),
+    openingHours: {
+      mon: { open: true, from: "07:00", to: "22:00" },
+      tue: { open: true, from: "07:00", to: "22:00" },
+      wed: { open: true, from: "07:00", to: "22:00" },
+      thu: { open: true, from: "07:00", to: "22:00" },
+      fri: { open: true, from: "07:00", to: "22:00" },
+      sat: { open: true, from: "08:00", to: "21:00" },
+      sun: { open: true, from: "09:00", to: "19:00" },
+    },
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "field_nebenplatz",
+    clubId: CLUB_ID,
+    venueId: "venue_trainingsanlage",
+    name: "Nebenplatz",
+    type: "artificial",
+    description: "Kunstrasenplatz für Trainings und Jugendspiele",
+    address: "Adi-Preißler-Allee 1, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: 4,
+    sourceType: "manual",
+    zones: buildZones("field_nebenplatz", 4),
+    openingHours: {
+      mon: { open: true, from: "08:00", to: "21:00" },
+      tue: { open: true, from: "08:00", to: "21:00" },
+      wed: { open: true, from: "08:00", to: "21:00" },
+      thu: { open: true, from: "08:00", to: "21:00" },
+      fri: { open: true, from: "08:00", to: "21:00" },
+      sat: { open: true, from: "09:00", to: "20:00" },
+      sun: { open: false, from: "09:00", to: "18:00" },
+    },
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "field_sporthalle",
+    clubId: CLUB_ID,
+    venueId: "venue_trainingsanlage",
+    name: "Sporthalle",
+    type: "indoor_pitch",
+    description: "Mehrzweckhalle für Indoor-Training und Veranstaltungen",
+    address: "Adi-Preißler-Allee 1, 44309 Dortmund",
+    indoorOutdoor: "indoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "manual",
+    zones: [],
+    openingHours: {
+      mon: { open: true, from: "06:00", to: "23:00" },
+      tue: { open: true, from: "06:00", to: "23:00" },
+      wed: { open: true, from: "06:00", to: "23:00" },
+      thu: { open: true, from: "06:00", to: "23:00" },
+      fri: { open: true, from: "06:00", to: "23:00" },
+      sat: { open: true, from: "08:00", to: "22:00" },
+      sun: { open: true, from: "09:00", to: "20:00" },
+    },
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+  {
+    id: "field_trainingswiese",
+    clubId: CLUB_ID,
+    venueId: "venue_trainingsanlage",
+    name: "Trainingswiese",
+    type: "grass",
+    description: "Naturrasen-Trainingsgelände für Kleinfeld und Aufwärmen",
+    address: "Adi-Preißler-Allee 1, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: 8,
+    sourceType: "manual",
+    zones: buildZones("field_trainingswiese", 8),
+    openingHours: {
+      mon: { open: true, from: "08:00", to: "21:00" },
+      tue: { open: true, from: "08:00", to: "21:00" },
+      wed: { open: true, from: "08:00", to: "21:00" },
+      thu: { open: true, from: "08:00", to: "21:00" },
+      fri: { open: true, from: "08:00", to: "21:00" },
+      sat: { open: true, from: "09:00", to: "20:00" },
+      sun: { open: false, from: "09:00", to: "16:00" },
+    },
+    createdAt: "2024-01-01T00:00:00",
+    updatedAt: "2024-01-01T00:00:00",
+  },
+
+  // ── Imported fields from DFB ──────────────────────────────────────────────
   // ── Fußballpark BVB Hohenbuschei ─────────────────────────────────────────
   {
     id: "00RDTVBKM0000000VTVG0001VUGVU8PO",
@@ -236,25 +340,8 @@ export const mockFields: Field[] = [
     createdAt: "2024-01-01T00:00:00",
     updatedAt: "2024-01-01T00:00:00",
   },
-  {
-    id: "028CTTQN00000000VS5489B3VT62FKQD",
-    clubId: CLUB_ID,
-    venueId: "venue_hohenbuschei",
-    name: "Fußballpark BVB Hohenbuschei Platz 9",
-    type: "artificial",
-    description: "Kunstrasenplatz",
-    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
-    indoorOutdoor: "outdoor",
-    isActive: true,
-    zoneCount: null,
-    sourceType: "imported",
-    externalSource: "dfb",
-    externalFieldId: "028CTTQN00000000VS5489B3VT62FKQD",
-    zones: [],
-    openingHours: undefined,
-    createdAt: "2024-01-01T00:00:00",
-    updatedAt: "2024-01-01T00:00:00",
-  },
+  // Platz 9 (028CTTQN…) is NOT in the initial set — not yet imported.
+  // Use DFB_PENDING_FIELDS["028CTTQN00000000VS5489B3VT62FKQD"] to import it.
 
   // ── Strobelallee – two distinct Spielstätten at the same address ──────────
   // (name-prefix algorithm splits them: "SIGNAL…" ≠ "Stadion…")
@@ -297,47 +384,8 @@ export const mockFields: Field[] = [
     updatedAt: "2024-01-01T00:00:00",
   },
 
-  // ── Brauksweg ─────────────────────────────────────────────────────────────
-  {
-    id: "00R46QV83G000000VTVG0001VTS15VMH",
-    clubId: CLUB_ID,
-    venueId: "venue_brauksweg",
-    name: "Sportplatz Brauksweg",
-    type: "artificial",
-    description: "Kunstrasenplatz",
-    address: "Brauksweg, 44309 Dortmund",
-    indoorOutdoor: "outdoor",
-    isActive: true,
-    zoneCount: null,
-    sourceType: "imported",
-    externalSource: "dfb",
-    externalFieldId: "00R46QV83G000000VTVG0001VTS15VMH",
-    zones: [],
-    openingHours: undefined,
-    createdAt: "2024-01-01T00:00:00",
-    updatedAt: "2024-01-01T00:00:00",
-  },
-
-  // ── Im Rabenloh ───────────────────────────────────────────────────────────
-  {
-    id: "0135M5LMB0000000VV0AG812VUMGC9SR",
-    clubId: CLUB_ID,
-    venueId: "venue_rabenloh",
-    name: "Sportplatz im Rabenloh",
-    type: "artificial",
-    description: "Kunstrasenplatz",
-    address: "Im Rabenloh, 44139 Dortmund",
-    indoorOutdoor: "outdoor",
-    isActive: true,
-    zoneCount: null,
-    sourceType: "imported",
-    externalSource: "dfb",
-    externalFieldId: "0135M5LMB0000000VV0AG812VUMGC9SR",
-    zones: [],
-    openingHours: undefined,
-    createdAt: "2024-01-01T00:00:00",
-    updatedAt: "2024-01-01T00:00:00",
-  },
+  // Brauksweg and Rabenloh fields are NOT in the initial set — not yet imported.
+  // Use DFB_PENDING_FIELDS["00R46QV83G…"] / ["0135M5LMB…"] to import them.
 ];
 
 // ==========================================
@@ -484,6 +532,168 @@ export const fieldHasFutureZoneBookings = (
 // ==========================================
 // DFB IMPORT HELPERS
 // ==========================================
+
+// ==========================================
+// DFB CATALOG – complete venue+pitch list for BVB from DFB API
+// Cross-references internal venueId so the import panel can show
+// what is already imported vs. pending.
+// ==========================================
+
+export interface DfbCatalogPitch {
+  id: string;        // externalFieldId
+  name: string;      // short display name (e.g. "Platz 1")
+  dfbType: string;   // raw DFB enum (e.g. "GRASS_PITCH")
+  typeLabel: string; // human-readable German label
+}
+
+export interface DfbCatalogEntry {
+  venueId: string;
+  name: string;
+  address: string;
+  pitches: DfbCatalogPitch[];
+}
+
+export const BVB_DFB_CATALOG: DfbCatalogEntry[] = [
+  {
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
+    pitches: [
+      { id: "00RDTVBKM0000000VTVG0001VUGVU8PO", name: "Platz 1",              dfbType: "GRASS_PITCH",      typeLabel: "Rasenplatz"  },
+      { id: "00SKEVKLJG000000VTVG0001VSUSTTPB", name: "Platz 2 (Profis)",     dfbType: "GRASS_PITCH",      typeLabel: "Rasenplatz"  },
+      { id: "02FJ0TJQB0000000VS5489B4VU45R60J", name: "Platz 3 (Profis)",     dfbType: "GRASS_PITCH",      typeLabel: "Rasenplatz"  },
+      { id: "00SKF050G8000000VTVG0001VSUSTTPB", name: "Platz 4 Kunstrasen",   dfbType: "ARTIFICIAL_PITCH", typeLabel: "Kunstrasen"  },
+      { id: "02FJ0UGE80000000VS5489B4VU45R60J", name: "Platz 5",              dfbType: "GRASS_PITCH",      typeLabel: "Rasenplatz"  },
+      { id: "01RCGI6EVS000000VS54898DVSK0F3HF", name: "Platz 6 Kleinfeld",    dfbType: "SMALL_PITCH",      typeLabel: "Kleinfeld"   },
+      { id: "01RCGK2S5S000000VS54898DVSK0F3HF", name: "Platz 7 Kleinfeld",    dfbType: "SMALL_PITCH",      typeLabel: "Kleinfeld"   },
+      { id: "01RCGL2ER8000000VS54898DVSK0F3HF", name: "Platz 8",              dfbType: "GRASS_PITCH",      typeLabel: "Rasenplatz"  },
+      { id: "028CTTQN00000000VS5489B3VT62FKQD", name: "Platz 9",              dfbType: "ARTIFICIAL_PITCH", typeLabel: "Kunstrasen"  },
+    ],
+  },
+  {
+    venueId: "venue_signal_iduna_park",
+    name: "SIGNAL IDUNA PARK",
+    address: "Strobelallee 50, 44139 Dortmund",
+    pitches: [
+      { id: "00GR814JLG000000VTVG0001VSQ88KDJ", name: "SIGNAL IDUNA PARK", dfbType: "GRASS_PITCH", typeLabel: "Rasenplatz" },
+    ],
+  },
+  {
+    venueId: "venue_rote_erde",
+    name: "Stadion Rote Erde",
+    address: "Strobelallee 50, 44139 Dortmund",
+    pitches: [
+      { id: "00KVAR728G000000VTVG0001VSL6B7B3", name: "Stadion Rote Erde", dfbType: "GRASS_PITCH", typeLabel: "Rasenplatz" },
+    ],
+  },
+  {
+    venueId: "venue_brauksweg",
+    name: "Sportplatz Brauksweg",
+    address: "Brauksweg, 44309 Dortmund",
+    pitches: [
+      { id: "00R46QV83G000000VTVG0001VTS15VMH", name: "Sportplatz Brauksweg", dfbType: "ARTIFICIAL_PITCH", typeLabel: "Kunstrasen" },
+    ],
+  },
+  {
+    venueId: "venue_rabenloh",
+    name: "Sportplatz im Rabenloh",
+    address: "Im Rabenloh, 44139 Dortmund",
+    pitches: [
+      { id: "0135M5LMB0000000VV0AG812VUMGC9SR", name: "Sportplatz im Rabenloh", dfbType: "ARTIFICIAL_PITCH", typeLabel: "Kunstrasen" },
+    ],
+  },
+];
+
+// Venues not yet imported — created when user imports them via the DFB panel.
+// Keyed by venueId.
+export const DFB_PENDING_VENUES: Record<string, Venue> = {
+  venue_brauksweg: {
+    id: "venue_brauksweg",
+    clubId: CLUB_ID,
+    name: "Sportplatz Brauksweg",
+    address: "Brauksweg, 44309 Dortmund",
+    description: "Kunstrasenplatz Brauksweg",
+    isActive: true,
+    sourceType: "imported",
+    externalSource: "dfb",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  venue_rabenloh: {
+    id: "venue_rabenloh",
+    clubId: CLUB_ID,
+    name: "Sportplatz im Rabenloh",
+    address: "Im Rabenloh, 44139 Dortmund",
+    description: "Kunstrasenplatz im Rabenloh",
+    isActive: true,
+    sourceType: "imported",
+    externalSource: "dfb",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+};
+
+// Fields not yet imported — added when user selects them in the DFB import panel.
+// Keyed by externalFieldId.
+export const DFB_PENDING_FIELDS: Record<string, Field> = {
+  "028CTTQN00000000VS5489B3VT62FKQD": {
+    id: "028CTTQN00000000VS5489B3VT62FKQD",
+    clubId: CLUB_ID,
+    venueId: "venue_hohenbuschei",
+    name: "Fußballpark BVB Hohenbuschei Platz 9",
+    type: "artificial",
+    description: "Kunstrasenplatz",
+    address: "Adi-Preißler-Allee 9, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "028CTTQN00000000VS5489B3VT62FKQD",
+    zones: [],
+    openingHours: undefined,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  "00R46QV83G000000VTVG0001VTS15VMH": {
+    id: "00R46QV83G000000VTVG0001VTS15VMH",
+    clubId: CLUB_ID,
+    venueId: "venue_brauksweg",
+    name: "Sportplatz Brauksweg",
+    type: "artificial",
+    description: "Kunstrasenplatz",
+    address: "Brauksweg, 44309 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "00R46QV83G000000VTVG0001VTS15VMH",
+    zones: [],
+    openingHours: undefined,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  "0135M5LMB0000000VV0AG812VUMGC9SR": {
+    id: "0135M5LMB0000000VV0AG812VUMGC9SR",
+    clubId: CLUB_ID,
+    venueId: "venue_rabenloh",
+    name: "Sportplatz im Rabenloh",
+    type: "artificial",
+    description: "Kunstrasenplatz",
+    address: "Im Rabenloh, 44139 Dortmund",
+    indoorOutdoor: "outdoor",
+    isActive: true,
+    zoneCount: null,
+    sourceType: "imported",
+    externalSource: "dfb",
+    externalFieldId: "0135M5LMB0000000VV0AG812VUMGC9SR",
+    zones: [],
+    openingHours: undefined,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+};
 
 /**
  * The preferred grouped JSON structure for DFB Spielstätten import.

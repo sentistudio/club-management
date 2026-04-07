@@ -181,6 +181,33 @@ export function PaymentLinkStatusBadge({ status }: { status: string }) {
   return <Badge variant={variant} dot>{label}</Badge>;
 }
 
+// Field status chip — square indicator + label, matches Figma design
+type StatusChipColor = "neutral" | "blue" | "amber" | "violet" | "teal" | "red" | "green";
+
+const STATUS_CHIP_COLORS: Record<StatusChipColor, { square: string; text: string }> = {
+  neutral: { square: "bg-neutral-200",  text: "text-neutral-500" },
+  blue:    { square: "bg-blue-200",     text: "text-blue-700"    },
+  amber:   { square: "bg-amber-300",    text: "text-amber-700"   },
+  violet:  { square: "bg-violet-200",   text: "text-violet-700"  },
+  teal:    { square: "bg-teal-200",     text: "text-teal-700"    },
+  red:     { square: "bg-red-200",      text: "text-red-700"     },
+  green:   { square: "bg-green-200",    text: "text-green-700"   },
+};
+
+export function FieldStatusChip({ label, color = "neutral" }: { label: string; color?: StatusChipColor }) {
+  const { square, text } = STATUS_CHIP_COLORS[color];
+  return (
+    <span className="inline-flex items-center gap-1.5 bg-white rounded-lg px-1.5 py-0.5">
+      <span className={`w-3 h-3 rounded-sm flex-shrink-0 ${square}`} />
+      <span className={`text-[12px] font-normal whitespace-nowrap leading-4 ${text}`}>{label}</span>
+    </span>
+  );
+}
+
+export function FieldClosedBadge() {
+  return <FieldStatusChip label="Geschlossen" color="neutral" />;
+}
+
 // Payment Method Type Badge
 export function PaymentMethodTypeBadge({ type }: { type: string }) {
   const config: Record<string, { variant: BadgeVariant; label: string }> = {

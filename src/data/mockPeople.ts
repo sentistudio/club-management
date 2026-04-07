@@ -30,9 +30,9 @@ export const MOCK_ORG = {
 };
 
 export const MOCK_DEPARTMENTS = [
-  { id: "dept_fussball", name: "Fußball", orgId: "org_sfb" },
-  { id: "dept_fitness", name: "Fitness", orgId: "org_sfb" },
-  { id: "dept_turnen", name: "Turnen", orgId: "org_sfb" }
+  { id: "dept_fussball", name: "Fußball", orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I" },
+  { id: "dept_fitness", name: "Fitness", orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I" },
+  { id: "dept_turnen", name: "Turnen", orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I" }
 ];
 
 export const MOCK_TEAMS_PEOPLE = [
@@ -220,7 +220,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_patrick_admin",
     personId: "person_patrick",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     role: "admin",
     status: "active",
     joinedAt: "2020-01-15T10:00:00Z"
@@ -228,7 +228,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_patrick_player",
     personId: "person_patrick",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     departmentId: "dept_fussball",
     teamId: "team_herren1",
     role: "player",
@@ -239,7 +239,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_lena_player",
     personId: "person_lena",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     departmentId: "dept_fussball",
     teamId: "team_damen",
     role: "player",
@@ -249,7 +249,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_lena_guardian",
     personId: "person_lena",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     role: "guardian_contact",
     status: "active",
     joinedAt: "2022-08-01T10:00:00Z"
@@ -258,7 +258,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_max_player",
     personId: "person_max",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     departmentId: "dept_fussball",
     teamId: "team_u12",
     role: "player",
@@ -269,7 +269,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_flurina_player",
     personId: "person_flurina",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     departmentId: "dept_fussball",
     teamId: "team_u12",
     role: "player",
@@ -281,7 +281,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_anna_player",
     personId: "person_anna",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     departmentId: "dept_fussball",
     teamId: "team_u12",
     role: "player",
@@ -292,7 +292,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_tim_player",
     personId: "person_tim",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     departmentId: "dept_fussball",
     teamId: "team_u15",
     role: "player",
@@ -303,7 +303,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_markus_guardian",
     personId: "person_markus",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     role: "guardian_contact",
     status: "active",
     joinedAt: "2023-09-01T10:00:00Z"
@@ -312,7 +312,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_klaus_coach",
     personId: "person_klaus",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     departmentId: "dept_fussball",
     teamId: "team_u12",
     role: "coach",
@@ -324,7 +324,7 @@ export const MOCK_MEMBERSHIPS: Membership[] = [
   {
     id: "mem_fabio_club",
     personId: "person_fabio",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     // No departmentId or teamId = member is "inactive" until assigned
     role: "player",
     status: "active",
@@ -404,7 +404,7 @@ export const MOCK_REGISTRATION_INTENTS: RegistrationIntent[] = [
   {
     id: "intent_tim",
     type: "public_registration",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     departmentId: "dept_fussball",
     teamId: "team_u15",
     target: "child",
@@ -427,7 +427,7 @@ export const MOCK_REGISTRATION_INTENTS: RegistrationIntent[] = [
   {
     id: "intent_sandra",
     type: "invite",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     target: "child",
     requestedRole: "guardian_contact",
     prefill: {
@@ -469,7 +469,7 @@ export const MOCK_REGISTRATION_FORMS: RegistrationForm[] = [
     id: "form_u12_player",
     name: "U12 Junioren Anmeldung",
     description: "Anmeldeformular für neue Spieler der U12 Mannschaft",
-    orgId: "org_sfb",
+    orgId: "00ES8GN8N400008VVV0AG08LVUPGND5I",
     departmentId: "dept_fussball",
     teamId: "team_u12",
     allowedTargets: ["self", "child"],

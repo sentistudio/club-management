@@ -12,9 +12,9 @@ import { DEFAULT_BANNERS } from "../../types/events";
 import { AudienceSelector } from "./AudienceSelector";
 import { RecurrenceEditor } from "./RecurrenceEditor";
 import { RSVPSection } from "./RSVPSection";
-import { FieldPicker } from "../fields/FieldPicker";
-import { getFieldById } from "../../data/mockFields";
-import { ADMIN_USER, mockClubMembers, mockGroups } from "../../data/mockClubEvents";
+import { ResourcePickerPanel } from "../fields/ResourcePickerPanel";
+import { getFieldById, checkConflict } from "../../data/mockFields";
+import { ADMIN_USER, mockClubMembers, mockGroups, mockClubEvents } from "../../data/mockClubEvents";
 import { generateEventId, createStatusHistoryEntry } from "../../utils/eventUtils";
 
 interface EventFormDrawerProps {
@@ -56,6 +56,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
   });
   
   const [showBannerPicker, setShowBannerPicker] = useState(false);
+  const [locationType, setLocationType] = useState<"address" | "field">("address");
 
   // Load event data when editing or set initial date
   useEffect(() => {
@@ -85,6 +86,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
         bookingScope: event.bookingScope || "full_field",
         bookedZoneIds: event.bookedZoneIds || [],
       });
+      setLocationType(event.fieldId ? "field" : "address");
     } else if (initialDate) {
       setFormData(prev => ({ ...prev, date: initialDate }));
     }
@@ -128,6 +130,22 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
     const now = new Date().toISOString();
     const status = isDraft ? "draft" : "published";
     
+    // Determine booking status: check for conflicts at save time
+    const computedBookingStatus: "confirmed" | "not_confirmed" | undefined = (() => {
+      if (!formData.fieldId) return undefined;
+      const conflicts = checkConflict(
+        mockClubEvents,
+        formData.fieldId,
+        formData.bookingScope,
+        formData.bookedZoneIds,
+        formData.date,
+        formData.isAllDay ? "00:00" : formData.startTime,
+        formData.isAllDay ? "23:59" : formData.endTime,
+        event?.id
+      );
+      return conflicts.length > 0 ? "not_confirmed" : "confirmed";
+    })();
+
     const newEvent: ClubEvent = {
       id: event?.id || generateEventId(),
       title: formData.title.trim(),
@@ -141,6 +159,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
       fieldId: formData.fieldId || undefined,
       bookingScope: formData.fieldId ? formData.bookingScope : undefined,
       bookedZoneIds: formData.fieldId && formData.bookingScope === "zones" ? formData.bookedZoneIds : undefined,
+      bookingStatus: computedBookingStatus,
       audience: {
         mode: formData.audienceMode,
         departmentIds: formData.audienceMode === "departments" ? formData.departmentIds : undefined,
@@ -317,58 +336,87 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
               </div>
             </div>
 
-            {/* Location */}
+            {/* Location – unified section with shared icon */}
             <div className="flex items-start gap-3">
-              <div className="p-2.5 mt-1 bg-slate-100 rounded-lg">
+              <div className="p-2.5 mt-1 bg-slate-100 rounded-lg flex-shrink-0">
                 <MapPin className="w-5 h-5 text-slate-600" />
               </div>
-              <input
-                type="text"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="Ort hinzufügen"
-                className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
-              />
-            </div>
+              <div className="flex-1 space-y-3">
+                {/* Free-text address (only when not using a venue) */}
+                {locationType === "address" && (
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    placeholder="Ort hinzufügen"
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
+                  />
+                )}
 
-            {/* Field Booking */}
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 mt-1 bg-slate-100 rounded-lg">
-                <MapPin className="w-5 h-5 text-slate-600" />
-              </div>
-              <div className="flex-1">
-                <FieldPicker
-                  fieldId={formData.fieldId}
-                  bookingScope={formData.bookingScope}
-                  bookedZoneIds={formData.bookedZoneIds}
-                  date={formData.date}
-                  startTime={formData.startTime}
-                  endTime={formData.endTime}
-                  excludeEventId={event?.id}
-                  onChange={patch => setFormData(prev => {
-                    const next = { ...prev, ...patch };
-                    // Auto-fill location with field address when a field is selected
-                    if (patch.fieldId !== undefined) {
-                      if (patch.fieldId) {
-                        const f = getFieldById(patch.fieldId);
-                        if (f?.address) {
-                          // Only overwrite if empty or previously auto-filled by a field
+                {/* Venue resource toggle */}
+                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
+                  <div>
+                    <p className="font-medium text-slate-800">Vereinsplatz</p>
+                    <p className="text-xs text-slate-500">Ressource aus dem Verein buchen</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={locationType === "field"}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData(prev => ({ ...prev, location: "" }));
+                          setLocationType("field");
+                        } else {
+                          const fieldAddr = formData.fieldId ? getFieldById(formData.fieldId)?.address : undefined;
+                          setFormData(prev => ({
+                            ...prev,
+                            fieldId: "",
+                            bookingScope: "full_field" as const,
+                            bookedZoneIds: [],
+                            location: fieldAddr || prev.location,
+                          }));
+                          setLocationType("address");
+                        }
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#004941] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#004941]"></div>
+                  </label>
+                </div>
+
+                {/* Resource / zone picker */}
+                {locationType === "field" && (
+                  <ResourcePickerPanel
+                    fieldId={formData.fieldId}
+                    bookingScope={formData.bookingScope}
+                    bookedZoneIds={formData.bookedZoneIds}
+                    date={formData.date}
+                    startTime={formData.startTime}
+                    endTime={formData.endTime}
+                    excludeEventId={event?.id}
+                    onChange={patch => setFormData(prev => {
+                      const next = { ...prev, ...patch };
+                      if (patch.fieldId !== undefined) {
+                        if (patch.fieldId) {
+                          const f = getFieldById(patch.fieldId);
+                          if (f?.address) {
+                            const prevFieldAddr = prev.fieldId ? getFieldById(prev.fieldId)?.address : undefined;
+                            if (!prev.location || prev.location === prevFieldAddr) {
+                              next.location = f.address;
+                            }
+                          }
+                        } else {
                           const prevFieldAddr = prev.fieldId ? getFieldById(prev.fieldId)?.address : undefined;
-                          if (!prev.location || prev.location === prevFieldAddr) {
-                            next.location = f.address;
+                          if (prevFieldAddr && prev.location === prevFieldAddr) {
+                            next.location = "";
                           }
                         }
-                      } else {
-                        // Field cleared – remove auto-filled address if unchanged
-                        const prevFieldAddr = prev.fieldId ? getFieldById(prev.fieldId)?.address : undefined;
-                        if (prevFieldAddr && prev.location === prevFieldAddr) {
-                          next.location = "";
-                        }
                       }
-                    }
-                    return next;
-                  })}
-                />
+                      return next;
+                    })}
+                  />
+                )}
               </div>
             </div>
 

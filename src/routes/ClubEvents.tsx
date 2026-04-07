@@ -8,7 +8,7 @@ import {
   Plus, Search, Calendar as CalendarIcon, List, Grid3X3,
   Edit2, Copy, Send, XCircle,
   ChevronLeft, ChevronRight, Users, MapPin,
-  Lock, RefreshCw, Dumbbell, Trophy as TrophyIcon, PartyPopper, Check, Clock
+  Lock, RefreshCw, Dumbbell, Trophy as TrophyIcon, PartyPopper, Check, Clock, LayoutGrid
 } from "lucide-react";
 import { Card, Button } from "../components/ui";
 import { EventDetailDrawer, EventFormDrawer } from "../components/events";
@@ -17,6 +17,7 @@ import {
   mockClubMembers,
   ADMIN_USER
 } from "../data/mockClubEvents";
+import { getFieldById } from "../data/mockFields";
 import type { ClubEvent, EventStatus, EventVisibility, AudienceMode } from "../types/events";
 import {
   computeEventStatus,
@@ -451,9 +452,23 @@ export function ClubEvents() {
                         </div>
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-500">
                           <span>{event.startTime} – {event.endTime}</span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3.5 h-3.5" />{event.location}
-                          </span>
+                          {event.location && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5" />{event.location}
+                            </span>
+                          )}
+                          {event.fieldId && (() => {
+                            const field = getFieldById(event.fieldId);
+                            if (!field) return null;
+                            const zoneLabel = event.bookingScope === "zones" && event.bookedZoneIds?.length
+                              ? ` · Zone ${event.bookedZoneIds.map(zid => field.zones?.find(z => z.id === zid)?.zoneNumber).filter(Boolean).join(", ")}`
+                              : "";
+                            return (
+                              <span className="flex items-center gap-1 text-teal-600">
+                                <LayoutGrid className="w-3.5 h-3.5" />{field.name}{zoneLabel}
+                              </span>
+                            );
+                          })()}
                           <span className="text-xs text-slate-400">{event.category ?? ""}</span>
                         </div>
                       </div>

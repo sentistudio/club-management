@@ -7,10 +7,11 @@ import { useState } from "react";
 import { X, Trash2, RefreshCw, Wrench, MapPin } from "lucide-react";
 import type { Field, MaintenanceBlock } from "../../types/fields";
 import {
-  FIELD_TYPE_ICONS,
-  FIELD_TYPE_LABELS,
   WEEKDAY_KEYS,
+  fieldIsDivisible,
+  getFieldTypeLabel,
 } from "../../types/fields";
+import { getFieldTypeImage } from "../../data/fieldTypeImages";
 import type { ClubEvent } from "../../types/events";
 import { ZoneGrid } from "./ZoneGrid";
 import { useLanguage } from "../../i18n";
@@ -111,12 +112,12 @@ export function FieldDetailModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center text-xl">
-              {FIELD_TYPE_ICONS[field.type]}
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
+              <img src={getFieldTypeImage(field)} alt="" className="w-full h-full object-cover" />
             </div>
             <div>
               <p className="font-semibold text-neutral-900">{field.name}</p>
-              <p className="text-xs text-neutral-500">{FIELD_TYPE_LABELS[field.type]}</p>
+              <p className="text-xs text-neutral-500">{getFieldTypeLabel(field)}</p>
             </div>
           </div>
           <button
@@ -158,9 +159,9 @@ export function FieldDetailModal({
                 }`}>
                   {field.indoorOutdoor === "indoor" ? t("fields.indoorLabel") : t("fields.outdoorLabel")}
                 </span>
-                {field.isDivisibleInto6 && (
+                {fieldIsDivisible(field) && (
                   <span className="text-xs px-2 py-1 rounded-full border bg-blue-50 border-blue-200 text-blue-700">
-                    6 {t("fields.zonesCount")}
+                    {field.zoneCount} {t("fields.zonesCount")}
                   </span>
                 )}
                 <span className={`text-xs px-2 py-1 rounded-full border ${
@@ -222,7 +223,7 @@ export function FieldDetailModal({
               )}
 
               {/* Zone Grid */}
-              {field.isDivisibleInto6 && (
+              {fieldIsDivisible(field) && (
                 <div>
                   <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">{t("fields.zonePreview")}</p>
                   <ZoneGrid

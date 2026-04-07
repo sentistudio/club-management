@@ -294,7 +294,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: "2026-02-15",
     startTime: "19:00",
     endTime: "22:00",
-    location: "Vereinsheim - Großer Saal",
     bannerImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop",
     audience: {
       mode: "all" as AudienceMode
@@ -336,7 +335,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: "2026-01-30",
     startTime: "19:00",
     endTime: "21:00",
-    location: "Vereinsheim - Sitzungszimmer",
     audience: {
       mode: "departments" as AudienceMode,
       departmentIds: ["dept_football"]
@@ -377,7 +375,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: "2026-01-27",
     startTime: "19:30",
     endTime: "21:00",
-    location: "Vereinsheim - Kleiner Besprechungsraum",
+    location: "BVB Geschäftsstelle – Besprechungsraum, Rheinlanddamm 207, 44137 Dortmund",
     audience: {
       mode: "groups" as AudienceMode,
       groupIds: ["grp_ok_fasching"]
@@ -421,7 +419,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: "2026-02-08",
     startTime: "10:00",
     endTime: "14:00",
-    location: "Vereinsheim + Sportplatz",
     audience: {
       mode: "groups" as AudienceMode,
       groupIds: ["grp_schiedsrichter"]
@@ -464,7 +461,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: "2026-02-22",
     startTime: "15:00",
     endTime: "22:00",
-    location: "Vereinsheim - Großer Saal",
     bannerImage: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&h=400&fit=crop",
     audience: {
       mode: "all" as AudienceMode
@@ -505,7 +501,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: "2026-02-03",
     startTime: "19:00",
     endTime: "21:30",
-    location: "Vereinsheim - Sitzungszimmer",
+    location: "BVB Geschäftsstelle – Konferenzraum, Rheinlanddamm 207, 44137 Dortmund",
     audience: {
       mode: "groups" as AudienceMode,
       groupIds: ["grp_vorstand"]
@@ -548,7 +544,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(96),
     startTime: "08:00",
     endTime: "18:00",
-    location: "Sportgelände",
     audience: {
       mode: "groups" as AudienceMode,
       groupIds: ["grp_helfer_pool"]
@@ -588,7 +583,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: "2026-01-11",
     startTime: "11:00",
     endTime: "14:00",
-    location: "Vereinsheim - Großer Saal",
+    location: "BVB Fan-Welt, Signal Iduna Park, Strobelallee 50, 44139 Dortmund",
     audience: {
       mode: "all" as AudienceMode
     },
@@ -627,7 +622,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: "2025-12-14",
     startTime: "15:00",
     endTime: "20:00",
-    location: "Vereinsheim - Großer Saal",
+    location: "BVB Fan-Welt, Signal Iduna Park, Strobelallee 50, 44139 Dortmund",
     bannerImage: "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=800&h=400&fit=crop",
     audience: {
       mode: "all" as AudienceMode
@@ -666,7 +661,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: "2026-02-20",
     startTime: "19:00",
     endTime: "21:00",
-    location: "Vereinsheim - Sitzungszimmer",
+    location: "BVB Geschäftsstelle – Konferenzraum, Rheinlanddamm 207, 44137 Dortmund",
     audience: {
       mode: "departments" as AudienceMode,
       departmentIds: ["dept_volleyball"]
@@ -692,8 +687,6 @@ export const mockClubEvents: ClubEvent[] = [
     createdByName: ADMIN_USER.name,
     updatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
     category: "Versammlung",
-    fieldId: "field_sporthalle",
-    bookingScope: "full_field",
   },
 
   // ═══════════════════════════════════════════
@@ -707,7 +700,6 @@ export const mockClubEvents: ClubEvent[] = [
     isAllDay: true,
     startTime: "00:00",
     endTime: "23:59",
-    location: "Sportgelände",
     bannerImage: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=400&fit=crop",
     audience: {
       mode: "groups" as AudienceMode,
@@ -788,7 +780,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "07:00",
     endTime: "08:30",
-    location: "Sporthalle",
     audience: { mode: "departments" as AudienceMode, departmentIds: ["dept_fitness"] },
     resolvedMemberCount: 24,
     visibility: "private" as EventVisibility,
@@ -811,7 +802,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "10:00",
     endTime: "12:00",
-    location: "Sporthalle",
     audience: { mode: "departments" as AudienceMode, departmentIds: ["dept_volleyball"] },
     resolvedMemberCount: 14,
     visibility: "private" as EventVisibility,
@@ -834,7 +824,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "14:00",
     endTime: "16:00",
-    location: "Hauptplatz",
     audience: { mode: "departments" as AudienceMode, departmentIds: ["dept_football"] },
     resolvedMemberCount: 18,
     visibility: "private" as EventVisibility,
@@ -858,7 +847,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "15:30",
     endTime: "17:30",
-    location: "Hauptplatz",
     audience: { mode: "departments" as AudienceMode, departmentIds: ["dept_football"] },
     resolvedMemberCount: 14,
     visibility: "private" as EventVisibility,
@@ -882,7 +870,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "10:30",
     endTime: "12:30",
-    location: "Nebenplatz",
     audience: { mode: "groups" as AudienceMode, groupIds: ["grp_schiedsrichter"] },
     resolvedMemberCount: 8,
     visibility: "private" as EventVisibility,
@@ -906,7 +893,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "17:00",
     endTime: "18:30",
-    location: "Trainingswiese",
     audience: { mode: "departments" as AudienceMode, departmentIds: ["dept_football"] },
     resolvedMemberCount: 22,
     visibility: "private" as EventVisibility,
@@ -934,7 +920,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(4),
     startTime: "18:00",
     endTime: "20:00",
-    location: "Hauptplatz",
     audience: {
       mode: "departments" as AudienceMode,
       departmentIds: ["dept_football"]
@@ -965,7 +950,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(4),
     startTime: "17:00",
     endTime: "18:30",
-    location: "Hauptplatz",
     audience: {
       mode: "departments" as AudienceMode,
       departmentIds: ["dept_football"]
@@ -998,7 +982,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "18:30",
     endTime: "20:00",
-    location: "Vereinsheim",
+    location: "BVB Geschäftsstelle, Rheinlanddamm 207, 44137 Dortmund",
     audience: {
       mode: "manual" as AudienceMode,
       memberIds: ["lena_schneider", "patrick_steuble", "peter_hoffmann", "petra_weber"]
@@ -1103,7 +1087,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(3),
     startTime: "14:00",
     endTime: "17:30",
-    location: "Vereinsheim - Sitzungszimmer",
+    location: "Mercure Hotel Dortmund Messe & Congress, Strobelallee 41, 44139 Dortmund",
     audience: {
       mode: "manual" as AudienceMode,
       memberIds: ["patrick_steuble", "thomas_mueller", "sabine_weber", "lena_schneider"]
@@ -1130,7 +1114,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(4),
     startTime: "14:00",
     endTime: "16:30",
-    location: "Sportgelände",
+    location: "Westfalenpark Dortmund, Aldinghofer Weg 35, 44141 Dortmund",
     audience: {
       mode: "manual" as AudienceMode,
       memberIds: ["lena_schneider", "patrick_steuble", "flurina_schneider", "max_schneider", "peter_hoffmann", "petra_weber"]
@@ -1213,7 +1197,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(11),
     startTime: "15:00",
     endTime: "17:00",
-    location: "Hauptplatz",
     bannerImage: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop",
     audience: {
       mode: "departments" as AudienceMode,
@@ -1247,7 +1230,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "19:00",
     endTime: "20:30",
-    location: "Hauptplatz SfB",
+    location: "SC Brackel 06, Strobelallee 52, 44139 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["patrick_steuble", "thomas_mueller", "daniel_klein", "marco_bauer"] },
     resolvedMemberCount: 4,
     visibility: "private" as EventVisibility,
@@ -1267,7 +1250,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(7),
     startTime: "19:00",
     endTime: "20:30",
-    location: "Hauptplatz SfB",
+    location: "SC Brackel 06, Strobelallee 52, 44139 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["patrick_steuble", "thomas_mueller", "daniel_klein", "marco_bauer"] },
     resolvedMemberCount: 4,
     visibility: "private" as EventVisibility,
@@ -1283,11 +1266,11 @@ export const mockClubEvents: ClubEvent[] = [
   },
   {
     id: "evt_herren1_ligaspiel_d4",
-    title: "Ligaspiel SfB vs. TSV Steinbach",
+    title: "Ligaspiel BVB vs. TSV Steinbach",
     date: daysFromToday(4),
     startTime: "15:30",
     endTime: "17:30",
-    location: "Hauptplatz SfB",
+    location: "Sportplatz Kirchhörde, Kirchhörder Str. 100, 44229 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["patrick_steuble", "thomas_mueller", "daniel_klein", "marco_bauer"] },
     resolvedMemberCount: 22,
     visibility: "public" as EventVisibility,
@@ -1304,7 +1287,7 @@ export const mockClubEvents: ClubEvent[] = [
   },
   {
     id: "evt_herren1_auswaerts_d11",
-    title: "Auswärtsspiel – SV Lollar vs. SfB",
+    title: "Auswärtsspiel – SV Lollar vs. BVB",
     date: daysFromToday(11),
     startTime: "14:00",
     endTime: "16:00",
@@ -1331,7 +1314,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "07:00",
     endTime: "08:00",
-    location: "Fitnessraum SfB",
+    location: "FitX Dortmund, Westenhellweg 35, 44137 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["lena_schneider", "sarah_klein", "petra_weber"] },
     resolvedMemberCount: 3,
     visibility: "private" as EventVisibility,
@@ -1351,7 +1334,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(2),
     startTime: "07:00",
     endTime: "08:00",
-    location: "Fitnessraum SfB",
+    location: "FitX Dortmund, Westenhellweg 35, 44137 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["lena_schneider", "sarah_klein", "petra_weber"] },
     resolvedMemberCount: 3,
     visibility: "private" as EventVisibility,
@@ -1371,7 +1354,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(7),
     startTime: "07:00",
     endTime: "08:00",
-    location: "Fitnessraum SfB",
+    location: "FitX Dortmund, Westenhellweg 35, 44137 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["lena_schneider", "sarah_klein", "petra_weber"] },
     resolvedMemberCount: 3,
     visibility: "private" as EventVisibility,
@@ -1391,7 +1374,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(16),
     startTime: "07:00",
     endTime: "08:00",
-    location: "Fitnessraum SfB",
+    location: "FitX Dortmund, Westenhellweg 35, 44137 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["lena_schneider", "sarah_klein", "petra_weber"] },
     resolvedMemberCount: 3,
     visibility: "private" as EventVisibility,
@@ -1413,7 +1396,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "17:30",
     endTime: "19:00",
-    location: "Sporthalle SfB",
     audience: { mode: "manual" as AudienceMode, memberIds: ["flurina_schneider", "anna_berger", "coach_katja"] },
     resolvedMemberCount: 3,
     visibility: "private" as EventVisibility,
@@ -1435,7 +1417,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(2),
     startTime: "17:30",
     endTime: "19:00",
-    location: "Sporthalle SfB",
     audience: { mode: "manual" as AudienceMode, memberIds: ["flurina_schneider", "anna_berger", "coach_katja"] },
     resolvedMemberCount: 3,
     visibility: "private" as EventVisibility,
@@ -1457,7 +1438,6 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(7),
     startTime: "17:30",
     endTime: "19:00",
-    location: "Sporthalle SfB",
     audience: { mode: "manual" as AudienceMode, memberIds: ["flurina_schneider", "anna_berger", "coach_katja"] },
     resolvedMemberCount: 3,
     visibility: "private" as EventVisibility,
@@ -1475,11 +1455,11 @@ export const mockClubEvents: ClubEvent[] = [
   },
   {
     id: "evt_heimspiel_vb_u16",
-    title: "Heimspiel U16 – SfB vs. VfL Marburg",
+    title: "Heimspiel U16 – BVB vs. VfL Marburg",
     date: daysFromToday(5),
     startTime: "11:00",
     endTime: "13:00",
-    location: "Sporthalle SfB",
+    location: "Sporthalle Aplerbeck, Harkortstr. 8, 44287 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["flurina_schneider", "anna_berger", "coach_katja", "lea_vogel"] },
     resolvedMemberCount: 14,
     visibility: "public" as EventVisibility,
@@ -1524,7 +1504,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(0),
     startTime: "16:00",
     endTime: "17:30",
-    location: "Trainingsplatz A",
+    location: "Sportanlage Scharnhorst, Gleiwitzstr. 355, 44328 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["max_schneider", "coach_marco", "noah_hoffmann", "luca_bauer"] },
     resolvedMemberCount: 4,
     visibility: "private" as EventVisibility,
@@ -1544,7 +1524,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(3),
     startTime: "16:00",
     endTime: "17:30",
-    location: "Trainingsplatz A",
+    location: "Sportanlage Scharnhorst, Gleiwitzstr. 355, 44328 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["max_schneider", "coach_marco", "noah_hoffmann", "luca_bauer"] },
     resolvedMemberCount: 4,
     visibility: "private" as EventVisibility,
@@ -1564,7 +1544,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(7),
     startTime: "16:00",
     endTime: "17:30",
-    location: "Trainingsplatz A",
+    location: "Sportanlage Scharnhorst, Gleiwitzstr. 355, 44328 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["max_schneider", "coach_marco", "noah_hoffmann", "luca_bauer"] },
     resolvedMemberCount: 4,
     visibility: "private" as EventVisibility,
@@ -1580,11 +1560,11 @@ export const mockClubEvents: ClubEvent[] = [
   },
   {
     id: "evt_ligaspiel_u12_d5",
-    title: "Ligaspiel U12 – SfB vs. FC Lahntal",
+    title: "Ligaspiel U12 – BVB vs. FC Lahntal",
     date: daysFromToday(5),
     startTime: "10:30",
     endTime: "12:00",
-    location: "Nebenplatz SfB",
+    location: "Sportplatz Hostedde, Am Anger, 44309 Dortmund",
     audience: { mode: "manual" as AudienceMode, memberIds: ["max_schneider", "coach_marco", "noah_hoffmann", "luca_bauer"] },
     resolvedMemberCount: 14,
     visibility: "public" as EventVisibility,
@@ -1622,6 +1602,74 @@ export const mockClubEvents: ClubEvent[] = [
     tags: ["Turnier"],
   },
 
+  // ── Not-confirmed bookings (scheduling conflicts) ──
+  {
+    id: "evt_conflict_1",
+    title: "U15 Training",
+    date: daysFromToday(1),
+    startTime: "16:00",
+    endTime: "18:00",
+    audience: { mode: "departments" as AudienceMode, departmentIds: ["dept_football"] },
+    resolvedMemberCount: 18,
+    visibility: "internal" as EventVisibility,
+    rsvpRequired: false,
+    rsvpStats: { invited: 18, confirmed: 0, declined: 0, pending: 18, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 3 }, { status: "published", daysAgo: 2 }),
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Training",
+    fieldId: "field_hauptplatz",
+    bookingScope: "full_field" as const,
+    bookingStatus: "not_confirmed" as const,
+  },
+  {
+    id: "evt_conflict_2",
+    title: "U17 Testspiel",
+    date: daysFromToday(3),
+    startTime: "14:00",
+    endTime: "16:00",
+    audience: { mode: "departments" as AudienceMode, departmentIds: ["dept_football"] },
+    resolvedMemberCount: 24,
+    visibility: "public" as EventVisibility,
+    rsvpRequired: false,
+    rsvpStats: { invited: 24, confirmed: 0, declined: 0, pending: 24, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 4 }, { status: "published", daysAgo: 3 }),
+    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Spiel",
+    fieldId: "field_nebenplatz",
+    bookingScope: "full_field" as const,
+    bookingStatus: "not_confirmed" as const,
+  },
+  {
+    id: "evt_conflict_3",
+    title: "Damen Volleyball Training",
+    date: daysFromToday(0),
+    startTime: "18:30",
+    endTime: "20:00",
+    audience: { mode: "departments" as AudienceMode, departmentIds: ["dept_volleyball"] },
+    resolvedMemberCount: 14,
+    visibility: "internal" as EventVisibility,
+    rsvpRequired: false,
+    rsvpStats: { invited: 14, confirmed: 0, declined: 0, pending: 14, waitlist: 0 },
+    status: "published" as EventStatus,
+    statusHistory: createHistory({ status: "draft", daysAgo: 2 }, { status: "published", daysAgo: 1 }),
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    createdBy: ADMIN_USER.id,
+    createdByName: ADMIN_USER.name,
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "Training",
+    fieldId: "field_sporthalle",
+    bookingScope: "full_field" as const,
+    bookingStatus: "not_confirmed" as const,
+  },
+
   // ── All members ──
   {
     id: "evt_jhv_2026_next",
@@ -1629,7 +1677,7 @@ export const mockClubEvents: ClubEvent[] = [
     date: daysFromToday(15),
     startTime: "19:00",
     endTime: "21:00",
-    location: "Vereinsheim - Großer Saal",
+    location: "BVB Fan-Welt, Signal Iduna Park, Strobelallee 50, 44139 Dortmund",
     audience: { mode: "all" as AudienceMode },
     resolvedMemberCount: 394,
     visibility: "public" as EventVisibility,

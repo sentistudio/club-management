@@ -78,6 +78,7 @@ export interface ClubEvent {
   fieldId?: string;
   bookingScope?: "full_field" | "zones";
   bookedZoneIds?: string[]; // zone ids when bookingScope === "zones"
+  bookingStatus?: "confirmed" | "not_confirmed"; // set when fieldId is present; "not_confirmed" if conflict exists at save time
 
   // Optional
   category?: string;

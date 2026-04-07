@@ -2,7 +2,7 @@
  * FieldPicker – embedded in EventFormDrawer.
  * Shows:
  *  - Field dropdown (active fields only)
- *  - If field is divisible: scope toggle (full_field | zones) + ZoneGrid
+ *  - If field has zones: scope toggle (full_field | zones) + ZoneGrid
  *  - If event type is "match": full_field locked, no zone selection
  *  - Inline conflict warning
  */
@@ -13,11 +13,11 @@ import { ZoneGrid } from "./ZoneGrid";
 import { getActiveFields, checkConflict } from "../../data/mockFields";
 import { mockClubEvents } from "../../data/mockClubEvents";
 import type { BookingScope } from "../../types/fields";
-import { FIELD_TYPE_ICONS } from "../../types/fields";
+import { fieldIsDivisible, getFieldTypeIcon } from "../../types/fields";
 import { useLanguage } from "../../i18n";
 
 interface FieldPickerProps {
-  eventType?: string;   // "training" | "match" | "event" from the form
+  eventType?: string;
   fieldId: string;
   bookingScope: BookingScope;
   bookedZoneIds: string[];
@@ -47,6 +47,7 @@ export function FieldPicker({
   const fields = getActiveFields();
   const selectedField = fields.find(f => f.id === fieldId) ?? null;
   const isMatch = eventType === "match";
+  const hasDivisibleZones = selectedField ? fieldIsDivisible(selectedField) : false;
 
   // Conflict detection
   const conflicts = useMemo(() => {
@@ -65,7 +66,7 @@ export function FieldPicker({
 
   // Occupied zones (from other events on this field/day)
   const occupiedZones = useMemo(() => {
-    if (!selectedField?.isDivisibleInto6 || !date) return [];
+    if (!hasDivisibleZones || !selectedField || !date) return [];
     const dayEvents = mockClubEvents.filter(
       e => e.fieldId === fieldId && e.date === date && e.id !== excludeEventId
     );
@@ -78,7 +79,7 @@ export function FieldPicker({
       }
     }
     return result;
-  }, [fieldId, date, excludeEventId, selectedField]);
+  }, [fieldId, date, excludeEventId, selectedField, hasDivisibleZones]);
 
   return (
     <div className="space-y-3">
@@ -98,8 +99,8 @@ export function FieldPicker({
             <option value="">{t("fields.noFieldOption")}</option>
             {fields.map(f => (
               <option key={f.id} value={f.id}>
-                {FIELD_TYPE_ICONS[f.type]} {f.name}
-                {f.isDivisibleInto6 ? ` ${t("fields.zonesCount6Suffix")}` : ""}
+                {getFieldTypeIcon(f)} {f.name}
+                {f.zoneCount ? ` (${f.zoneCount} zones)` : ""}
                 {f.indoorOutdoor === "indoor" ? ` · ${t("fields.halleSuffix")}` : ""}
               </option>
             ))}
@@ -118,7 +119,7 @@ export function FieldPicker({
       </div>
 
       {/* Scope + Zone selection (only for divisible fields and non-match events) */}
-      {selectedField?.isDivisibleInto6 && !isMatch && (
+      {hasDivisibleZones && !isMatch && (
         <div className="space-y-2">
           {/* Scope toggle */}
           <div className="flex gap-1 bg-neutral-100 rounded-lg p-0.5 w-fit">
@@ -148,11 +149,9 @@ export function FieldPicker({
           </div>
 
           {/* Zone grid */}
-          {bookingScope === "zones" && (
+          {bookingScope === "zones" && selectedField && (
             <div>
-              <p className="text-xs text-neutral-500 mb-1.5">
-                {t("fields.zonesHint")}
-              </p>
+              <p className="text-xs text-neutral-500 mb-1.5">{t("fields.zonesHint")}</p>
               <ZoneGrid
                 zones={selectedField.zones}
                 selectedZones={bookedZoneIds}
@@ -165,8 +164,8 @@ export function FieldPicker({
             </div>
           )}
 
-          {/* Full field mode: show zone grid as fully selected */}
-          {bookingScope === "full_field" && (
+          {/* Full field mode: show zone grid fully highlighted */}
+          {bookingScope === "full_field" && selectedField && (
             <ZoneGrid
               zones={selectedField.zones}
               occupiedZones={occupiedZones}
@@ -178,20 +177,22 @@ export function FieldPicker({
         </div>
       )}
 
-      {/* Match: always full field, show info */}
+      {/* Match: always full field */}
       {selectedField && isMatch && (
         <p className="text-xs text-neutral-500 bg-neutral-50 px-3 py-2 rounded-lg border border-neutral-200">
           {t("fields.matchFullFieldInfo")}
         </p>
       )}
 
-      {/* Conflict warning */}
+      {/* Conflict warning – non-blocking, booking saved as "not confirmed" */}
       {conflicts.length > 0 && (
-        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
-          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+          <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-red-700">{t("fields.conflictHeader")}</p>
-            <ul className="text-xs text-red-600 mt-0.5 space-y-0.5">
+            <p className="text-sm font-medium text-amber-800">
+              {lang === "de" ? "Konflikt – Buchung wird als nicht bestätigt gespeichert" : "Conflict – booking will be saved as not confirmed"}
+            </p>
+            <ul className="text-xs text-amber-700 mt-0.5 space-y-0.5">
               {conflicts.map(c => (
                 <li key={c.id}>
                   „{c.title}" – {c.startTime}–{c.endTime}{lang === "de" ? " Uhr" : ""}

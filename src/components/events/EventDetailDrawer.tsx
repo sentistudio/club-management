@@ -3,10 +3,10 @@
 // View full event details with actions
 
 import { useState } from "react";
-import { 
-  X, Calendar, Clock, MapPin, Users, 
+import {
+  X, Calendar, Clock, MapPin, Users,
   Edit2, Copy, Send, XCircle, RefreshCw, History,
-  Check, AlertCircle, Building2
+  Check, AlertCircle, AlertTriangle, CheckCircle2, Building2
 } from "lucide-react";
 import type { ClubEvent } from "../../types/events";
 import {
@@ -15,7 +15,8 @@ import {
   getDepartmentById,
   getGroupById
 } from "../../data/mockClubEvents";
-import { getFieldById } from "../../data/mockFields";
+import { getFieldById, getVenueById } from "../../data/mockFields";
+import { fieldIsDivisible } from "../../types/fields";
 import { ZoneGrid } from "../fields/ZoneGrid";
 import { 
   getStatusLabel, 
@@ -50,6 +51,11 @@ export function EventDetailDrawer({
   const statusColors = getStatusColor(event.status);
   const audience = resolveEventAudience(event);
   const field = event.fieldId ? getFieldById(event.fieldId) : null;
+  const venue = field ? getVenueById(field.venueId) : null;
+
+  const bookedZones = field && event.bookingScope === "zones" && event.bookedZoneIds?.length
+    ? field.zones.filter(z => event.bookedZoneIds!.includes(z.id))
+    : [];
 
   const handleCancel = () => {
     onCancel(event, cancelReason);
@@ -167,35 +173,73 @@ export function EventDetailDrawer({
                 </div>
               </div>
 
-              {/* Location */}
-              {event.location && (
+              {/* Location / Field – unified */}
+              {(event.location || field) && (
                 <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl">
-                  <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-slate-500">Ort</p>
-                    <p className="font-medium text-slate-800">{event.location}</p>
-                  </div>
-                </div>
-              )}
+                  <MapPin className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    {field ? (
+                      <>
+                        {/* Booking status badge */}
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Spielstätte</p>
+                          {event.bookingStatus === "not_confirmed" ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                              <AlertTriangle className="w-2.5 h-2.5" />
+                              Nicht bestätigt
+                            </span>
+                          ) : event.bookingStatus === "confirmed" ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                              <CheckCircle2 className="w-2.5 h-2.5" />
+                              Bestätigt
+                            </span>
+                          ) : null}
+                        </div>
 
-              {/* Field Booking */}
-              {field && (
-                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl">
-                  <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm text-slate-500">Feld</p>
-                    <p className="font-medium text-slate-800 mb-2">{field.name}</p>
-                    {field.isDivisibleInto6 && (
-                      <ZoneGrid
-                        zones={field.zones}
-                        ownZones={event.bookingScope === "zones" ? (event.bookedZoneIds ?? []) : []}
-                        fullField={event.bookingScope === "full_field"}
-                        readOnly
-                        compact
-                      />
-                    )}
-                    {!field.isDivisibleInto6 && (
-                      <p className="text-xs text-slate-500">Ganzes Feld</p>
+                        {/* Venue → Address → Field → Zone breadcrumb */}
+                        <div className="space-y-1">
+                          {/* Venue */}
+                          {venue && (
+                            <p className="font-semibold text-slate-800">{venue.name}</p>
+                          )}
+                          {/* Address */}
+                          {(venue?.address || field.address) && (
+                            <p className="text-xs text-slate-400">{venue?.address ?? field.address}</p>
+                          )}
+                          {/* Field */}
+                          <div className="flex items-center gap-1.5 mt-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                            <p className="text-sm font-medium text-slate-700">{field.name}</p>
+                          </div>
+                          {/* Zone info */}
+                          {event.bookingScope === "zones" && bookedZones.length > 0 && (
+                            <p className="text-xs text-slate-500 pl-5">
+                              {bookedZones.map(z => z.name).join(", ")}
+                            </p>
+                          )}
+                          {event.bookingScope === "full_field" && (
+                            <p className="text-xs text-slate-400 pl-5">Ganzes Feld</p>
+                          )}
+                        </div>
+
+                        {/* Zone grid visualization */}
+                        {fieldIsDivisible(field) && (
+                          <div className="mt-3">
+                            <ZoneGrid
+                              zones={field.zones}
+                              ownZones={event.bookingScope === "zones" ? (event.bookedZoneIds ?? []) : []}
+                              fullField={event.bookingScope === "full_field"}
+                              readOnly
+                              compact
+                            />
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Ort</p>
+                        <p className="font-medium text-slate-800">{event.location}</p>
+                      </>
                     )}
                   </div>
                 </div>

@@ -14,6 +14,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   MapPin,
   AlertCircle,
   AlertTriangle,
@@ -23,6 +24,7 @@ import {
   XCircle,
   Wrench,
   CalendarDays,
+  List,
 } from "lucide-react";
 import { ZoneGrid } from "../components/fields/ZoneGrid";
 import { FieldFormDrawer } from "../components/fields/FieldFormDrawer";
@@ -168,6 +170,22 @@ export function FieldBooking() {
   const today = new Date().toISOString().split("T")[0];
 
   const [filterListUnconfirmed, setFilterListUnconfirmed] = useState(false);
+
+  // Venue accordion – collapse state for both tabs
+  // Default: collapse imported DFB venues, keep manual ones open
+  const [collapsedVenues, setCollapsedVenues] = useState<Set<string>>(
+    () => new Set(mockVenues.filter(v => v.sourceType === "imported").map(v => v.id))
+  );
+  const toggleVenueCollapse = (venueId: string) =>
+    setCollapsedVenues(prev => {
+      const next = new Set(prev);
+      next.has(venueId) ? next.delete(venueId) : next.add(venueId);
+      return next;
+    });
+  const allVenueIds = mockVenues.map(v => v.id);
+  const allCollapsed = allVenueIds.every(id => collapsedVenues.has(id));
+  const toggleAllVenues = () =>
+    setCollapsedVenues(allCollapsed ? new Set() : new Set(allVenueIds));
 
   // Base event list: selected day's events OR next 10 upcoming
   const listEvents = useMemo(() => {
@@ -540,6 +558,17 @@ export function FieldBooking() {
                 {lang === "de" ? "Zurücksetzen" : "Clear"}
               </button>
             )}
+            <div className="ml-auto">
+              <button
+                onClick={toggleAllVenues}
+                className="flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-700 px-2 py-1 rounded hover:bg-neutral-100 transition-colors"
+              >
+                <List className="w-3.5 h-3.5" />
+                {allCollapsed
+                  ? (lang === "de" ? "Alle aufklappen" : "Expand all")
+                  : (lang === "de" ? "Alle einklappen" : "Collapse all")}
+              </button>
+            </div>
           </div>
 
           {/* Main layout: timetable + optional unassigned sidebar */}
@@ -586,22 +615,39 @@ export function FieldBooking() {
                 )}
 
                 {/* Venue-grouped field rows */}
-                {groupedBookings.map(({ venue, rows }) => (
+                {groupedBookings.map(({ venue, rows }) => {
+                  const isVenueCollapsed = collapsedVenues.has(venue.id);
+                  const venueBookingCount = rows.reduce((n, r) => n + r.bookings.length, 0);
+                  return (
                   <div key={venue.id}>
-                    {/* Venue header row */}
-                    <div className="flex items-center bg-neutral-50/80 border-b border-neutral-200">
+                    {/* Venue header row – clickable accordion */}
+                    <button
+                      onClick={() => toggleVenueCollapse(venue.id)}
+                      className="w-full flex items-center bg-neutral-50 border-b border-neutral-200 hover:bg-neutral-100/80 transition-colors group"
+                    >
                       <div
-                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5"
+                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2"
                         style={{ width: colWidth }}
                       >
+                        <ChevronDown className={`w-3.5 h-3.5 text-neutral-400 flex-shrink-0 transition-transform ${isVenueCollapsed ? "-rotate-90" : ""}`} />
                         <MapPin className="w-3 h-3 text-neutral-400 flex-shrink-0" />
-                        <span className="text-[11px] font-semibold text-neutral-600 truncate">{venue.name}</span>
+                        <span className="text-[11px] font-semibold text-neutral-700 truncate">{venue.name}</span>
+                        {venue.sourceType === "imported" && (
+                          <span className="text-[9px] px-1 py-0.5 rounded bg-amber-100 text-amber-600 font-medium flex-shrink-0">DFB</span>
+                        )}
                       </div>
-                      <div className="flex-1 border-l border-neutral-200" />
-                    </div>
+                      <div className="flex-1 border-l border-neutral-200 flex items-center px-3 gap-2">
+                        {isVenueCollapsed && (
+                          <span className="text-[10px] text-neutral-400">
+                            {rows.length} {lang === "de" ? "Felder" : "fields"}
+                            {venueBookingCount > 0 && ` · ${venueBookingCount} ${lang === "de" ? "Buchungen" : "bookings"}`}
+                          </span>
+                        )}
+                      </div>
+                    </button>
 
-                    {/* Field rows */}
-                    {rows.map(({ field, bookings, maintenance }) => {
+                    {/* Field rows – hidden when venue collapsed */}
+                    {!isVenueCollapsed && rows.map(({ field, bookings, maintenance }) => {
                       const isExpanded = expandedFields.includes(field.id);
                       const hasBookings = bookings.length > 0 || maintenance.length > 0;
                       const dayHours = field.isActive ? field.openingHours?.[selectedWeekdayKey] : undefined;
@@ -750,7 +796,8 @@ export function FieldBooking() {
                       );
                     })}
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Legend */}
@@ -830,7 +877,11 @@ export function FieldBooking() {
               <div className="divide-y divide-neutral-100">
                 {displayEvents.map(evt => {
                   const color = EVENT_COLORS[evt.category === "Training" ? "training" : evt.category === "Spiel" ? "match" : "event"] ?? EVENT_COLORS.event;
-                  const fieldName = fields.find(f => f.id === evt.fieldId)?.name;
+                  const evtField = fields.find(f => f.id === evt.fieldId);
+                  const evtVenue = evtField ? mockVenues.find(v => v.id === evtField.venueId) : null;
+                  const locationLabel = evtField
+                    ? [evtVenue?.name, evtField.name].filter(Boolean).join(" · ")
+                    : evt.location || null;
                   const isUnassigned = !evt.fieldId;
                   const isNotConfirmed = !!evt.fieldId && getEffectiveBookingStatus(evt) === "not_confirmed";
 
@@ -921,7 +972,7 @@ export function FieldBooking() {
                         <p className="text-xs font-medium text-neutral-900 truncate">{evt.title}</p>
                         <p className="text-[10px] text-neutral-500 truncate">
                           {evt.startTime}–{evt.endTime}
-                          {fieldName ? ` · ${fieldName}` : evt.location ? ` · ${evt.location}` : ""}
+                          {locationLabel ? ` · ${locationLabel}` : ""}
                         </p>
                         {isUnassigned && (
                           <FieldStatusChip label={lang === "de" ? "Keine Ressource" : "No resource"} color="violet" />
@@ -945,109 +996,106 @@ export function FieldBooking() {
 
       {/* ── FELDER TAB ──────────────────────────────────────────────────── */}
       {tab === "felder" && (
-        <div className="space-y-6">
-          {mockVenues.map(venue => {
+        <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
+          {mockVenues.map((venue, venueIdx) => {
             const venueFields = fields.filter(f => f.venueId === venue.id);
             if (venueFields.length === 0) return null;
+            const isCollapsed = collapsedVenues.has(venue.id);
+            const activeCount = venueFields.filter(f => f.isActive).length;
             return (
-              <div key={venue.id}>
-                <div className="flex items-center gap-2 mb-3">
-                  <MapPin className="w-4 h-4 text-neutral-400" />
-                  <h3 className="text-sm font-semibold text-neutral-600 uppercase tracking-wide">{venue.name}</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {venueFields.map(field => {
-            const hasFuture = fieldHasFutureBookings(events, field.id);
-            return (
-              <div
-                key={field.id}
-                className={`bg-white rounded-xl border ${field.isActive ? "border-neutral-200" : "border-neutral-100 opacity-60"} p-5 flex flex-col gap-4 hover:shadow-sm transition-shadow cursor-pointer`}
-                onClick={() => setDetailField(field)}
-              >
-                {/* Top row */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0">
-                      <img src={getFieldTypeImage(field)} alt="" className="w-full h-full object-cover" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-neutral-900">{field.name}</p>
-                      <p className="text-sm text-neutral-500">{getFieldTypeLabel(field)}</p>
-                    </div>
+              <div key={venue.id} className={venueIdx > 0 ? "border-t border-neutral-200" : ""}>
+                {/* Venue accordion header */}
+                <button
+                  onClick={() => toggleVenueCollapse(venue.id)}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-neutral-50 hover:bg-neutral-100/80 transition-colors text-left group"
+                >
+                  <ChevronDown className={`w-4 h-4 text-neutral-400 flex-shrink-0 transition-transform ${isCollapsed ? "-rotate-90" : ""}`} />
+                  <MapPin className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
+                  <span className="text-sm font-semibold text-neutral-800 flex-1 truncate">{venue.name}</span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {venue.sourceType === "imported" && venue.externalSource === "dfb" && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">DFB</span>
+                    )}
+                    <span className="text-[10px] text-neutral-400">{activeCount}/{venueFields.length} {lang === "de" ? "aktiv" : "active"}</span>
                   </div>
-                  <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                    <button
-                      onClick={() => setFormField(field)}
-                      className="p-2 hover:bg-neutral-100 rounded-lg transition-colors text-neutral-400 hover:text-neutral-700"
-                      title={t("common.edit")}
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(field)}
-                      className="p-2 hover:bg-red-50 rounded-lg transition-colors text-neutral-400 hover:text-red-600"
-                      title={t("common.delete")}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                </button>
+
+                {/* Field list rows */}
+                {!isCollapsed && (
+                  <div className="divide-y divide-neutral-100">
+                    {venueFields.map(field => {
+                      const hasFuture = fieldHasFutureBookings(events, field.id);
+                      const todayBookings = getBookingsForField(events, field.id, TODAY);
+                      return (
+                        <div
+                          key={field.id}
+                          className={`flex items-center gap-3 px-4 py-2.5 hover:bg-neutral-50 transition-colors cursor-pointer ${!field.isActive ? "opacity-50" : ""}`}
+                          onClick={() => setDetailField(field)}
+                        >
+                          {/* Type image */}
+                          <img src={getFieldTypeImage(field)} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+
+                          {/* Name + type */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-neutral-900 truncate">{field.name}</p>
+                            <p className="text-xs text-neutral-400">{getFieldTypeLabel(field)}</p>
+                          </div>
+
+                          {/* Badges */}
+                          <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
+                            {fieldIsDivisible(field) && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                                {field.zoneCount} {lang === "de" ? "Zonen" : "zones"}
+                              </span>
+                            )}
+                            {field.sourceType === "imported" && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                                {t("fields.imported")}
+                              </span>
+                            )}
+                            {!field.isActive && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-500 font-medium">
+                                {t("fields.inactive")}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Booking status */}
+                          <div className="hidden md:block flex-shrink-0 w-28 text-right">
+                            {hasFuture ? (
+                              <span className="text-[10px] text-teal-600 flex items-center gap-1 justify-end">
+                                <CheckCircle className="w-3 h-3" />
+                                {lang === "de" ? "Buchungen" : "Bookings"}
+                              </span>
+                            ) : todayBookings.length > 0 ? (
+                              <span className="text-[10px] text-blue-600">{lang === "de" ? "Heute belegt" : "Booked today"}</span>
+                            ) : (
+                              <span className="text-[10px] text-neutral-300">{t("fields.noFutureBookings")}</span>
+                            )}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-0.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                            <button
+                              onClick={() => setFormField(field)}
+                              className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors text-neutral-400 hover:text-neutral-700"
+                              title={t("common.edit")}
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget(field)}
+                              className="p-1.5 hover:bg-red-50 rounded-lg transition-colors text-neutral-400 hover:text-red-600"
+                              title={t("common.delete")}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
-
-                {/* Badges */}
-                <div className="flex flex-wrap gap-1.5">
-                  {fieldIsDivisible(field) && (
-                    <FieldStatusChip label={`${field.zoneCount} ${t("fields.zonesCount")}`} color="blue" />
-                  )}
-                  {!field.isActive && (
-                    <FieldStatusChip label={t("fields.inactive")} color="neutral" />
-                  )}
-                  {field.sourceType === "imported" && (
-                    <FieldStatusChip label={t("fields.imported")} color="amber" />
-                  )}
-                </div>
-
-                {/* Zone grid preview */}
-                {fieldIsDivisible(field) && (
-                  <ZoneGrid
-                    zones={field.zones}
-                    occupiedZones={getBookingsForField(events, field.id, TODAY)
-                      .flatMap(e =>
-                        e.bookingScope === "full_field"
-                          ? field.zones.map(z => ({ zoneId: z.id, label: e.title }))
-                          : (e.bookedZoneIds ?? []).map(zId => ({ zoneId: zId, label: e.title }))
-                      )}
-                    readOnly
-                    compact
-                  />
                 )}
-
-                {/* Description */}
-                {field.description && (
-                  <p className="text-xs text-neutral-500 line-clamp-2">{field.description}</p>
-                )}
-
-                {/* Address */}
-                {field.address && (
-                  <div className="flex items-center gap-1.5 text-xs text-neutral-400">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {field.address}
-                  </div>
-                )}
-
-                {/* Future bookings indicator */}
-                <div className="flex items-center gap-1.5 text-xs">
-                  {hasFuture ? (
-                    <span className="text-teal-600 flex items-center gap-1">
-                      <CheckCircle className="w-3.5 h-3.5" /> {t("fields.futureBookings")}
-                    </span>
-                  ) : (
-                    <span className="text-neutral-400">{t("fields.noFutureBookings")}</span>
-                  )}
-                </div>
-                  </div>
-                );
-              })}
-                </div>
               </div>
             );
           })}

@@ -1,21 +1,16 @@
 /**
- * ZoneGrid – 2×3 visual grid for 6-zone field display.
+ * ZoneGrid – dynamic visual grid for zone display.
+ * Supports 2, 4, 6, 8 (or any count) zones.
  *
- * Layout:
- *  ┌──────┬──────┬──────┐
- *  │  1   │  2   │  3   │
- *  ├──────┼──────┼──────┤
- *  │  4   │  5   │  6   │
- *  └──────┴──────┴──────┘
+ * Layout logic:
+ *  ≤2 zones → 1 row × N cols
+ *  >2 zones → 2 rows, split at midpoint
  *
- * Props:
- *  zones          – all zone objects for this field
- *  selectedZones  – zone ids currently selected (edit mode)
- *  occupiedZones  – zone ids occupied by OTHER events (shown in amber)
- *  ownZones       – zone ids occupied by THIS event (shown in teal, read-only context)
- *  fullField      – if true, highlight all zones uniformly (full-field mode)
- *  readOnly       – disables interaction
- *  onChange       – callback(newSelectedIds)
+ * Examples:
+ *  2 zones → 1×2:  [1][2]
+ *  4 zones → 2×2:  [1][2] / [3][4]
+ *  6 zones → 2×3:  [1][2][3] / [4][5][6]
+ *  8 zones → 2×4:  [1][2][3][4] / [5][6][7][8]
  */
 
 import type { FieldZone } from "../../types/fields";
@@ -23,10 +18,10 @@ import { useLanguage } from "../../i18n";
 
 interface ZoneGridProps {
   zones: FieldZone[];
-  selectedZones?: string[];   // controlled selection
-  occupiedZones?: { zoneId: string; label: string }[]; // other bookings
-  ownZones?: string[];        // this event's booked zones (read-only highlight)
-  fullField?: boolean;        // full-field highlight
+  selectedZones?: string[];
+  occupiedZones?: { zoneId: string; label: string }[];
+  ownZones?: string[];
+  fullField?: boolean;
   readOnly?: boolean;
   onChange?: (selectedIds: string[]) => void;
   compact?: boolean;
@@ -47,16 +42,24 @@ export function ZoneGrid({
 
   const toggle = (zoneId: string) => {
     if (readOnly) return;
-    const occupied = occupiedMap.has(zoneId);
-    if (occupied) return; // cannot select an occupied zone
+    if (occupiedMap.has(zoneId)) return;
     const next = selectedZones.includes(zoneId)
       ? selectedZones.filter(id => id !== zoneId)
       : [...selectedZones, zoneId];
     onChange?.(next);
   };
 
-  const row1 = zones.filter(z => z.zoneNumber <= 3).sort((a, b) => a.zoneNumber - b.zoneNumber);
-  const row2 = zones.filter(z => z.zoneNumber > 3).sort((a, b) => a.zoneNumber - b.zoneNumber);
+  // Sort zones by zoneNumber
+  const sorted = [...zones].sort((a, b) => a.zoneNumber - b.zoneNumber);
+
+  // Split into rows: 1 row if ≤2 zones, else 2 rows
+  let rows: FieldZone[][];
+  if (sorted.length <= 2) {
+    rows = [sorted];
+  } else {
+    const mid = Math.ceil(sorted.length / 2);
+    rows = [sorted.slice(0, mid), sorted.slice(mid)];
+  }
 
   const cellH = compact ? "h-8" : "h-12";
 
@@ -65,27 +68,21 @@ export function ZoneGrid({
     const isOccupied = occupiedMap.has(id);
     const isOwn = ownZones.includes(id);
     const isSelected = selectedZones.includes(id);
-    const isFullField = fullField;
 
-    if (isOccupied) {
-      return "bg-amber-100 border-amber-300 text-amber-700 cursor-not-allowed";
-    }
-    if (isOwn || isFullField) {
-      return "bg-teal-100 border-teal-400 text-teal-700";
-    }
-    if (isSelected) {
-      return "bg-teal-500 border-teal-600 text-white";
-    }
-    if (readOnly) {
-      return "bg-neutral-50 border-neutral-200 text-neutral-400";
-    }
+    if (isOccupied) return "bg-amber-100 border-amber-300 text-amber-700 cursor-not-allowed";
+    if (isOwn || fullField) return "bg-teal-100 border-teal-400 text-teal-700";
+    if (isSelected) return "bg-teal-500 border-teal-600 text-white";
+    if (readOnly) return "bg-neutral-50 border-neutral-200 text-neutral-400";
     return "bg-white border-neutral-300 text-neutral-600 hover:bg-teal-50 hover:border-teal-300 cursor-pointer";
   };
 
   return (
     <div className="rounded-lg overflow-hidden border border-neutral-200">
-      {[row1, row2].map((row, rowIdx) => (
-        <div key={rowIdx} className={`flex ${rowIdx === 0 ? "border-b border-neutral-200" : ""}`}>
+      {rows.map((row, rowIdx) => (
+        <div
+          key={rowIdx}
+          className={`flex ${rowIdx < rows.length - 1 ? "border-b border-neutral-200" : ""}`}
+        >
           {row.map((zone, colIdx) => {
             const occupiedBy = occupiedMap.get(zone.id);
             return (
