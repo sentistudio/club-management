@@ -695,7 +695,7 @@ export function FieldBooking() {
                                         <div className="absolute top-0 bottom-0 bg-neutral-200/50 z-0" style={{ left: "0%", width: `${timeToPercent(openFrom)}%` }} />
                                       )}
                                       <div
-                                        className="absolute top-0 bottom-0 bg-teal-50/60 border-l border-r border-teal-200/60 z-0"
+                                        className="absolute top-0 bottom-0 bg-white z-0"
                                         style={{ left: `${timeToPercent(openFrom)}%`, width: `${timeToPercent(openTo) - timeToPercent(openFrom)}%` }}
                                       />
                                       {timeToPercent(openTo) < 100 && (
@@ -806,7 +806,7 @@ export function FieldBooking() {
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-violet-200 border border-violet-300" /> {t("fields.event")}</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-400" /> {t("fields.maintenance")}</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-100 border border-blue-300 ring-1 ring-amber-400" /><AlertTriangle className="w-2.5 h-2.5 text-amber-500" /> {lang === "de" ? "Nicht bestätigt" : "Not confirmed"}</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-teal-50 border border-teal-200" /> {t("fields.openingHours")}</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-white border border-neutral-300" /> {t("fields.openingHours")}</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-neutral-200" /> {t("fields.closed")}</span>
               </div>
             </div>
