@@ -36,6 +36,10 @@ import { useRole } from "../../contexts";
 import { mockChats, mockChatMessages, type Chat, type ChatMessage } from "../../data/mockChats";
 import { mockClubEvents } from "../../data/mockClubEvents";
 import { mockTickets } from "../../data/mockInbox";
+import { mockTeams } from "../../data/mockTeams";
+import { getRosterByTeam } from "../../data/mockTeamRoster";
+import { getTeamEventsByTeam, type TeamEvent } from "../../data/mockTeamEvents";
+import { CURRENT_SEASON_ID } from "../../data/mockSeasons";
 import { getFieldById } from "../../data/mockFields";
 import { fieldIsDivisible } from "../../types/fields";
 import { ZoneGrid } from "../../components/fields/ZoneGrid";
@@ -488,6 +492,49 @@ const getClubEventsForPersons = (resolvedIds: string[]): EnhancedEvent[] => {
     }));
 };
 
+/** Converts a TeamEvent to EnhancedEvent, personalising RSVP status for the given person */
+function teamEventToEnhanced(evt: TeamEvent, teamName: string, rosterId: string): EnhancedEvent {
+  const myEntry = evt.attendanceList.find(a => a.personId === rosterId);
+  const rsvpStatus = myEntry?.status === "confirmed" ? "confirmed"
+    : myEntry?.status === "declined" ? "declined"
+    : "pending";
+  return {
+    id: evt.id,
+    title: evt.title,
+    description: evt.description,
+    date: evt.date,
+    startTime: evt.startTime,
+    endTime: evt.endTime,
+    location: evt.location,
+    type: evt.type === "general" ? "event" : evt.type,
+    scope: "team",
+    team: teamName,
+    rsvp: {
+      status: rsvpStatus,
+      required: true,
+      confirmed: evt.attendanceList.filter(a => a.status === "confirmed").length,
+      maybe: 0,
+      declined: evt.attendanceList.filter(a => a.status === "declined").length,
+      pending: evt.attendanceList.filter(a => a.status === "pending").length,
+      total: evt.attendanceList.length,
+    },
+  };
+}
+
+/** Returns real team events for a portal person ID, mapped via PERSONA_MEMBER_IDS */
+function getTeamEventsForPortalPerson(portalId: string): EnhancedEvent[] {
+  const rosterId = PERSONA_MEMBER_IDS[portalId] ?? portalId;
+  const result: EnhancedEvent[] = [];
+  for (const team of mockTeams) {
+    const roster = getRosterByTeam(team.id, CURRENT_SEASON_ID);
+    if (roster.some(r => r.personId === rosterId)) {
+      getTeamEventsByTeam(team.id, CURRENT_SEASON_ID)
+        .forEach(evt => result.push(teamEventToEnhanced(evt, team.name, rosterId)));
+    }
+  }
+  return result;
+}
+
 // Helper to get user memberships
 const getUserMemberships = (userId: string) => {
   if (userId === "lena_schneider") {
@@ -548,7 +595,8 @@ export function MemberHome() {
     const todayStr = new Date().toISOString().slice(0, 10);
     const seen = new Set<string>();
     const clubEvts = getClubEventsForPersons(resolvedIds);
-    return [...resolvedIds.flatMap(id => getUserEvents(id)), ...clubEvts]
+    const teamEvts = resolvedIds.flatMap(id => getTeamEventsForPortalPerson(id));
+    return [...resolvedIds.flatMap(id => getUserEvents(id)), ...clubEvts, ...teamEvts]
       .filter(e => {
         if (seen.has(e.id)) return false;
         seen.add(e.id);
@@ -817,7 +865,8 @@ export function MemberCalendar() {
   const allEvents = useMemo(() => {
     const seen = new Set<string>();
     const clubEvts = getClubEventsForPersons(resolvedIds);
-    return [...resolvedIds.flatMap(id => getUserEvents(id)), ...clubEvts]
+    const teamEvts = resolvedIds.flatMap(id => getTeamEventsForPortalPerson(id));
+    return [...resolvedIds.flatMap(id => getUserEvents(id)), ...clubEvts, ...teamEvts]
       .filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; });
   }, [resolvedIds.join(",")]);
 

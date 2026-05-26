@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-export type UserRole = "admin" | "member";
+export type UserRole = "admin" | "coach" | "member";
 
 export interface LinkedChild {
   id: string;
@@ -19,6 +19,8 @@ export interface User {
   roles: UserRole[];
   linkedChildren?: LinkedChild[];
   team?: string; // User's own team/club role
+  // For coach role: which teams they manage
+  coachTeamIds?: string[];
 }
 
 interface RoleContextType {
@@ -49,6 +51,16 @@ const DEMO_USERS: User[] = [
     team: "1. Herren"
   },
   {
+    id: "thomas_mueller",
+    firstName: "Thomas",
+    lastName: "Müller",
+    email: "thomas.mueller@sfb.de",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
+    roles: ["coach", "member"],
+    team: "1. Herren",
+    coachTeamIds: ["team1", "team_u12"]
+  },
+  {
     id: "lena_schneider",
     firstName: "Lena",
     lastName: "Schneider",
@@ -70,7 +82,6 @@ const DEMO_USERS: User[] = [
         avatar: "https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=50&h=50&fit=crop&crop=face"
       }
     ]
-    // Member with linked children (Flurina + Max)
   }
 ];
 
@@ -195,18 +206,22 @@ export function RoleRouteSync() {
   const location = useLocation();
 
   useEffect(() => {
-    // Auto-set role based on current route (only if user has that role)
-    // Check for exact /member or /member/* paths (not /members which is admin route)
     const isMemberPortal = location.pathname === "/member" || location.pathname.startsWith("/member/");
-    
+    const isTeamSection = location.pathname.startsWith("/teams/");
+
     if (isMemberPortal) {
       if (user.roles.includes("member")) {
         setActiveRole("member");
       }
-    } else {
-      if (user.roles.includes("admin")) {
-        setActiveRole("admin");
-      }
+    } else if (isTeamSection && user.roles.includes("coach") && !user.roles.includes("admin")) {
+      setActiveRole("coach");
+    } else if (!isMemberPortal) {
+      const adminOrCoach = user.roles.includes("admin")
+        ? "admin"
+        : user.roles.includes("coach")
+        ? "coach"
+        : null;
+      if (adminOrCoach) setActiveRole(adminOrCoach);
     }
   }, [location.pathname, setActiveRole, user.roles]);
 
@@ -234,14 +249,19 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
   // Check if we're in the member portal (not /members which is admin route)
   const isInMemberPortal = location.pathname === "/member" || location.pathname.startsWith("/member/");
 
-  const roleConfig = {
-    admin: { 
-      label: "Administrator", 
+  const roleConfig: Record<UserRole, { label: string; icon: string; description: string }> = {
+    admin: {
+      label: "Administrator",
       icon: "🛡️",
       description: "Vereinsverwaltung & alle Funktionen"
     },
-    member: { 
-      label: "Mitglied", 
+    coach: {
+      label: "Trainer",
+      icon: "⚽",
+      description: "Mannschaftsverwaltung & Training"
+    },
+    member: {
+      label: "Mitglied",
       icon: "👤",
       description: "Persönliche Termine & Nachrichten"
     }
@@ -250,12 +270,14 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
   const handleRoleSwitch = (role: UserRole) => {
     setActiveRole(role);
     setIsOpen(false);
-    
-    // Navigate based on role selection
+
     if (role === "member" && !isInMemberPortal) {
       navigate("/member");
     } else if (role === "admin" && isInMemberPortal) {
       navigate("/dashboard");
+    } else if (role === "coach" && isInMemberPortal) {
+      const firstTeam = user.coachTeamIds?.[0];
+      navigate(firstTeam ? `/teams/${firstTeam}/dashboard` : "/teams");
     }
   };
 
@@ -351,10 +373,12 @@ export function UserSwitcher({ onClose }: { onClose?: () => void }) {
     switchUser(userId);
     setShowUserList(false);
     
-    // Navigate based on new user's roles
     if (newUser) {
       if (newUser.roles.includes("admin")) {
         navigate("/dashboard");
+      } else if (newUser.roles.includes("coach")) {
+        const firstTeam = newUser.coachTeamIds?.[0];
+        navigate(firstTeam ? `/teams/${firstTeam}/dashboard` : "/teams");
       } else {
         navigate("/member");
       }
@@ -385,7 +409,11 @@ export function UserSwitcher({ onClose }: { onClose?: () => void }) {
             {user.firstName} {user.lastName}
           </p>
           <p className="text-xs text-neutral-500">
-            {user.roles.includes("admin") ? "Administrator" : "Mitglied"}
+            {user.roles.includes("admin")
+              ? "Administrator"
+              : user.roles.includes("coach")
+              ? "Trainer"
+              : "Mitglied"}
           </p>
         </div>
         <svg className={`w-4 h-4 text-neutral-400 transition-transform ${showUserList ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -427,6 +455,8 @@ export function UserSwitcher({ onClose }: { onClose?: () => void }) {
                         ? "Admin & Mitglied"
                         : u.roles.includes("admin")
                         ? "Administrator"
+                        : u.roles.includes("coach")
+                        ? "Trainer"
                         : "Mitglied"
                       }
                     </p>

@@ -34,6 +34,7 @@ interface EventDetailDrawerProps {
   onDuplicate: (event: ClubEvent) => void;
   onPublish: (event: ClubEvent) => void;
   onCancel: (event: ClubEvent, reason: string) => void;
+  onConfirm?: () => void;
 }
 
 export function EventDetailDrawer({
@@ -42,7 +43,8 @@ export function EventDetailDrawer({
   onEdit,
   onDuplicate,
   onPublish,
-  onCancel
+  onCancel,
+  onConfirm,
 }: EventDetailDrawerProps) {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -195,6 +197,16 @@ export function EventDetailDrawer({
                             </span>
                           ) : null}
                         </div>
+
+                        {/* Conflict reason banner */}
+                        {event.bookingStatus === "not_confirmed" && (
+                          <div className="mb-3 flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-amber-800">
+                              Diese Buchung wurde als <strong>nicht bestätigt</strong> gespeichert, da zum Zeitpunkt der Zuweisung ein Zeitkonflikt mit einem anderen Termin oder einer Sperrzeit bestand. Bitte prüfen und manuell bestätigen.
+                            </p>
+                          </div>
+                        )}
 
                         {/* Venue → Address → Field → Zone breadcrumb */}
                         <div className="space-y-1">
@@ -445,6 +457,16 @@ export function EventDetailDrawer({
               </button>
             )}
             <div className="flex-1" />
+            {/* Option B — confirm button in drawer */}
+            {event.bookingStatus === "not_confirmed" && onConfirm && (
+              <button
+                onClick={onConfirm}
+                className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-medium"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Buchung bestätigen</span>
+              </button>
+            )}
             <button
               onClick={() => onDuplicate(event)}
               className="flex items-center gap-2 px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"

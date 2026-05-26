@@ -16,15 +16,18 @@ import { ResourcePickerPanel } from "../fields/ResourcePickerPanel";
 import { getFieldById, checkConflict } from "../../data/mockFields";
 import { ADMIN_USER, mockClubMembers, mockGroups, mockClubEvents } from "../../data/mockClubEvents";
 import { generateEventId, createStatusHistoryEntry } from "../../utils/eventUtils";
+import type { TeamEvent, TeamEventType, TeamEventVisibility, MatchType } from "../../data/mockTeamEvents";
+import { mockTeams } from "../../data/mockTeams";
 
 interface EventFormDrawerProps {
   event?: ClubEvent | null;
   initialDate?: string; // Pre-fill date when clicking on calendar day
   onClose: () => void;
   onSave: (event: ClubEvent, isDraft: boolean) => void;
+  onSaveTeam?: (event: TeamEvent) => void;
 }
 
-export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFormDrawerProps) {
+export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTeam }: EventFormDrawerProps) {
   const isEditing = !!event;
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -33,12 +36,13 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
     title: "",
     description: "",
     date: "",
+    endDate: "",
     isAllDay: false,
     startTime: "18:00",
     endTime: "20:00",
     location: "",
     bannerImage: "",
-    audienceMode: "all",
+    isClubWide: true,
     departmentIds: [],
     groupIds: [],
     memberIds: [],
@@ -57,6 +61,20 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
   
   const [showBannerPicker, setShowBannerPicker] = useState(false);
   const [locationType, setLocationType] = useState<"address" | "field">("address");
+  const [eventScope, setEventScope] = useState<"club" | "team">("club");
+  const [teamForm, setTeamForm] = useState<{
+    teamId: string;
+    type: TeamEventType;
+    opponent: string;
+    isHome: boolean;
+    matchType: MatchType;
+    visibility: TeamEventVisibility;
+  }>({ teamId: "", type: "training", opponent: "", isHome: true, matchType: "league", visibility: "club_visible" });
+
+  const TEAM_SEASON: Record<string, string> = {
+    team_u12: "s2024_u12", team1: "s2024_team1",
+    team_volleyball_u16: "s2024_vu16", team_frauen_ue40: "s2024_frauen", team_fitness: "s2024_fitness",
+  };
 
   // Load event data when editing or set initial date
   useEffect(() => {
@@ -65,12 +83,13 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
         title: event.title,
         description: event.description || "",
         date: event.date,
+        endDate: event.endDate || "",
         isAllDay: event.isAllDay || false,
         startTime: event.startTime,
         endTime: event.endTime,
         location: event.location || "",
         bannerImage: event.bannerImage || "",
-        audienceMode: event.audience.mode,
+        isClubWide: event.audience.isClubWide ?? event.audience.mode === "all",
         departmentIds: event.audience.departmentIds || [],
         groupIds: event.audience.groupIds || [],
         memberIds: event.audience.memberIds || [],
@@ -99,31 +118,18 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
     }
   }, [isEditing]);
 
-  // Calculate resolved audience count
+  // Calculate resolved audience count (multi-source, combined)
   const resolvedCount = (() => {
-    switch (formData.audienceMode) {
-      case "all":
-        return mockClubMembers.length;
-      case "departments":
-        if (formData.departmentIds.length === 0) return 0;
-        const deptMemberIds = new Set<string>();
-        mockClubMembers.forEach(m => {
-          if (m.departmentIds.some(dId => formData.departmentIds.includes(dId))) {
-            deptMemberIds.add(m.id);
-          }
-        });
-        return deptMemberIds.size;
-      case "groups":
-        if (formData.groupIds.length === 0) return 0;
-        const grpMemberIds = new Set<string>();
-        formData.groupIds.forEach(gId => {
-          const group = mockGroups.find(g => g.id === gId);
-          group?.memberIds.forEach(mId => grpMemberIds.add(mId));
-        });
-        return grpMemberIds.size;
-      case "manual":
-        return formData.memberIds.length;
-    }
+    if (formData.isClubWide) return mockClubMembers.length;
+    const ids = new Set<string>();
+    mockClubMembers.forEach(m => {
+      if (m.departmentIds.some(dId => formData.departmentIds.includes(dId))) ids.add(m.id);
+    });
+    formData.groupIds.forEach(gId => {
+      mockGroups.find(g => g.id === gId)?.memberIds.forEach(mId => ids.add(mId));
+    });
+    formData.memberIds.forEach(id => ids.add(id));
+    return ids.size;
   })();
 
   const handleSubmit = (isDraft: boolean) => {
@@ -161,10 +167,11 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
       bookedZoneIds: formData.fieldId && formData.bookingScope === "zones" ? formData.bookedZoneIds : undefined,
       bookingStatus: computedBookingStatus,
       audience: {
-        mode: formData.audienceMode,
-        departmentIds: formData.audienceMode === "departments" ? formData.departmentIds : undefined,
-        groupIds: formData.audienceMode === "groups" ? formData.groupIds : undefined,
-        memberIds: formData.audienceMode === "manual" ? formData.memberIds : undefined
+        mode: formData.isClubWide ? "all" : "manual",
+        isClubWide: formData.isClubWide,
+        departmentIds: !formData.isClubWide && formData.departmentIds.length ? formData.departmentIds : undefined,
+        groupIds: !formData.isClubWide && formData.groupIds.length ? formData.groupIds : undefined,
+        memberIds: !formData.isClubWide && formData.memberIds.length ? formData.memberIds : undefined,
       },
       resolvedMemberCount: resolvedCount,
       visibility: formData.visibility,
@@ -197,7 +204,36 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
     onSave(newEvent, isDraft);
   };
 
-  const isValid = formData.title.trim() && formData.date && (formData.isAllDay || (formData.startTime && formData.endTime));
+  const handleSaveTeamEvent = () => {
+    const te: TeamEvent = {
+      id: `te_admin_${Date.now()}`,
+      teamId: teamForm.teamId,
+      seasonId: TEAM_SEASON[teamForm.teamId] ?? "s2024",
+      type: teamForm.type,
+      title: teamForm.type === "match"
+        ? `vs. ${teamForm.opponent}`
+        : formData.title.trim() || (teamForm.type === "training" ? "Training" : "Allgemein"),
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      location: formData.location.trim() || undefined,
+      description: formData.description.trim() || undefined,
+      visibility: teamForm.visibility,
+      opponent: teamForm.type === "match" ? teamForm.opponent : undefined,
+      isHome: teamForm.type === "match" ? teamForm.isHome : undefined,
+      matchType: teamForm.type === "match" ? teamForm.matchType : undefined,
+      attendanceList: [],
+      status: "scheduled",
+      createdBy: ADMIN_USER.id,
+    };
+    onSaveTeam?.(te);
+    onClose();
+  };
+
+  const isTeamValid = !!(teamForm.teamId && formData.date && formData.startTime && formData.endTime
+    && (teamForm.type !== "match" || teamForm.opponent.trim()));
+  const isValid = eventScope === "team" ? isTeamValid
+    : !!(formData.title.trim() && formData.date && (formData.isAllDay || (formData.startTime && formData.endTime)));
 
   return (
     <>
@@ -220,15 +256,31 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
             </button>
           </div>
 
+          {/* Scope Toggle – only for new events */}
+          {!isEditing && (
+            <div className="px-6 py-3 border-b border-slate-200 bg-slate-50 flex-shrink-0">
+              <div className="flex rounded-lg border border-slate-200 overflow-hidden text-sm">
+                <button type="button" onClick={() => setEventScope("club")}
+                  className={`flex-1 py-2 font-medium transition-colors ${eventScope === "club" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}>
+                  Vereinstermin
+                </button>
+                <button type="button" onClick={() => setEventScope("team")}
+                  className={`flex-1 py-2 font-medium transition-colors ${eventScope === "team" ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}>
+                  Mannschaftstermin
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Form Content */}
           <div className="flex-1 overflow-y-auto">
-          
+
           {/* Banner Image - At top like final display */}
-          {formData.bannerImage ? (
+          {eventScope === "club" && (formData.bannerImage ? (
             <div className="relative h-36 overflow-hidden">
-              <img 
-                src={formData.bannerImage} 
-                alt="Event Banner" 
+              <img
+                src={formData.bannerImage}
+                alt="Event Banner"
                 className="w-full h-full object-cover"
               />
               <button
@@ -256,11 +308,74 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
               <Image className="w-5 h-5" />
               <span>Banner hinzufügen</span>
             </button>
-          )}
+          ))}
           
           <div className="p-6 space-y-6">
-            
+
+            {/* Team event fields */}
+            {eventScope === "team" && (
+              <div className="space-y-4">
+                {/* Team picker */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Mannschaft</label>
+                  <select
+                    value={teamForm.teamId}
+                    onChange={e => setTeamForm(p => ({ ...p, teamId: e.target.value }))}
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm bg-white"
+                  >
+                    <option value="">Mannschaft auswählen…</option>
+                    {mockTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+                {/* Event type toggle */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Terminart</label>
+                  <div className="flex rounded-lg border border-slate-200 overflow-hidden text-sm">
+                    {(["training", "match", "general"] as TeamEventType[]).map(type => (
+                      <button key={type} type="button"
+                        onClick={() => setTeamForm(p => ({ ...p, type }))}
+                        className={`flex-1 py-2 font-medium transition-colors ${teamForm.type === type ? "bg-[#004941] text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}>
+                        {type === "training" ? "Training" : type === "match" ? "Spiel" : "Allgemein"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Match details */}
+                {teamForm.type === "match" && (
+                  <div className="space-y-3 p-4 bg-emerald-50 rounded-xl">
+                    <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Spieldetails</p>
+                    <input
+                      type="text"
+                      placeholder="Gegner (z.B. TV Lich U12)"
+                      value={teamForm.opponent}
+                      onChange={e => setTeamForm(p => ({ ...p, opponent: e.target.value }))}
+                      className="w-full px-3 py-2.5 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm bg-white"
+                    />
+                    <div className="flex gap-2">
+                      <div className="flex rounded-lg border border-emerald-200 overflow-hidden text-sm flex-1">
+                        <button type="button" onClick={() => setTeamForm(p => ({ ...p, isHome: true }))}
+                          className={`flex-1 py-2 ${teamForm.isHome ? "bg-emerald-600 text-white" : "bg-white text-slate-600"}`}>Heim</button>
+                        <button type="button" onClick={() => setTeamForm(p => ({ ...p, isHome: false }))}
+                          className={`flex-1 py-2 ${!teamForm.isHome ? "bg-emerald-600 text-white" : "bg-white text-slate-600"}`}>Auswärts</button>
+                      </div>
+                      <select
+                        value={teamForm.matchType}
+                        onChange={e => setTeamForm(p => ({ ...p, matchType: e.target.value as MatchType }))}
+                        className="flex-1 px-3 py-2 border border-emerald-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                      >
+                        <option value="league">Liga</option>
+                        <option value="cup">Pokal</option>
+                        <option value="friendly">Freundschaftsspiel</option>
+                        <option value="tournament">Turnier</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Title - Primary Focus */}
+            {(eventScope === "club" || teamForm.type !== "match") && (
             <div>
               <input
                 ref={titleRef}
@@ -271,55 +386,94 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
                 className="w-full text-2xl font-semibold text-slate-800 placeholder-slate-400 border-0 border-b-2 border-transparent focus:border-[#004941] focus:outline-none pb-2 transition-colors"
               />
             </div>
+            )}
 
-            {/* Date & Time Row */}
+            {/* Date & Time – iOS Calendar style */}
             <div className="flex items-start gap-3">
               <div className="p-2.5 mt-1 bg-slate-100 rounded-lg">
                 <Calendar className="w-5 h-5 text-slate-600" />
               </div>
               <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-4">
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
-                  />
-                  {/* All Day Toggle */}
-                  <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                {/* Start row */}
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="block text-xs text-slate-500 mb-1">Beginn</label>
                     <input
-                      type="checkbox"
-                      checked={formData.isAllDay}
-                      onChange={(e) => setFormData({ ...formData, isAllDay: e.target.checked })}
-                      className="w-4 h-4 rounded border-slate-300 text-[#004941] focus:ring-[#004941]"
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => {
+                        const d = e.target.value;
+                        setFormData(prev => ({
+                          ...prev,
+                          date: d,
+                          endDate: prev.endDate && prev.endDate >= d ? prev.endDate : "",
+                        }));
+                      }}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
                     />
-                    <span className="text-sm text-slate-600">Ganztägig</span>
-                  </label>
-                </div>
-                {!formData.isAllDay && (
-                  <div className="flex gap-3">
-                    <div className="flex-1">
-                      <label className="block text-xs text-slate-500 mb-1">Beginn</label>
+                  </div>
+                  {!formData.isAllDay && (
+                    <div className="w-28">
+                      <label className="block text-xs text-slate-500 mb-1">Uhrzeit</label>
                       <input
                         type="time"
                         value={formData.startTime}
                         onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
                       />
                     </div>
-                    <div className="flex-1">
-                      <label className="block text-xs text-slate-500 mb-1">Ende</label>
+                  )}
+                </div>
+
+                {/* End row */}
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="block text-xs text-slate-500 mb-1">Ende</label>
+                    <input
+                      type="date"
+                      value={formData.endDate || formData.date}
+                      min={formData.date}
+                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
+                    />
+                  </div>
+                  {!formData.isAllDay && (
+                    <div className="w-28">
+                      <label className="block text-xs text-slate-500 mb-1">Uhrzeit</label>
                       <input
                         type="time"
                         value={formData.endTime}
                         onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
                       />
                     </div>
+                  )}
+                </div>
+
+                {/* All Day Toggle – below the date rows */}
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <span className="text-sm text-slate-600">Ganztägig</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isAllDay}
+                      onChange={(e) => setFormData({ ...formData, isAllDay: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#004941] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#004941]" />
+                  </label>
+                </div>
+
+                {/* Multi-day indicator */}
+                {formData.endDate && formData.endDate > formData.date && (
+                  <div className="flex items-center gap-2 text-xs text-[#004941] font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#004941] flex-shrink-0" />
+                    Mehrtägiges Event
                   </div>
                 )}
                 
                 {/* Recurrence - Right after date/time for better context */}
+                {eventScope === "club" && (
                 <RecurrenceEditor
                   enabled={formData.recurrenceEnabled}
                   frequency={formData.recurrenceFrequency}
@@ -333,6 +487,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
                   onWeekdaysChange={(val) => setFormData({ ...formData, recurrenceWeekdays: val })}
                   onUntilChange={(val) => setFormData({ ...formData, recurrenceUntil: val })}
                 />
+                )}
               </div>
             </div>
 
@@ -434,6 +589,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
               />
             </div>
 
+            {eventScope === "club" && (<>
             {/* Divider */}
             <hr className="border-slate-200" />
 
@@ -443,16 +599,17 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
                 Teilnehmer
               </h3>
               <AudienceSelector
-                mode={formData.audienceMode}
+                isClubWide={formData.isClubWide}
                 departmentIds={formData.departmentIds}
                 groupIds={formData.groupIds}
                 memberIds={formData.memberIds}
-                onModeChange={(mode) => setFormData({ ...formData, audienceMode: mode })}
+                onIsClubWideChange={(val) => setFormData({ ...formData, isClubWide: val })}
                 onDepartmentIdsChange={(ids) => setFormData({ ...formData, departmentIds: ids })}
                 onGroupIdsChange={(ids) => setFormData({ ...formData, groupIds: ids })}
                 onMemberIdsChange={(ids) => setFormData({ ...formData, memberIds: ids })}
               />
             </div>
+            </>)}
 
             {/* Divider */}
             <hr className="border-slate-200" />
@@ -462,6 +619,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
               <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wide mb-4">
                 Sichtbarkeit
               </h3>
+              {eventScope === "club" ? (
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -498,8 +656,32 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
                   </div>
                 </button>
               </div>
+              ) : (
+              <div className="space-y-2">
+                {([
+                  { v: "team_only", label: "Nur Team", desc: "Nur Teammitglieder sehen diesen Termin" },
+                  { v: "club_visible", label: "Verein sichtbar", desc: "Clubadmin sieht diesen Termin in der Übersicht" },
+                  { v: "public", label: "Öffentlich", desc: "Erscheint im Kalender aller Mitglieder" },
+                ] as { v: TeamEventVisibility; label: string; desc: string }[]).map(opt => (
+                  <button key={opt.v} type="button"
+                    onClick={() => setTeamForm(p => ({ ...p, visibility: opt.v }))}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                      teamForm.visibility === opt.v ? "border-[#004941] bg-[#C8F2E0]/30" : "border-slate-200 hover:border-slate-300"
+                    }`}>
+                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                      teamForm.visibility === opt.v ? "border-[#004941] bg-[#004941]" : "border-slate-300"
+                    }`} />
+                    <div>
+                      <p className={`text-sm font-medium ${teamForm.visibility === opt.v ? "text-[#004941]" : "text-slate-800"}`}>{opt.label}</p>
+                      <p className="text-xs text-slate-500">{opt.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              )}
             </div>
 
+            {eventScope === "club" && (<>
             {/* Divider */}
             <hr className="border-slate-200" />
 
@@ -518,6 +700,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
                 eventDate={formData.date}
               />
             </div>
+            </>)}
 
                       </div>
         </div>
@@ -531,6 +714,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
               >
                 Abbrechen
               </button>
+              {eventScope === "club" ? (
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => handleSubmit(true)}
@@ -549,6 +733,16 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave }: EventFo
                   <span>Veröffentlichen</span>
                 </button>
               </div>
+              ) : (
+              <button
+                onClick={handleSaveTeamEvent}
+                disabled={!isValid}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#004941] text-white rounded-lg hover:bg-[#003830] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Save className="w-4 h-4" />
+                <span>Termin speichern</span>
+              </button>
+              )}
             </div>
           </div>
         </div>

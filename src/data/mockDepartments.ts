@@ -2,7 +2,7 @@ import type { Department } from "../types/domain";
 
 export const mockDepartments: Department[] = [
   // ==========================================
-  // DEMO DEPARTMENTS (synced with Member Portal)
+  // ACTIVE SPORT DEPARTMENTS (with teams & members)
   // ==========================================
   {
     id: "dept_football",
@@ -25,47 +25,44 @@ export const mockDepartments: Department[] = [
     kind: "sport",
     isActive: true
   },
-  
+
   // ==========================================
-  // ADDITIONAL DEPARTMENTS
+  // SPORT DEPARTMENTS — no teams yet (empty state)
   // ==========================================
   {
-    id: "dept1",
+    id: "dept_leichtathletik",
     clubId: "club1",
-    name: "Fußball (Alt)",
-    kind: "sport",
-    isActive: false
-  },
-  {
-    id: "dept2",
-    clubId: "club1",
-    name: "Handball",
+    name: "Leichtathletik",
     kind: "sport",
     isActive: true
   },
   {
-    id: "dept3",
+    id: "dept_schwimmen",
     clubId: "club1",
-    name: "Volleyball (Alt)",
+    name: "Schwimmen",
     kind: "sport",
     isActive: false
   },
   {
-    id: "dept4",
+    id: "dept_handball",
     clubId: "club1",
-    name: "Tennis",
+    name: "Handball",
     kind: "sport",
     isActive: false
   },
+
+  // ==========================================
+  // ADMIN DEPARTMENTS
+  // ==========================================
   {
-    id: "dept5",
+    id: "dept_vorstand",
     clubId: "club1",
     name: "Vorstand",
     kind: "admin",
     isActive: true
   },
   {
-    id: "dept6",
+    id: "dept_verwaltung",
     clubId: "club1",
     name: "Verwaltung",
     kind: "admin",

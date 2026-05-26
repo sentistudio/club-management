@@ -309,6 +309,24 @@ export function FieldBooking() {
     });
   };
 
+  const handleConfirmBooking = (eventId: string) => {
+    setEventOverrides(prev => ({
+      ...prev,
+      [eventId]: { ...prev[eventId], bookingStatus: "confirmed" },
+    }));
+  };
+
+  const handleConfirmAllUnconfirmed = () => {
+    const ids = listEvents
+      .filter(e => e.fieldId && getEffectiveBookingStatus(e) === "not_confirmed")
+      .map(e => e.id);
+    setEventOverrides(prev => {
+      const next = { ...prev };
+      ids.forEach(id => { next[id] = { ...next[id], bookingStatus: "confirmed" }; });
+      return next;
+    });
+  };
+
   const handleSaveEvent = (saved: ClubEvent) => {
     const isBase = mockClubEvents.some(e => e.id === saved.id);
     if (isBase) {
@@ -596,11 +614,16 @@ export function FieldBooking() {
                       <div className="w-0.5 h-5 bg-neutral-300 rounded-full group-hover:bg-teal-400 transition-colors" />
                     </div>
                   </div>
-                  {/* Hour labels */}
-                  <div className="flex-1 flex">
-                    {[6, 8, 10, 12, 14, 16, 18, 20, 22].map(h => (
-                      <div key={h} className="flex-1 text-[10px] text-neutral-400 text-center py-2 border-l border-neutral-100 first:border-l-0">
-                        {String(h).padStart(2, "0")}:00
+                  {/* Hour labels — absolutely positioned to match row grid lines at 0,12.5,25,...,100% */}
+                  <div className="flex-1 relative h-8">
+                    {[6, 8, 10, 12, 14, 16, 18, 20, 22].map((h, i) => (
+                      <div
+                        key={h}
+                        className="absolute top-0 bottom-0 flex flex-col items-start"
+                        style={{ left: `${(i / 8) * 100}%` }}
+                      >
+                        <div className="w-px h-2 bg-neutral-200" />
+                        <span className="text-[10px] text-neutral-400 pl-1">{String(h).padStart(2, "0")}:00</span>
                       </div>
                     ))}
                   </div>
@@ -857,6 +880,23 @@ export function FieldBooking() {
               </div>
               <span className="text-[10px] bg-neutral-200 text-neutral-500 px-1.5 py-0.5 rounded-full font-medium">{displayEvents.length}</span>
             </div>
+
+            {/* Option C — Bulk confirm bar */}
+            {filterListUnconfirmed && listUnconfirmedCount > 0 && (
+              <div className="flex items-center justify-between px-4 py-2 bg-amber-50 border-b border-amber-100">
+                <p className="text-[11px] text-amber-700">
+                  {listUnconfirmedCount} {lang === "de" ? "Buchung(en) mit Konflikt" : "booking(s) with conflict"}
+                </p>
+                <button
+                  onClick={handleConfirmAllUnconfirmed}
+                  className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition-colors"
+                >
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  {lang === "de" ? "Alle bestätigen" : "Confirm all"}
+                </button>
+              </div>
+            )}
+
             {displayEvents.length === 0 ? (
               <div className="py-6 text-center">
                 <CalendarDays className="w-6 h-6 text-neutral-200 mx-auto mb-1" />
@@ -934,10 +974,10 @@ export function FieldBooking() {
                   }
 
                   return (
-                    <button
+                    <div
                       key={evt.id}
                       onClick={() => setDetailEvent(evt)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left ${
+                      className={`cursor-pointer w-full flex items-center gap-3 px-4 py-3 transition-colors text-left ${
                         isUnassigned
                           ? "bg-violet-50/40 hover:bg-violet-50/70"
                           : isNotConfirmed
@@ -979,7 +1019,17 @@ export function FieldBooking() {
                       <span className={`flex-shrink-0 text-[9px] px-1.5 py-0.5 rounded border font-medium ${color}`}>
                         {evt.category ?? "—"}
                       </span>
-                    </button>
+                      {/* Option A — inline confirm button */}
+                      {isNotConfirmed && (
+                        <button
+                          onClick={e => { e.stopPropagation(); handleConfirmBooking(evt.id); }}
+                          title={lang === "de" ? "Buchung bestätigen" : "Confirm booking"}
+                          className="flex-shrink-0 p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 transition-colors"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -1106,6 +1156,7 @@ export function FieldBooking() {
           onDuplicate={handleDuplicateEvent}
           onPublish={handlePublishEvent}
           onCancel={handleCancelEvent}
+          onConfirm={() => { handleConfirmBooking(detailEvent.id); setDetailEvent(null); }}
         />
       )}
 

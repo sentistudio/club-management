@@ -21,7 +21,7 @@ export interface DemoPersona {
   lastName: string;
   email: string;
   phone?: string;
-  avatar: string;
+  avatar?: string;
   role: "Spieler" | "Trainer" | "Elternteil" | "Vorstand" | "Betreuer" | "Mitglied";
   isChild?: boolean;
   parentId?: string;
@@ -246,7 +246,6 @@ export const NOAH_HOFFMANN: DemoPersona = {
   firstName: "Noah",
   lastName: "Hoffmann",
   email: "peter.hoffmann@example.com",
-  avatar: "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=150&h=150&fit=crop&crop=face",
   role: "Spieler",
   isChild: true,
   parentId: "peter_hoffmann",
@@ -350,7 +349,6 @@ export const ANNA_BAUER: DemoPersona = {
   firstName: "Anna",
   lastName: "Bauer",
   email: "anna.bauer@example.com",
-  avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
   role: "Spieler",
   clubId: "sfb",
   clubName: "Borussia Dortmund",
@@ -377,7 +375,7 @@ export const THOMAS_MUELLER: DemoPersona = {
   email: "thomas.mueller@sfb.de",
   phone: "+49 177 8901234",
   avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-  role: "Vorstand",
+  role: "Trainer",
   clubId: "sfb",
   clubName: "Borussia Dortmund",
   memberships: [
@@ -385,7 +383,21 @@ export const THOMAS_MUELLER: DemoPersona = {
       departmentId: "dept_football",
       departmentName: "Fußball",
       role: "admin",
-      icon: "⚽"
+      teamId: "team1",
+      teamName: "1. Herren",
+      icon: "⚽",
+      coachId: "thomas_mueller",
+      coachName: "Trainer Thomas"
+    },
+    {
+      departmentId: "dept_football",
+      departmentName: "Fußball",
+      role: "admin",
+      teamId: "team_u12",
+      teamName: "Fußball U12",
+      icon: "⚽",
+      coachId: "thomas_mueller",
+      coachName: "Trainer Thomas"
     }
   ],
   joinedAt: "2015-01-01",
@@ -459,7 +471,7 @@ export const DEMO_INBOX_MESSAGES: DemoInboxMessage[] = [
     id: "inbox_lena_1",
     senderId: "lena_schneider",
     senderName: "Lena Schneider",
-    senderAvatar: LENA_SCHNEIDER.avatar,
+    senderAvatar: LENA_SCHNEIDER.avatar!,
     senderRole: "Mitglied",
     senderDepartment: "Fitness, Fußball",
     subject: "Frage zur Trainingszeit",
@@ -491,7 +503,7 @@ export const DEMO_INBOX_MESSAGES: DemoInboxMessage[] = [
     id: "inbox_lena_for_max",
     senderId: "lena_schneider",
     senderName: "Lena Schneider",
-    senderAvatar: LENA_SCHNEIDER.avatar,
+    senderAvatar: LENA_SCHNEIDER.avatar!,
     senderRole: "Elternteil",
     senderDepartment: "Fußball",
     isOnBehalf: true,
@@ -518,7 +530,7 @@ export const DEMO_INBOX_MESSAGES: DemoInboxMessage[] = [
     id: "inbox_daniel_for_noah",
     senderId: "daniel_klein",
     senderName: "Daniel Klein",
-    senderAvatar: DANIEL_KLEIN.avatar,
+    senderAvatar: DANIEL_KLEIN.avatar!,
     senderRole: "Elternteil",
     senderDepartment: "Fußball",
     isOnBehalf: true,
@@ -553,7 +565,7 @@ export const DEMO_INBOX_MESSAGES: DemoInboxMessage[] = [
     id: "inbox_petra_for_flurina_teammate",
     senderId: "petra_weber",
     senderName: "Petra Weber",
-    senderAvatar: PETRA_WEBER.avatar,
+    senderAvatar: PETRA_WEBER.avatar!,
     senderRole: "Elternteil",
     senderDepartment: "Volleyball",
     subject: "Fahrgemeinschaft zum Turnier",

@@ -57,7 +57,7 @@ export const mockTeams: Team[] = [
   {
     id: "team1",
     clubId: "club1",
-    departmentId: "dept1",
+    departmentId: "dept_football",
     name: "1. Herren",
     ageGroup: "Senior",
     gender: "m",
@@ -66,7 +66,7 @@ export const mockTeams: Team[] = [
   {
     id: "team2",
     clubId: "club1",
-    departmentId: "dept1",
+    departmentId: "dept_football",
     name: "2. Herren",
     ageGroup: "Senior",
     gender: "m",
@@ -75,7 +75,7 @@ export const mockTeams: Team[] = [
   {
     id: "team3",
     clubId: "club1",
-    departmentId: "dept1",
+    departmentId: "dept_football",
     name: "1. Damen",
     ageGroup: "Senior",
     gender: "w",
@@ -84,7 +84,7 @@ export const mockTeams: Team[] = [
   {
     id: "team4",
     clubId: "club1",
-    departmentId: "dept1",
+    departmentId: "dept_football",
     name: "U19 Junioren",
     ageGroup: "U19",
     gender: "m",
@@ -93,7 +93,7 @@ export const mockTeams: Team[] = [
   {
     id: "team5",
     clubId: "club1",
-    departmentId: "dept1",
+    departmentId: "dept_football",
     name: "U17 Junioren",
     ageGroup: "U17",
     gender: "m",
@@ -102,7 +102,7 @@ export const mockTeams: Team[] = [
   {
     id: "team6",
     clubId: "club1",
-    departmentId: "dept1",
+    departmentId: "dept_football",
     name: "U15 Junioren",
     ageGroup: "U15",
     gender: "m",
@@ -111,7 +111,7 @@ export const mockTeams: Team[] = [
   {
     id: "team7",
     clubId: "club1",
-    departmentId: "dept1",
+    departmentId: "dept_football",
     name: "U13 Mixed",
     ageGroup: "U13",
     gender: "mixed",
@@ -120,7 +120,7 @@ export const mockTeams: Team[] = [
   {
     id: "team8",
     clubId: "club1",
-    departmentId: "dept1",
+    departmentId: "dept_football",
     name: "U11 Mixed",
     ageGroup: "U11",
     gender: "mixed",
@@ -130,7 +130,7 @@ export const mockTeams: Team[] = [
   {
     id: "team9",
     clubId: "club1",
-    departmentId: "dept2",
+    departmentId: "dept_handball",
     name: "Herren Handball",
     ageGroup: "Senior",
     gender: "m",
@@ -139,7 +139,7 @@ export const mockTeams: Team[] = [
   {
     id: "team10",
     clubId: "club1",
-    departmentId: "dept2",
+    departmentId: "dept_handball",
     name: "Damen Handball",
     ageGroup: "Senior",
     gender: "w",
@@ -149,7 +149,7 @@ export const mockTeams: Team[] = [
   {
     id: "team11",
     clubId: "club1",
-    departmentId: "dept3",
+    departmentId: "dept_volleyball",
     name: "Mixed Volleyball",
     ageGroup: "Senior",
     gender: "mixed",

@@ -11,7 +11,7 @@ import {
   Lock, RefreshCw, Dumbbell, Trophy as TrophyIcon, PartyPopper, Check, Clock, LayoutGrid
 } from "lucide-react";
 import { Card, Button } from "../components/ui";
-import { EventDetailDrawer, EventFormDrawer } from "../components/events";
+import { EventDetailDrawer, EventFormDrawer, TeamEventDetailDrawer } from "../components/events";
 import {
   mockClubEvents,
   mockClubMembers,
@@ -27,6 +27,10 @@ import {
 } from "../utils/eventUtils";
 import { useLanguage } from "../i18n";
 import { useRole } from "../contexts";
+import { getClubVisibleEvents, mockTeamEvents } from "../data/mockTeamEvents";
+import type { TeamEvent } from "../data/mockTeamEvents";
+import { mockTeams } from "../data/mockTeams";
+import { mockClub } from "../data/mockClub";
 
 // Maps the viewContext key (from RoleContext) to the member ID used in mockClubEvents audience.memberIds
 const PERSONA_MEMBER_ID: Record<string, string> = {
@@ -100,6 +104,8 @@ export function ClubEvents() {
   const [selectedEvent, setSelectedEvent] = useState<ClubEvent | null>(null);
   const [editingEvent, setEditingEvent] = useState<ClubEvent | null>(null);
   const [initialDate, setInitialDate] = useState<string | undefined>(undefined);
+  // Team event detail
+  const [selectedTeamEvent, setSelectedTeamEvent] = useState<TeamEvent | null>(null);
   
 
   // Compute actual statuses (mark completed if past)
@@ -157,6 +163,33 @@ export function ClubEvents() {
         return timeFilter === "past" ? dateB.getTime() - dateA.getTime() : dateA.getTime() - dateB.getTime();
       });
   }, [eventsWithComputedStatus, searchTerm, timeFilter, statusFilter, visibilityFilter, audienceFilter, departmentFilter, groupFilter, now]);
+
+  // Team events merged into admin list (filter matches time + search)
+  const teamEventsForList = useMemo(() => {
+    if (isPersonalView) return [];
+    return getClubVisibleEvents().filter(e => {
+      const eventEnd = new Date(`${e.date}T${e.endTime}`);
+      if (timeFilter === "upcoming" && eventEnd < now) return false;
+      if (timeFilter === "past" && eventEnd >= now) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const title = e.type === "match" ? `vs. ${e.opponent ?? ""}` : e.title;
+        if (!title.toLowerCase().includes(term) && !e.location?.toLowerCase().includes(term)) return false;
+      }
+      return true;
+    });
+  }, [isPersonalView, timeFilter, searchTerm, now]);
+
+  // Team events indexed by date for calendar rendering
+  const teamEventsByDate = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof getClubVisibleEvents>>();
+    teamEventsForList.forEach(te => {
+      const list = map.get(te.date) ?? [];
+      list.push(te);
+      map.set(te.date, list);
+    });
+    return map;
+  }, [teamEventsForList]);
 
   // Stats
   const stats = useMemo(() => {
@@ -274,14 +307,17 @@ export function ClubEvents() {
   const handleSaveEvent = (event: ClubEvent, _isDraft: boolean) => {
     const existingIndex = events.findIndex(e => e.id === event.id);
     if (existingIndex >= 0) {
-      // Update existing
       setEventOverrides(prev => ({ ...prev, [event.id]: event }));
     } else {
-      // Add new
       setNewEvents(prev => [...prev, event]);
     }
     setShowFormDrawer(false);
     setEditingEvent(null);
+  };
+
+  const handleSaveTeamEvent = (te: TeamEvent) => {
+    mockTeamEvents.push(te);
+    setShowFormDrawer(false);
   };
 
   const getStatusBadge = (status: EventStatus) => {
@@ -552,6 +588,26 @@ export function ClubEvents() {
         </div>
       </Card>
 
+      {/* Color legend */}
+      <div className="flex items-center flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500 px-1">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[#004941]" />
+          Vereinstermine
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-blue-400" />
+          Training
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-400" />
+          Spiel
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-amber-400" />
+          Allgemein
+        </span>
+      </div>
+
       {/* LIST VIEW */}
       {viewMode === "list" && (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -686,97 +742,152 @@ export function ClubEvents() {
                 );
               }
               
+              // Build unified sorted list: club + team events
+              const clubItems = displayEvents.map(e => ({ _src: "club" as const, date: e.date, startTime: e.startTime, club: e }));
+              const teamItems = (selectedDate ? teamEventsForList.filter(e => e.date === selectedDate) : teamEventsForList)
+                .map(e => ({ _src: "team" as const, date: e.date, startTime: e.startTime, team: e }));
+              const combined = [...clubItems, ...teamItems].sort((a, b) =>
+                (a.date + a.startTime).localeCompare(b.date + b.startTime)
+              );
+
               return (
                 <div className="divide-y divide-slate-100">
-                    {/* Compact Event Rows */}
-                    {displayEvents.map(event => (
-                      <div
-                        key={event.id}
-                        onClick={() => handleOpenDetail(event)}
-                        className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group"
-                      >
-                        <div className="flex items-start gap-3">
-                          {/* Date Badge */}
-                          <div className="flex-shrink-0 w-11 h-11 bg-[#004941] rounded-lg flex flex-col items-center justify-center text-white">
-                            <span className="text-[9px] font-medium leading-none opacity-80">
-                              {getMonth(new Date(event.date)).toUpperCase()}
-                            </span>
-                            <span className="text-lg font-bold leading-none">
-                              {new Date(event.date).getDate()}
-                            </span>
-                          </div>
-                          
-                          {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            {/* Title + Status Row */}
-                            <div className="flex items-center justify-between gap-2">
-                              <h3 className="font-semibold text-slate-800 group-hover:text-[#004941] transition-colors truncate">
-                                {event.title}
-                              </h3>
-                              <div className="flex items-center gap-1.5 flex-shrink-0">
-                                {getStatusBadge(event.status)}
-                                {event.visibility === "private" && <Lock className="w-3.5 h-3.5 text-slate-400" />}
-                                {event.recurrence?.enabled && <RefreshCw className="w-3.5 h-3.5 text-[#004941]" />}
+                    {combined.map(item => {
+                      if (item._src === "club") {
+                        const event = item.club;
+                        return (
+                          <div
+                            key={event.id}
+                            onClick={() => handleOpenDetail(event)}
+                            className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group border-l-4 border-l-[#004941]"
+                          >
+                            <div className="flex items-start gap-3">
+                              {/* Date Badge */}
+                              <div className="flex-shrink-0 w-11 h-11 bg-[#004941] rounded-lg flex flex-col items-center justify-center text-white">
+                                <span className="text-[9px] font-medium leading-none opacity-80">
+                                  {getMonth(new Date(event.date)).toUpperCase()}
+                                </span>
+                                <span className="text-lg font-bold leading-none">
+                                  {new Date(event.date).getDate()}
+                                </span>
+                              </div>
+
+                              {/* Content */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <h3 className="font-semibold text-slate-800 group-hover:text-[#004941] transition-colors truncate">
+                                      {event.title}
+                                    </h3>
+                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-500 flex-shrink-0">
+                                      Verein
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                                    {getStatusBadge(event.status)}
+                                    {event.visibility === "private" && <Lock className="w-3.5 h-3.5 text-slate-400" />}
+                                    {event.recurrence?.enabled && <RefreshCw className="w-3.5 h-3.5 text-[#004941]" />}
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-500">
+                                  <span>{event.isAllDay ? t("common.allDay") : `${event.startTime} - ${event.endTime}`}</span>
+                                  {event.location && (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="w-3.5 h-3.5" />
+                                      <span className="truncate max-w-[180px]">{event.location}</span>
+                                    </span>
+                                  )}
+                                  <span className="flex items-center gap-1">
+                                    <Users className="w-3.5 h-3.5" />
+                                    {event.resolvedMemberCount || 0}
+                                  </span>
+                                  {event.rsvpRequired && event.rsvpStats && event.rsvpStats.invited > 0 && (
+                                    <span className="text-xs text-slate-400">
+                                      {event.rsvpStats.confirmed}/{event.rsvpStats.invited} {t("common.confirmed")}
+                                    </span>
+                                  )}
+                                </div>
+                                {event.description && (
+                                  <p className="text-sm text-slate-400 mt-1 line-clamp-1">{event.description}</p>
+                                )}
+                              </div>
+
+                              {/* Quick Actions */}
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={(e) => { e.stopPropagation(); handleEdit(event); }} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded" title={t("common.edit")}>
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); handleDuplicate(event); }} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded" title={t("events.duplicate")}>
+                                  <Copy className="w-4 h-4" />
+                                </button>
+                                {event.status === "draft" && (
+                                  <button onClick={(e) => { e.stopPropagation(); handlePublish(event); }} className="p-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-100 rounded" title={t("events.publish")}>
+                                    <Send className="w-4 h-4" />
+                                  </button>
+                                )}
                               </div>
                             </div>
-                            
-                            {/* Meta Row */}
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-500">
-                              <span>
-                                {event.isAllDay ? t("common.allDay") : `${event.startTime} - ${event.endTime}`}
+                          </div>
+                        );
+                      }
+
+                      // Team event row
+                      const te = item.team;
+                      const team = mockTeams.find(t => t.id === te.teamId);
+                      const isMatch = te.type === "match";
+                      const isGeneral = te.type === "general";
+                      const borderColor = isMatch ? "border-l-emerald-400" : isGeneral ? "border-l-amber-400" : "border-l-blue-400";
+                      const typeEmoji = isGeneral ? "📋" : "🏃";
+                      const teTitle = isMatch ? `vs. ${te.opponent}` : te.title;
+                      const clubCode = (mockClub.threeLetterCode ?? "BVB").toUpperCase();
+                      return (
+                        <button
+                          key={te.id}
+                          onClick={() => setSelectedTeamEvent(te)}
+                          className={`w-full text-left p-4 hover:bg-slate-50 transition-colors group flex items-start gap-3 border-l-4 ${borderColor}`}
+                        >
+                          {/* Date Badge */}
+                          <div className={`flex-shrink-0 w-11 h-11 rounded-lg flex flex-col items-center justify-center text-white ${isMatch ? "bg-emerald-600" : isGeneral ? "bg-amber-500" : "bg-blue-500"}`}>
+                            <span className="text-[9px] font-medium leading-none opacity-80">
+                              {getMonth(new Date(te.date)).toUpperCase()}
+                            </span>
+                            <span className="text-lg font-bold leading-none">
+                              {new Date(te.date).getDate()}
+                            </span>
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {isMatch && (
+                                <span className="text-xs font-bold text-slate-500 flex-shrink-0">{clubCode}</span>
+                              )}
+                              <h3 className="font-semibold text-slate-800 group-hover:text-teal-700 transition-colors truncate">
+                                {teTitle}
+                              </h3>
+                              {!isMatch && (
+                                <span className="text-base flex-shrink-0">{typeEmoji}</span>
+                              )}
+                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-700 flex-shrink-0 border border-teal-200">
+                                {team?.name ?? te.teamId}
                               </span>
-                              {event.location && (
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-slate-500">
+                              <span>{te.startTime} – {te.endTime}</span>
+                              {te.location && (
                                 <span className="flex items-center gap-1">
                                   <MapPin className="w-3.5 h-3.5" />
-                                  <span className="truncate max-w-[180px]">{event.location}</span>
+                                  <span className="truncate max-w-[180px]">{te.location}</span>
                                 </span>
                               )}
-                              <span className="flex items-center gap-1">
-                                <Users className="w-3.5 h-3.5" />
-                                {event.resolvedMemberCount || 0}
-                              </span>
-                              {event.rsvpRequired && event.rsvpStats && event.rsvpStats.invited > 0 && (
-                                <span className="text-xs text-slate-400">
-                                  {event.rsvpStats.confirmed}/{event.rsvpStats.invited} {t("common.confirmed")}
-                                </span>
+                              {te.visibility === "public" && (
+                                <span className="text-xs text-neutral-400">🌐 Öffentlich</span>
                               )}
                             </div>
-                            
-                            {/* Description Preview */}
-                            {event.description && (
-                              <p className="text-sm text-slate-400 mt-1 line-clamp-1">{event.description}</p>
-                            )}
                           </div>
-                          
-                          {/* Quick Actions - On Hover */}
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleEdit(event); }}
-                              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded"
-                              title={t("common.edit")}
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleDuplicate(event); }}
-                              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded"
-                              title={t("events.duplicate")}
-                            >
-                              <Copy className="w-4 h-4" />
-                            </button>
-                            {event.status === "draft" && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handlePublish(event); }}
-                                className="p-1.5 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-100 rounded"
-                                title={t("events.publish")}
-                              >
-                                <Send className="w-4 h-4" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
                 );
               })()}
@@ -879,25 +990,55 @@ export function ClubEvents() {
                   }`}>
                     {day.date.getDate()}
                   </p>
-                  <div className="space-y-1">
-                    {day.events.slice(0, 3).map(event => {
-                      const colors = getStatusColor(event.status);
-                      return (
-                        <button
-                          key={event.id}
-                          onClick={(e) => { e.stopPropagation(); handleOpenDetail(event); }}
-                          className={`w-full text-left px-1.5 py-0.5 rounded text-xs truncate ${colors.bg} ${colors.text} hover:opacity-80`}
-                        >
-                          {event.isAllDay ? "⏰ " : `${event.startTime} `}{event.title}
-                        </button>
-                      );
-                    })}
-                    {day.events.length > 3 && (
-                      <p className="text-xs text-slate-500 px-1">
-                        +{day.events.length - 3} weitere
-                      </p>
-                    )}
-                  </div>
+                  {(() => {
+                    const dayTeamEvs = teamEventsByDate.get(dateStr) ?? [];
+                    type CalItem = { sort: string } & (
+                      | { kind: "club"; e: typeof day.events[0] }
+                      | { kind: "team"; te: typeof dayTeamEvs[0] }
+                    );
+                    const all: CalItem[] = [
+                      ...day.events.map(e => ({ kind: "club" as const, e, sort: e.isAllDay ? "00:00" : e.startTime })),
+                      ...dayTeamEvs.map(te => ({ kind: "team" as const, te, sort: te.startTime })),
+                    ].sort((a, b) => a.sort.localeCompare(b.sort));
+                    const shown = all.slice(0, 3);
+                    const overflow = all.length - 3;
+                    return (
+                      <div className="space-y-1">
+                        {shown.map(item => {
+                          if (item.kind === "club") {
+                            const ev = item.e;
+                            return (
+                              <button
+                                key={ev.id}
+                                onClick={(e) => { e.stopPropagation(); handleOpenDetail(ev); }}
+                                className="w-full text-left px-1.5 py-0.5 rounded text-xs truncate bg-[#004941]/10 text-[#004941] border-l-2 border-[#004941] hover:opacity-80"
+                              >
+                                {ev.isAllDay ? "⏰ " : `${ev.startTime} `}{ev.title}
+                              </button>
+                            );
+                          }
+                          const te = item.te;
+                          const chipCls = te.type === "match"
+                            ? "bg-emerald-50 text-emerald-800 border-l-2 border-emerald-400"
+                            : te.type === "general"
+                            ? "bg-amber-50 text-amber-800 border-l-2 border-amber-400"
+                            : "bg-blue-50 text-blue-800 border-l-2 border-blue-400";
+                          return (
+                            <button
+                              key={te.id}
+                              onClick={(e) => { e.stopPropagation(); setSelectedTeamEvent(te); }}
+                              className={`w-full text-left px-1.5 py-0.5 rounded text-xs truncate ${chipCls} hover:opacity-80`}
+                            >
+                              {te.startTime} {te.type === "match" ? `vs. ${te.opponent}` : te.title}
+                            </button>
+                          );
+                        })}
+                        {overflow > 0 && (
+                          <p className="text-xs text-slate-500 px-1">+{overflow} weitere</p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}
@@ -937,16 +1078,30 @@ export function ClubEvents() {
                         <p className={`text-lg font-bold ${isToday ? "text-[#004941]" : "text-slate-700"}`}>{day.date.getDate()}</p>
                       </div>
                       <div className="space-y-1">
-                        {day.events.map(event => {
-                          const colors = getStatusColor(event.status);
+                        {day.events.map(event => (
+                          <button
+                            key={event.id}
+                            onClick={(e) => { e.stopPropagation(); handleOpenDetail(event); }}
+                            className="w-full text-left p-1.5 rounded text-xs bg-[#004941]/10 text-[#004941] border-l-2 border-[#004941] hover:opacity-80"
+                          >
+                            <p className="font-medium truncate">{event.title}</p>
+                            <p className="opacity-70">{event.isAllDay ? t("common.allDay") : event.startTime}</p>
+                          </button>
+                        ))}
+                        {(teamEventsByDate.get(dateStr) ?? []).map(te => {
+                          const chipCls = te.type === "match"
+                            ? "bg-emerald-50 text-emerald-800 border-l-2 border-emerald-400"
+                            : te.type === "general"
+                            ? "bg-amber-50 text-amber-800 border-l-2 border-amber-400"
+                            : "bg-blue-50 text-blue-800 border-l-2 border-blue-400";
                           return (
                             <button
-                              key={event.id}
-                              onClick={(e) => { e.stopPropagation(); handleOpenDetail(event); }}
-                              className={`w-full text-left p-1.5 rounded text-xs ${colors.bg} ${colors.text} hover:opacity-80`}
+                              key={te.id}
+                              onClick={(e) => { e.stopPropagation(); setSelectedTeamEvent(te); }}
+                              className={`w-full text-left p-1.5 rounded text-xs ${chipCls} hover:opacity-80`}
                             >
-                              <p className="font-medium truncate">{event.title}</p>
-                              <p className="opacity-70">{event.isAllDay ? t("common.allDay") : event.startTime}</p>
+                              <p className="font-medium truncate">{te.type === "match" ? `vs. ${te.opponent}` : te.title}</p>
+                              <p className="opacity-70">{te.startTime}</p>
                             </button>
                           );
                         })}
@@ -984,22 +1139,43 @@ export function ClubEvents() {
                   <div className="space-y-2 max-h-[400px] overflow-y-auto">
                     {dayEvents
                       .sort((a, b) => (a.isAllDay ? -1 : b.isAllDay ? 1 : a.startTime.localeCompare(b.startTime)))
-                      .map(event => {
-                        const colors = getStatusColor(event.status);
+                      .map(event => (
+                        <button
+                          key={event.id}
+                          onClick={(e) => { e.stopPropagation(); handleOpenDetail(event); }}
+                          className="w-full text-left p-3 rounded-lg bg-[#004941]/10 text-[#004941] border-l-4 border-[#004941] hover:opacity-80 flex items-center gap-3"
+                        >
+                          {event.bannerImage && (
+                            <img src={event.bannerImage} alt="" className="w-12 h-12 rounded object-cover" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold truncate">{event.title}</p>
+                            <p className="text-sm opacity-70">
+                              {event.isAllDay ? t("common.allDay") : `${event.startTime} - ${event.endTime}`}
+                              {event.location && ` · ${event.location}`}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    {(teamEventsByDate.get(dateStr) ?? [])
+                      .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                      .map(te => {
+                        const borderCls = te.type === "match"
+                          ? "bg-emerald-50 text-emerald-800 border-l-4 border-emerald-400"
+                          : te.type === "general"
+                          ? "bg-amber-50 text-amber-800 border-l-4 border-amber-400"
+                          : "bg-blue-50 text-blue-800 border-l-4 border-blue-400";
                         return (
                           <button
-                            key={event.id}
-                            onClick={(e) => { e.stopPropagation(); handleOpenDetail(event); }}
-                            className={`w-full text-left p-3 rounded-lg ${colors.bg} ${colors.text} hover:opacity-80 flex items-center gap-3`}
+                            key={te.id}
+                            onClick={(e) => { e.stopPropagation(); setSelectedTeamEvent(te); }}
+                            className={`w-full text-left p-3 rounded-lg ${borderCls} hover:opacity-80 flex items-center gap-3`}
                           >
-                            {event.bannerImage && (
-                              <img src={event.bannerImage} alt="" className="w-12 h-12 rounded object-cover" />
-                            )}
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold truncate">{event.title}</p>
+                              <p className="font-semibold truncate">{te.type === "match" ? `vs. ${te.opponent}` : te.title}</p>
                               <p className="text-sm opacity-70">
-                                {event.isAllDay ? t("common.allDay") : `${event.startTime} - ${event.endTime}`}
-                                {event.location && ` · ${event.location}`}
+                                {te.startTime} – {te.endTime}
+                                {te.location && ` · ${te.location}`}
                               </p>
                             </div>
                           </button>
@@ -1014,7 +1190,7 @@ export function ClubEvents() {
       )}
       </>)}
 
-      {/* Event Detail Drawer */}
+      {/* Club Event Detail Drawer */}
       {showDetailDrawer && selectedEvent && (
         <EventDetailDrawer
           event={selectedEvent}
@@ -1026,6 +1202,14 @@ export function ClubEvents() {
         />
       )}
 
+      {/* Team Event Detail Drawer */}
+      {selectedTeamEvent && (
+        <TeamEventDetailDrawer
+          event={selectedTeamEvent}
+          onClose={() => setSelectedTeamEvent(null)}
+        />
+      )}
+
       {/* Event Form Modal */}
       {showFormDrawer && (
         <EventFormDrawer
@@ -1033,6 +1217,7 @@ export function ClubEvents() {
           initialDate={initialDate}
           onClose={() => { setShowFormDrawer(false); setEditingEvent(null); setInitialDate(undefined); }}
           onSave={handleSaveEvent}
+          onSaveTeam={handleSaveTeamEvent}
         />
       )}
     </div>

@@ -12,6 +12,140 @@ import type {
   FamilyRelation
 } from "../types/dfbnet";
 
+// ========= PASSABGLEICH TYPES =========
+
+export type PassabgleichStatus = "green" | "yellow" | "white" | "red";
+
+export interface DfbMember {
+  id: string;
+  firstName: string;
+  lastName: string;
+  birthday: string;
+  gender: "MALE" | "FEMALE" | "DIVERSE";
+  memberUntil?: string;
+  issueDate?: string;
+  status?: "MAIN" | "SECONDARY";
+  idCardNumber?: string;
+}
+
+export interface PassabgleichEntry {
+  id: string;
+  matchStatus: PassabgleichStatus;
+  dvhPerson?: { id: string; firstName: string; lastName: string; dateOfBirth: string; };
+  dfbMember?: DfbMember;
+  similarityNote?: string;
+}
+
+// ========= DFBnet GET /club/{id}/members RESPONSE =========
+// Based on actual mockPeople.ts football-dept (dept_fussball) persons.
+// 5 green (exact), 2 yellow (fuzzy), 3 red (DFBnet-only) = 10 DFBnet members.
+
+export const BVB_DFB_MEMBERS_JSON = {
+  club: {
+    id: "00ES8GN8N400008VVV0AG08LVUPGND5I",
+    number: "21110019",
+    name: "BV BORUSSIA 09 DORTMUND E.V.",
+    shortName: "Borussia Dortmund",
+    threeLetterCode: "bvb",
+    association: "WDFV",
+    street: "Rheinlanddamm 207–209",
+    city: "Dortmund",
+    postalCode: "44137"
+  },
+  members: [
+    // Green — exact match with DVH
+    { id: "dfb_001", firstName: "Patrick",  lastName: "Steuble",  birthday: "1985-03-15", gender: "MALE",   status: "MAIN",      idCardNumber: "RWFV-2024-001234", memberUntil: "2026-06-30", issueDate: "2015-08-12" },
+    { id: "dfb_002", firstName: "Thomas",   lastName: "Müller",   birthday: "1975-03-10", gender: "MALE",   status: "MAIN",      idCardNumber: "RWFV-2024-001235", memberUntil: "2026-06-30", issueDate: "2010-03-22" },
+    { id: "dfb_003", firstName: "Mario",    lastName: "Bauer",    birthday: "1995-04-12", gender: "MALE",   status: "MAIN",      idCardNumber: "RWFV-2024-001236", memberUntil: "2025-04-30", issueDate: "2018-06-15" },
+    { id: "dfb_004", firstName: "Max",      lastName: "Schneider",birthday: "2012-05-10", gender: "MALE",   status: "MAIN",      idCardNumber: "RWFV-2024-001237", memberUntil: "2027-06-30", issueDate: "2022-09-01" },
+    { id: "dfb_005", firstName: "Noah",     lastName: "Hoffmann", birthday: "2013-11-15", gender: "MALE",   status: "MAIN",      idCardNumber: "RWFV-2024-001238", memberUntil: "2027-06-30", issueDate: "2022-10-20" },
+    // Yellow — fuzzy: name differs (Stefan vs Stephan, Krause vs Krauße) — expired
+    { id: "dfb_006", firstName: "Stephan",  lastName: "Krauße",   birthday: "1992-08-25", gender: "MALE",   status: "MAIN",      idCardNumber: "RWFV-2024-001239", memberUntil: "2024-08-31", issueDate: "2019-02-10" },
+    // Yellow — fuzzy: birthday off by 1 day (2011-09-16 vs DVH 2011-09-15)
+    { id: "dfb_007", firstName: "Anna",     lastName: "Berger",   birthday: "2011-09-16", gender: "FEMALE", status: "MAIN",      idCardNumber: "RWFV-2024-001240", memberUntil: "2027-06-30", issueDate: "2021-10-05" },
+    // Red — DFBnet-only, no matching DVH person (dfb_008 expired, dfb_003 expired)
+    { id: "dfb_008", firstName: "Jürgen",   lastName: "Haas",     birthday: "1978-04-05", gender: "MALE",   status: "MAIN",      idCardNumber: "RWFV-2019-007821", memberUntil: "2020-04-30", issueDate: "2002-05-22" },
+    { id: "dfb_009", firstName: "Stefan",   lastName: "Lange",    birthday: "1996-11-22", gender: "MALE",   status: "SECONDARY", idCardNumber: "RWFV-2022-009744", memberUntil: "2026-08-31", issueDate: "2020-07-14" },
+    { id: "dfb_010", firstName: "Marie",    lastName: "Hoffmann", birthday: "2010-07-14", gender: "FEMALE", status: "MAIN",      idCardNumber: "RWFV-2021-009633", memberUntil: "2027-06-30", issueDate: "2021-07-30" }
+  ]
+} as const;
+
+// ========= PASSABGLEICH DATA — 14 entries =========
+// DVH side: 11 football-dept persons (person IDs from mockPeople.ts)
+// DFBnet side: 10 members from BVB_DFB_MEMBERS_JSON
+
+export const mockPassabgleichData: PassabgleichEntry[] = [
+  // ── GREEN (5) — exact name + birthday match ───────────────────────────────
+  {
+    id: "pa_01", matchStatus: "green",
+    dvhPerson:  { id: "person_patrick",   firstName: "Patrick", lastName: "Steuble",  dateOfBirth: "1985-03-15" },
+    dfbMember:  { id: "dfb_001", firstName: "Patrick", lastName: "Steuble",  birthday: "1985-03-15", gender: "MALE",   status: "MAIN", idCardNumber: "RWFV-2024-001234", memberUntil: "2026-06-30", issueDate: "2015-08-12" }
+  },
+  {
+    id: "pa_02", matchStatus: "green",
+    dvhPerson:  { id: "thomas_mueller",   firstName: "Thomas",  lastName: "Müller",   dateOfBirth: "1975-03-10" },
+    dfbMember:  { id: "dfb_002", firstName: "Thomas",  lastName: "Müller",   birthday: "1975-03-10", gender: "MALE",   status: "MAIN", idCardNumber: "RWFV-2024-001235", memberUntil: "2026-06-30", issueDate: "2010-03-22" }
+  },
+  {
+    id: "pa_03", matchStatus: "green",
+    dvhPerson:  { id: "player_h1_mario",  firstName: "Mario",   lastName: "Bauer",    dateOfBirth: "1995-04-12" },
+    dfbMember:  { id: "dfb_003", firstName: "Mario",   lastName: "Bauer",    birthday: "1995-04-12", gender: "MALE",   status: "MAIN", idCardNumber: "RWFV-2024-001236", memberUntil: "2025-04-30", issueDate: "2018-06-15" }
+  },
+  {
+    id: "pa_04", matchStatus: "green",
+    dvhPerson:  { id: "person_max",       firstName: "Max",     lastName: "Schneider",dateOfBirth: "2012-05-10" },
+    dfbMember:  { id: "dfb_004", firstName: "Max",     lastName: "Schneider",birthday: "2012-05-10", gender: "MALE",   status: "MAIN", idCardNumber: "RWFV-2024-001237", memberUntil: "2027-06-30", issueDate: "2022-09-01" }
+  },
+  {
+    id: "pa_05", matchStatus: "green",
+    dvhPerson:  { id: "noah_hoffmann",    firstName: "Noah",    lastName: "Hoffmann", dateOfBirth: "2013-11-15" },
+    dfbMember:  { id: "dfb_005", firstName: "Noah",    lastName: "Hoffmann", birthday: "2013-11-15", gender: "MALE",   status: "MAIN", idCardNumber: "RWFV-2024-001238", memberUntil: "2027-06-30", issueDate: "2022-10-20" }
+  },
+  // ── YELLOW (2) — fuzzy match, data discrepancy ────────────────────────────
+  {
+    id: "pa_06", matchStatus: "yellow",
+    similarityNote: "Vorname und Nachname weichen ab: DFBnet 'Stephan Krauße' vs. DVH 'Stefan Krause'",
+    dvhPerson:  { id: "player_h1_stefan", firstName: "Stefan",  lastName: "Krause",   dateOfBirth: "1992-08-25" },
+    dfbMember:  { id: "dfb_006", firstName: "Stephan", lastName: "Krauße",   birthday: "1992-08-25", gender: "MALE",   status: "MAIN", idCardNumber: "RWFV-2024-001239", memberUntil: "2024-08-31", issueDate: "2019-02-10" }
+  },
+  {
+    id: "pa_07", matchStatus: "yellow",
+    similarityNote: "Geburtsdatum weicht um 1 Tag ab: DFBnet 16.09.2011 vs. DVH 15.09.2011",
+    dvhPerson:  { id: "person_anna",      firstName: "Anna",    lastName: "Berger",   dateOfBirth: "2011-09-15" },
+    dfbMember:  { id: "dfb_007", firstName: "Anna",    lastName: "Berger",   birthday: "2011-09-16", gender: "FEMALE", status: "MAIN", idCardNumber: "RWFV-2024-001240", memberUntil: "2027-06-30", issueDate: "2021-10-05" }
+  },
+  // ── WHITE (4) — DVH-only, no DFBnet pass ─────────────────────────────────
+  {
+    id: "pa_08", matchStatus: "white",
+    dvhPerson:  { id: "person_tim",       firstName: "Tim",     lastName: "Weber",    dateOfBirth: "2013-08-20" }
+  },
+  {
+    id: "pa_09", matchStatus: "white",
+    dvhPerson:  { id: "player_u12_luca",  firstName: "Luca",    lastName: "Braun",    dateOfBirth: "2014-02-18" }
+  },
+  {
+    id: "pa_10", matchStatus: "white",
+    dvhPerson:  { id: "player_u12_finn",  firstName: "Finn",    lastName: "Hartmann", dateOfBirth: "2013-12-03" }
+  },
+  {
+    id: "pa_11", matchStatus: "white",
+    dvhPerson:  { id: "sophie_klein",     firstName: "Sophie",  lastName: "Klein",    dateOfBirth: "2014-03-22" }
+  },
+  // ── RED (3) — DFBnet-only, no DVH record ─────────────────────────────────
+  {
+    id: "pa_12", matchStatus: "red",
+    dfbMember:  { id: "dfb_008", firstName: "Jürgen",  lastName: "Haas",     birthday: "1978-04-05", gender: "MALE",   status: "MAIN",      idCardNumber: "RWFV-2019-007821", memberUntil: "2020-04-30", issueDate: "2002-05-22" }
+  },
+  {
+    id: "pa_13", matchStatus: "red",
+    dfbMember:  { id: "dfb_009", firstName: "Stefan",  lastName: "Lange",    birthday: "1996-11-22", gender: "MALE",   status: "SECONDARY", idCardNumber: "RWFV-2022-009744", memberUntil: "2026-08-31", issueDate: "2020-07-14" }
+  },
+  {
+    id: "pa_14", matchStatus: "red",
+    dfbMember:  { id: "dfb_010", firstName: "Marie",   lastName: "Hoffmann", birthday: "2010-07-14", gender: "FEMALE", status: "MAIN",      idCardNumber: "RWFV-2021-009633", memberUntil: "2027-06-30", issueDate: "2021-07-30" }
+  }
+];
+
 // ========= PLAYER PASSES =========
 
 export const mockPlayerPasses: PlayerPass[] = [

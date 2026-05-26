@@ -30,7 +30,8 @@ export interface RSVPStats {
 }
 
 export interface AudienceConfig {
-  mode: AudienceMode;
+  mode: AudienceMode; // kept for backward compat with existing events
+  isClubWide?: boolean;
   departmentIds?: string[];
   groupIds?: string[];
   memberIds?: string[];
@@ -40,10 +41,11 @@ export interface ClubEvent {
   id: string;
   title: string;
   description?: string;
-  date: string;
+  date: string;        // start date YYYY-MM-DD
+  endDate?: string;    // end date for multi-day events; if absent = same as date
   isAllDay?: boolean;
-  startTime: string;
-  endTime: string;
+  startTime: string;   // applies to start date
+  endTime: string;     // applies to end date (or same date if single-day)
   location?: string;
   bannerImage?: string;
   
@@ -89,16 +91,18 @@ export interface ClubEvent {
 export interface ClubEventFormData {
   title: string;
   description: string;
-  date: string;
+  date: string;     // start date
+  endDate: string;  // end date (empty = same as date)
   isAllDay: boolean;
   startTime: string;
   endTime: string;
   location: string;
   bannerImage: string;
-  audienceMode: AudienceMode;
-  departmentIds: string[];
-  groupIds: string[];
-  memberIds: string[];
+  // Audience — multi-source, combinable
+  isClubWide: boolean;      // true = invite everyone, overrides all below
+  departmentIds: string[];  // additive
+  groupIds: string[];       // additive
+  memberIds: string[];      // additive individual picks
   visibility: EventVisibility;
   rsvpRequired: boolean;
   rsvpDeadline: string;
@@ -117,12 +121,13 @@ export const defaultEventFormData: ClubEventFormData = {
   title: "",
   description: "",
   date: "",
+  endDate: "",
   isAllDay: false,
   startTime: "18:00",
   endTime: "20:00",
   location: "",
   bannerImage: "",
-  audienceMode: "all",
+  isClubWide: false,
   departmentIds: [],
   groupIds: [],
   memberIds: [],

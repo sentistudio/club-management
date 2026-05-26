@@ -18,12 +18,14 @@ import {
   Newspaper,
   Home,
   ClipboardList,
-  LayoutGrid
+  LayoutGrid,
+  CheckSquare
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { mockTickets, CURRENT_STAFF_ID } from "../../data/mockInbox";
 import { useRole, UserSwitcher } from "../../contexts";
 import { useLanguage } from "../../i18n";
+import { mockTeams } from "../../data/mockTeams";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -57,66 +59,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     {
       items: [
         { to: "/dashboard", icon: LayoutDashboard, label: t("sidebar.dashboard") },
-        { to: "/teams", icon: Shield, label: t("sidebar.teams") },
-      ]
-    },
-    {
-      items: [
         { to: "/people", icon: Users, label: t("sidebar.people") },
-        { to: "/registration", icon: ClipboardList, label: t("sidebar.registration") },
-        {
-          to: "/matches",
-          icon: Trophy,
-          label: t("sidebar.competitions"),
-          children: [
-            { to: "/matches", label: t("sidebar.matches") },
-            { to: "/player-passes", label: t("sidebar.playerPasses") }
-          ]
-        },
-      ]
-    },
-    {
-      items: [
-        {
-          to: "/products",
-          icon: Package,
-          label: t("sidebar.productsPayment"),
-          children: [
-            { to: "/products", label: t("sidebar.products") },
-            { to: "/subscriptions", label: t("sidebar.subscriptions") },
-            { to: "/invoices", label: t("sidebar.invoices") },
-            { to: "/payment-links", label: t("sidebar.paymentLinks") }
-          ]
-        },
         { to: "/events", icon: Calendar, label: t("sidebar.events") },
-        { to: "/fields", icon: LayoutGrid, label: t("sidebar.fieldBooking") },
-      ]
-    },
-    {
-      items: [
-        {
-          to: "/departments",
-          icon: Building2,
-          label: t("sidebar.clubManagement"),
-          children: [
-            { to: "/departments", label: t("sidebar.departments") },
-            { to: "/committees", label: t("sidebar.committees") },
-            { to: "/volunteering", label: t("sidebar.volunteering") }
-          ]
-        },
-        {
-          to: "/finance",
-          icon: Wallet,
-          label: t("sidebar.finance"),
-          children: [
-            { to: "/transactions", label: t("sidebar.transactions") },
-            { to: "/finance", label: t("sidebar.bookings") }
-          ]
-        },
-      ]
-    },
-    {
-      items: [
+        { to: "/tasks", icon: CheckSquare, label: "Aufgaben" },
         {
           icon: MessageSquare,
           label: t("sidebar.communication"),
@@ -128,7 +73,53 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             { to: "/club-news", label: t("sidebar.clubNews") }
           ]
         },
+        {
+          to: "/teams",
+          icon: Trophy,
+          label: "Spielbetrieb",
+          children: [
+            { to: "/teams", label: t("sidebar.teams") },
+            { to: "/seasons", label: "Saison" },
+            { to: "/matches", label: t("sidebar.matches") },
+            { to: "/player-passes", label: t("sidebar.playerPasses") },
+            { to: "/drills", label: "Übungen" },
+            { to: "/knowledge", label: "Wissen" },
+            { to: "/lineups", label: "Aufstellungen" },
+          ]
+        },
+        { to: "/fields", icon: LayoutGrid, label: t("sidebar.fieldBooking") },
+        { to: "/registration", icon: ClipboardList, label: t("sidebar.registration") },
+        {
+          to: "/products",
+          icon: Package,
+          label: t("sidebar.productsPayment"),
+          children: [
+            { to: "/products", label: t("sidebar.products") },
+            { to: "/subscriptions", label: t("sidebar.subscriptions") },
+            { to: "/invoices", label: t("sidebar.invoices") },
+            { to: "/payment-links", label: t("sidebar.paymentLinks") }
+          ]
+        },
+        {
+          to: "/finance",
+          icon: Wallet,
+          label: t("sidebar.finance"),
+          children: [
+            { to: "/transactions", label: t("sidebar.transactions") },
+            { to: "/finance", label: t("sidebar.bookings") }
+          ]
+        },
         { to: "/documents", icon: FolderOpen, label: t("sidebar.documents") },
+        {
+          to: "/departments",
+          icon: Building2,
+          label: t("sidebar.clubManagement"),
+          children: [
+            { to: "/departments", label: t("sidebar.departments") },
+            { to: "/committees", label: t("sidebar.committees") },
+            { to: "/volunteering", label: t("sidebar.volunteering") }
+          ]
+        },
         { to: "/settings", icon: Settings, label: t("sidebar.settings") },
       ]
     }
@@ -139,6 +130,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       items: [
         { to: "/member", icon: Home, label: t("sidebar.overview") },
         { to: "/member/calendar", icon: Calendar, label: t("sidebar.events") },
+        { to: "/member/team", icon: Shield, label: "Mein Team" },
         { to: "/member/chats", icon: MessageSquare, label: t("sidebar.messages") },
         { to: "/member/news", icon: Newspaper, label: t("sidebar.news") },
       ]
@@ -151,8 +143,24 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   ], [t]);
 
+  const isCoachMode = activeRole === "coach";
   const isMemberMode = activeRole === "member";
-  const navSections = isMemberMode ? memberNavSections : adminNavSections;
+
+  // Build coach nav: one entry per assigned team
+  const coachNavSections: NavSection[] = useMemo(() => {
+    const teamIds = user.coachTeamIds ?? [];
+    const teamItems = teamIds.map(id => {
+      const team = mockTeams.find(t => t.id === id);
+      return {
+        to: `/teams/${id}/dashboard`,
+        icon: Shield,
+        label: team?.name ?? id
+      };
+    });
+    return [{ title: "Meine Teams", items: teamItems }];
+  }, [user.coachTeamIds]);
+
+  const navSections = isMemberMode ? memberNavSections : isCoachMode ? coachNavSections : adminNavSections;
 
   const toggleExpand = (label: string) => {
     setExpandedItems(prev =>
@@ -224,7 +232,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-neutral-900 text-sm truncate">{mockClub.shortName}</p>
               <p className="text-xs text-neutral-400">
-                {isMemberMode ? `${memberSubtitle} · ${t("sidebar.memberSubtitle")}` : t("sidebar.clubAdminSubtitle")}
+                {isMemberMode
+                  ? `${memberSubtitle} · ${t("sidebar.memberSubtitle")}`
+                  : isCoachMode
+                  ? "Trainer-Ansicht"
+                  : t("sidebar.clubAdminSubtitle")}
               </p>
             </div>
           </div>
