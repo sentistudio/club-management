@@ -68,7 +68,7 @@ export function Products() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-sky-100">
+            <div className="p-2.5 rounded-[10px] bg-sky-100">
               <Package className="w-5 h-5 text-sky-600" />
             </div>
             <div>
@@ -79,7 +79,7 @@ export function Products() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-violet-100">
+            <div className="p-2.5 rounded-[10px] bg-violet-100">
               <Repeat className="w-5 h-5 text-violet-600" />
             </div>
             <div>
@@ -90,7 +90,7 @@ export function Products() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-100">
+            <div className="p-2.5 rounded-[10px] bg-amber-100">
               <Zap className="w-5 h-5 text-amber-600" />
             </div>
             <div>
@@ -111,7 +111,7 @@ export function Products() {
               onClick={() => setExpandedProduct(expandedProduct === product.id ? null : product.id)}
             >
               <div className="flex items-center gap-4">
-                <div className="p-2.5 rounded-xl bg-gradient-to-br from-sky-400 to-sky-600">
+                <div className="p-2.5 rounded-[10px] bg-gradient-to-br from-sky-400 to-sky-600">
                   <Package className="w-5 h-5 text-white" />
                 </div>
                 <div>

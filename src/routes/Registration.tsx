@@ -668,14 +668,14 @@ function RegistrationPreview({
             <div className="grid gap-4 max-w-md mx-auto">
               <button
                 onClick={() => setAuthMethod("dfb")}
-                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                className={`p-5 rounded-[10px] border-2 text-left transition-all ${
                   authMethod === "dfb" 
                     ? "border-teal-500 bg-teal-50" 
                     : "border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-[10px] flex items-center justify-center">
                     <Shield className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
@@ -687,14 +687,14 @@ function RegistrationPreview({
               </button>
               <button
                 onClick={() => setAuthMethod("email")}
-                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                className={`p-5 rounded-[10px] border-2 text-left transition-all ${
                   authMethod === "email" 
                     ? "border-teal-500 bg-teal-50" 
                     : "border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-[10px] flex items-center justify-center">
                     <Mail className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
@@ -719,14 +719,14 @@ function RegistrationPreview({
             <div className="grid gap-4 max-w-md mx-auto">
               <button
                 onClick={() => setOnboardingType("self")}
-                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                className={`p-5 rounded-[10px] border-2 text-left transition-all ${
                   onboardingType === "self" 
                     ? "border-teal-500 bg-teal-50" 
                     : "border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-[10px] flex items-center justify-center">
                     <User className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
@@ -738,14 +738,14 @@ function RegistrationPreview({
               </button>
               <button
                 onClick={() => setOnboardingType("child")}
-                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                className={`p-5 rounded-[10px] border-2 text-left transition-all ${
                   onboardingType === "child" 
                     ? "border-teal-500 bg-teal-50" 
                     : "border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-violet-100 rounded-[10px] flex items-center justify-center">
                     <Users className="w-6 h-6 text-violet-600" />
                   </div>
                   <div>
@@ -757,14 +757,14 @@ function RegistrationPreview({
               </button>
               <button
                 onClick={() => setOnboardingType("household")}
-                className={`p-5 rounded-xl border-2 text-left transition-all ${
+                className={`p-5 rounded-[10px] border-2 text-left transition-all ${
                   onboardingType === "household" 
                     ? "border-teal-500 bg-teal-50" 
                     : "border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-amber-100 rounded-[10px] flex items-center justify-center">
                     <Home className="w-6 h-6 text-amber-600" />
                   </div>
                   <div>

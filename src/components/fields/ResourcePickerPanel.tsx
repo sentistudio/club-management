@@ -210,7 +210,7 @@ export function ResourcePickerPanel({
                         bookingScope: "full_field",
                         bookedZoneIds: [],
                       })}
-                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border-2 text-left transition-all ${
+                      className={`flex items-center gap-2.5 p-2.5 rounded-[10px] border-2 text-left transition-all ${
                         isSelected
                           ? "border-teal-500 bg-teal-50"
                           : isFullyBooked

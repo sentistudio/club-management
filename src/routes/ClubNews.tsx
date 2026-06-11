@@ -201,7 +201,7 @@ export function ClubNews() {
       </div>
 
       {/* Main Content Card */}
-      <div className="flex-1 bg-white rounded-xl border border-neutral-200 overflow-hidden flex flex-col min-h-0">
+      <div className="flex-1 bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden flex flex-col min-h-0">
         {/* Tabs */}
         <div className="border-b border-neutral-200 px-6 pt-4">
           <div className="flex gap-6">
@@ -275,7 +275,7 @@ export function ClubNews() {
               {filteredNews.map((news) => (
                 <div
                   key={news.id}
-                  className="bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                 >
                   {/* Card Header */}
                   <div className="flex items-center justify-between p-4 pb-3">

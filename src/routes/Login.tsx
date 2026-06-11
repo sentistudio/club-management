@@ -52,7 +52,7 @@ export function Login() {
               <button
                 key={user.id}
                 onClick={() => handleSelectUser(user.id)}
-                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-neutral-200 hover:border-teal-500 hover:bg-teal-50 transition-all text-left group"
+                className="w-full flex items-center gap-4 p-4 rounded-[10px] border-2 border-neutral-200 hover:border-teal-500 hover:bg-teal-50 transition-all text-left group"
               >
                 <img 
                   src={user.avatar}

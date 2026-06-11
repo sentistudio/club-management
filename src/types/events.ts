@@ -58,7 +58,7 @@ export interface ClubEvent {
   
   // RSVP
   rsvpRequired: boolean;
-  rsvpDeadline?: string;
+  rsvpHoursBefore?: number; // hours before event start when RSVP closes
   maxParticipants?: number;
   rsvpStats?: RSVPStats;
   
@@ -105,7 +105,7 @@ export interface ClubEventFormData {
   memberIds: string[];      // additive individual picks
   visibility: EventVisibility;
   rsvpRequired: boolean;
-  rsvpDeadline: string;
+  rsvpHoursBefore: number; // hours before event start
   maxParticipants: string;
   recurrenceEnabled: boolean;
   recurrenceFrequency: RecurrenceFrequency;
@@ -133,7 +133,7 @@ export const defaultEventFormData: ClubEventFormData = {
   memberIds: [],
   visibility: "private",
   rsvpRequired: true,
-  rsvpDeadline: "",
+  rsvpHoursBefore: 24,
   maxParticipants: "",
   recurrenceEnabled: false,
   recurrenceFrequency: "weekly",

@@ -156,7 +156,7 @@ export function Settings() {
             Verwalten Sie die Stammdaten Ihres Vereins
           </p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm flex-shrink-0">
+        <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-[10px] text-sm flex-shrink-0">
           <Globe className="w-4 h-4 text-violet-500 flex-shrink-0" />
           <span className="text-slate-600 font-medium">{mockOrganization.name}</span>
           <span className="text-slate-400 hidden sm:inline">· Vereinsgruppe</span>
@@ -172,7 +172,7 @@ export function Settings() {
 
         <div className="space-y-4">
           {/* Club Logo + DFB Badge */}
-          <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+          <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-[10px]">
             {club.logoUrl ? (
               <img
                 src={club.logoUrl}
@@ -180,7 +180,7 @@ export function Settings() {
                 className="w-16 h-16 object-contain flex-shrink-0"
               />
             ) : (
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-16 h-16 rounded-[10px] bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-bold text-lg">{club.shortName?.slice(0, 3)}</span>
               </div>
             )}
@@ -203,7 +203,7 @@ export function Settings() {
           </div>
 
           {/* Club Info Section */}
-          <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl">
+          <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-[10px]">
             <div className="p-3 rounded-lg bg-sky-100">
               <Building2 className="w-6 h-6 text-sky-600" />
             </div>
@@ -237,7 +237,7 @@ export function Settings() {
           </div>
 
           {/* Address Section */}
-          <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl">
+          <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-[10px]">
             <div className="p-3 rounded-lg bg-emerald-100">
               <MapPin className="w-6 h-6 text-emerald-600" />
             </div>
@@ -304,7 +304,7 @@ export function Settings() {
 
         {/* DFB Import Panel */}
         {showDfbImport && (
-          <div className="mb-5 rounded-xl border border-amber-200 overflow-hidden">
+          <div className="mb-5 rounded-[10px] border border-amber-200 overflow-hidden">
             {/* Panel header */}
             <div className="px-4 py-3 bg-amber-50 border-b border-amber-200 flex items-center justify-between gap-3">
               <div className="min-w-0">
@@ -554,7 +554,7 @@ export function Settings() {
           {venues.map(venue => (
             <div key={venue.id}>
               {editingVenueId === venue.id ? (
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                <div className="p-4 bg-slate-50 rounded-[10px] border border-slate-200 space-y-3">
                   <input
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#004941]"
                     placeholder="Name"
@@ -597,7 +597,7 @@ export function Settings() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl">
+                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-[10px]">
                   <div className="p-2 rounded-lg bg-teal-100 flex-shrink-0">
                     <MapPin className="w-4 h-4 text-teal-600" />
                   </div>
@@ -626,7 +626,7 @@ export function Settings() {
 
           {/* Add new venue form */}
           {editingVenueId === "new" ? (
-            <div className="p-4 bg-teal-50 rounded-xl border border-teal-200 space-y-3">
+            <div className="p-4 bg-teal-50 rounded-[10px] border border-teal-200 space-y-3">
               <input
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#004941]"
                 placeholder="Name *"
@@ -680,7 +680,7 @@ export function Settings() {
           ) : (
             <button
               onClick={() => { setEditingVenueId("new"); setVenueForm(EMPTY_VENUE_FORM); }}
-              className="w-full flex items-center gap-2 px-4 py-3 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-400 hover:border-teal-300 hover:text-teal-600 transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-3 border-2 border-dashed border-slate-200 rounded-[10px] text-sm text-slate-400 hover:border-teal-300 hover:text-teal-600 transition-colors"
             >
               <Plus className="w-4 h-4" /> Spielstätte hinzufügen
             </button>
@@ -694,7 +694,7 @@ export function Settings() {
           title="Gefahrenzone"
           subtitle="Irreversible Aktionen"
         />
-        <div className="p-4 bg-rose-50 rounded-xl border border-rose-100">
+        <div className="p-4 bg-rose-50 rounded-[10px] border border-rose-100">
           <p className="text-sm text-rose-700 mb-4">
             Die folgenden Aktionen können nicht rückgängig gemacht werden. Bitte mit Vorsicht verwenden.
           </p>

@@ -302,7 +302,7 @@ export function RoleSwitcher({ className = "" }: { className?: string }) {
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)} 
           />
-          <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden z-50">
+          <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-[10px] shadow-lg border border-neutral-200 overflow-hidden z-50">
             {/* Header */}
             <div className="px-4 py-3 bg-neutral-50 border-b border-neutral-200">
               <div className="flex items-center gap-3">
@@ -428,7 +428,7 @@ export function UserSwitcher({ onClose }: { onClose?: () => void }) {
             className="fixed inset-0 z-40" 
             onClick={() => setShowUserList(false)} 
           />
-          <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden z-50">
+          <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-[10px] shadow-lg border border-neutral-200 overflow-hidden z-50">
             <div className="p-2">
               <p className="px-3 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wide">
                 Demo: Benutzer wechseln

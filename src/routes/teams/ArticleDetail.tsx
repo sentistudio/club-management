@@ -54,7 +54,7 @@ export function ArticleDetail() {
 
       {/* Cover image */}
       {article.coverImageUrl && (
-        <div className="rounded-xl overflow-hidden aspect-[16/6]">
+        <div className="rounded-[10px] overflow-hidden aspect-[16/6]">
           <img src={article.coverImageUrl} alt={article.title} className="w-full h-full object-cover" />
         </div>
       )}

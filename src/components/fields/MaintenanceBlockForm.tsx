@@ -96,7 +96,7 @@ export function MaintenanceBlockForm({
               type="date"
               value={date}
               onChange={e => setDate(e.target.value)}
-              className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 border border-neutral-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
 
@@ -110,7 +110,7 @@ export function MaintenanceBlockForm({
                 type="time"
                 value={startTime}
                 onChange={e => setStartTime(e.target.value)}
-                className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 border border-neutral-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
             <div className="flex-1">
@@ -121,7 +121,7 @@ export function MaintenanceBlockForm({
                 type="time"
                 value={endTime}
                 onChange={e => setEndTime(e.target.value)}
-                className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 border border-neutral-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
           </div>
@@ -137,7 +137,7 @@ export function MaintenanceBlockForm({
               onChange={e => { setTitle(e.target.value); setError(""); }}
               placeholder={t("fields.maintenanceTitlePlaceholder")}
               autoFocus
-              className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 border border-neutral-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
 
@@ -151,7 +151,7 @@ export function MaintenanceBlockForm({
               onChange={e => setNote(e.target.value)}
               rows={2}
               placeholder={t("fields.maintenanceNotePlaceholder")}
-              className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+              className="w-full px-3 py-2 border border-neutral-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
             />
           </div>
 

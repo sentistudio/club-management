@@ -76,22 +76,22 @@ function OverviewTab({ teamId, seasonId }: { teamId: string; seasonId: string })
     <div className="space-y-6">
       {/* Stat tiles */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-slate-50 rounded-xl p-3 text-center">
+        <div className="bg-slate-50 rounded-[10px] p-3 text-center">
           <Users className="w-4 h-4 text-slate-400 mx-auto mb-1" />
           <p className="text-2xl font-bold text-slate-800">{players.length}</p>
           <p className="text-xs text-slate-500">Spieler</p>
         </div>
-        <div className="bg-slate-50 rounded-xl p-3 text-center">
+        <div className="bg-slate-50 rounded-[10px] p-3 text-center">
           <Users className="w-4 h-4 text-slate-400 mx-auto mb-1" />
           <p className="text-2xl font-bold text-slate-800">{coaches.length}</p>
           <p className="text-xs text-slate-500">Trainer</p>
         </div>
-        <div className="bg-slate-50 rounded-xl p-3 text-center">
+        <div className="bg-slate-50 rounded-[10px] p-3 text-center">
           <TrendingUp className="w-4 h-4 text-slate-400 mx-auto mb-1" />
           <p className={`text-2xl font-bold ${attendanceAvg >= 75 ? "text-emerald-600" : "text-amber-600"}`}>{attendanceAvg}%</p>
           <p className="text-xs text-slate-500">Anwesenheit</p>
         </div>
-        <div className="bg-slate-50 rounded-xl p-3 text-center">
+        <div className="bg-slate-50 rounded-[10px] p-3 text-center">
           <Trophy className="w-4 h-4 text-slate-400 mx-auto mb-1" />
           <p className="text-2xl font-bold text-slate-800">{lastScore ?? "–"}</p>
           <p className="text-xs text-slate-500">Letztes Spiel</p>
@@ -108,8 +108,8 @@ function OverviewTab({ teamId, seasonId }: { teamId: string; seasonId: string })
               const confirmed = evt.attendanceList.filter(a => a.status === "confirmed").length;
               const total = evt.attendanceList.length;
               return (
-                <div key={evt.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                  <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 text-lg`}>
+                <div key={evt.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                  <div className={`w-10 h-10 rounded-[10px] ${cfg.bg} flex items-center justify-center flex-shrink-0 text-lg`}>
                     {cfg.emoji}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -145,8 +145,8 @@ function OverviewTab({ teamId, seasonId }: { teamId: string; seasonId: string })
                 ? `${match.homeScore ?? "–"}:${match.awayScore ?? "–"}`
                 : `${match.awayScore ?? "–"}:${match.homeScore ?? "–"}`;
               return (
-                <div key={match.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm ${
+                <div key={match.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-[10px]">
+                  <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 font-bold text-sm ${
                     isDraw ? "bg-neutral-100 text-neutral-600" :
                     isWin  ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
                   }`}>{score}</div>
@@ -256,7 +256,7 @@ function PlayersTab({ teamId, seasonId }: { teamId: string; seasonId: string }) 
             const rate     = attendanceRate(entry);
             const posColor = POSITION_COLORS[entry.position ?? ""] ?? "bg-neutral-100 text-neutral-600";
             return (
-              <div key={entry.id} className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col items-center gap-2 text-center hover:border-slate-300 transition-colors">
+              <div key={entry.id} className="bg-white border border-slate-200 rounded-[10px] p-3 flex flex-col items-center gap-2 text-center hover:border-slate-300 transition-colors">
                 {/* Avatar */}
                 <div className="relative mt-1">
                   {person.avatarUrl ? (
@@ -314,7 +314,7 @@ function PlayersTab({ teamId, seasonId }: { teamId: string; seasonId: string }) 
               const initials = getPersonInitials(person);
               const roleLabel = entry.role === "coach" ? "Cheftrainer" : entry.role === "assistant_coach" ? "Co-Trainer" : "Torwarttrainer";
               return (
-                <div key={entry.id} className="flex items-center gap-2.5 bg-white border border-slate-200 rounded-xl px-3 py-2">
+                <div key={entry.id} className="flex items-center gap-2.5 bg-white border border-slate-200 rounded-[10px] px-3 py-2">
                   {person.avatarUrl ? (
                     <img src={person.avatarUrl} alt={person.fullName} className="w-8 h-8 rounded-full object-cover" />
                   ) : (
@@ -418,8 +418,8 @@ function EventsTab({ teamId, seasonId }: { teamId: string; seasonId: string }) {
                   const isDraw = hasScore && evt.homeScore === evt.awayScore;
                   const score = hasScore ? (evt.isHome ? `${evt.homeScore}:${evt.awayScore}` : `${evt.awayScore}:${evt.homeScore}`) : null;
                   return (
-                    <div key={evt.id} className={`flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-white ${isCompleted ? "opacity-70" : ""}`}>
-                      <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 text-lg`}>
+                    <div key={evt.id} className={`flex items-center gap-3 p-3 rounded-[10px] border border-slate-100 bg-white ${isCompleted ? "opacity-70" : ""}`}>
+                      <div className={`w-10 h-10 rounded-[10px] ${cfg.bg} flex items-center justify-center flex-shrink-0 text-lg`}>
                         {cfg.emoji}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -516,7 +516,7 @@ function TaskGroupRow({ group }: { group: ReturnType<typeof getTaskGroupsByTeam>
   const isPastDue = group.dueDate && group.dueDate < new Date().toISOString().split("T")[0];
 
   return (
-    <div className="border border-slate-200 rounded-xl overflow-hidden">
+    <div className="border border-slate-200 rounded-[10px] overflow-hidden">
       <button className="w-full text-left p-4" onClick={() => setExpanded(!expanded)}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -628,7 +628,7 @@ function LineupsTab({ teamId, seasonId }: { teamId: string; seasonId: string }) 
             const linkedMatch  = lineup.linkedMatchId ? events.find(e => e.id === lineup.linkedMatchId) : null;
             const filledCount  = lineup.positions.filter(p => p.personId).length;
             return (
-              <div key={lineup.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-slate-300 transition-colors cursor-pointer">
+              <div key={lineup.id} className="bg-white border border-slate-200 rounded-[10px] overflow-hidden hover:border-slate-300 transition-colors cursor-pointer">
                 <div className="p-2.5 pb-0">
                   <PitchPreview lineupId={lineup.id} />
                 </div>

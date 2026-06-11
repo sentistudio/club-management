@@ -480,7 +480,9 @@ const getClubEventsForPersons = (resolvedIds: string[]): EnhancedEvent[] => {
       rsvp: evt.rsvpStats
         ? {
             status: "pending" as const,
-            deadline: evt.rsvpDeadline?.split("T")[0],
+            deadline: evt.rsvpHoursBefore != null && evt.date && evt.startTime
+              ? (() => { const d = new Date(`${evt.date}T${evt.startTime}`); d.setHours(d.getHours() - evt.rsvpHoursBefore!); return d.toISOString().split("T")[0]; })()
+              : undefined,
             required: evt.rsvpRequired,
             confirmed: evt.rsvpStats.confirmed,
             maybe: 0,
@@ -1182,7 +1184,7 @@ export function MemberCalendar() {
 
       {/* LIST VIEW */}
       {viewMode === "list" && (
-        <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden">
           {/* Week Navigator */}
           <div className="border-b border-neutral-200 p-3 bg-neutral-50">
             <div className="flex items-center justify-between mb-2">
@@ -1604,15 +1606,15 @@ export function MemberChats() {
             <input
               type="text"
               placeholder={lang === "de" ? "Nachricht schreiben…" : "Write a message…"}
-              className="flex-1 px-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="flex-1 px-4 py-2.5 border border-neutral-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
               readOnly
             />
-            <button className="p-2.5 bg-teal-500 text-white rounded-xl hover:bg-teal-600 transition-colors">
+            <button className="p-2.5 bg-teal-500 text-white rounded-[10px] hover:bg-teal-600 transition-colors">
               <Send className="w-5 h-5" />
             </button>
           </div>
         ) : (
-          <div className="mt-3 px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-400 text-center">
+          <div className="mt-3 px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-[10px] text-sm text-neutral-400 text-center">
             {lang === "de" ? "Nur Reaktionen möglich" : "Reactions only"}
           </div>
         )}
@@ -1875,7 +1877,7 @@ export function MemberProfile() {
         <div className="divide-y divide-neutral-100">
           {getUserMemberships(user.id).map((membership, idx) => (
             <div key={idx} className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-2xl">
+              <div className="w-12 h-12 bg-emerald-100 rounded-[10px] flex items-center justify-center text-2xl">
                 {membership.icon}
               </div>
               <div className="flex-1">

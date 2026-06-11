@@ -74,7 +74,7 @@ export function PaymentLinks() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-100">
+            <div className="p-2.5 rounded-[10px] bg-emerald-100">
               <Link2 className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
@@ -85,7 +85,7 @@ export function PaymentLinks() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-sky-100">
+            <div className="p-2.5 rounded-[10px] bg-sky-100">
               <Users className="w-5 h-5 text-sky-600" />
             </div>
             <div>
@@ -96,7 +96,7 @@ export function PaymentLinks() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-violet-100">
+            <div className="p-2.5 rounded-[10px] bg-violet-100">
               <Link2 className="w-5 h-5 text-violet-600" />
             </div>
             <div>
@@ -121,7 +121,7 @@ export function PaymentLinks() {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600">
+                  <div className="p-2.5 rounded-[10px] bg-gradient-to-br from-violet-400 to-violet-600">
                     <Link2 className="w-5 h-5 text-white" />
                   </div>
                   <div>

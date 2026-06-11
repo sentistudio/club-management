@@ -234,7 +234,7 @@ export function PilotInbox() {
     >
       <div className="flex items-center gap-3">
         <div 
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
+          className="w-9 h-9 rounded-[10px] flex items-center justify-center"
           style={{ backgroundColor: iconBgColor }}
         >
           <Icon className="w-5 h-5" style={{ color: valueColor || "#171717" }} />
@@ -322,7 +322,7 @@ export function PilotInbox() {
                 placeholder="Suchen..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-[42px] pl-10 pr-4 rounded-xl border border-neutral-300 focus:outline-none focus:border-neutral-400 text-sm"
+                className="w-full h-[42px] pl-10 pr-4 rounded-[10px] border border-neutral-300 focus:outline-none focus:border-neutral-400 text-sm"
               />
             </div>
             {/* Category Filter */}
@@ -330,7 +330,7 @@ export function PilotInbox() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value as TicketCategory | "")}
-                className="w-full h-[42px] px-4 pr-10 rounded-xl border border-neutral-300 focus:outline-none focus:border-neutral-400 text-sm appearance-none bg-white"
+                className="w-full h-[42px] px-4 pr-10 rounded-[10px] border border-neutral-300 focus:outline-none focus:border-neutral-400 text-sm appearance-none bg-white"
               >
                 <option value="">Alle Kategorien</option>
                 {categoryOptions.map(opt => (
@@ -344,7 +344,7 @@ export function PilotInbox() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as TicketStatus | "all")}
-                className="w-full h-[42px] px-4 pr-10 rounded-xl border border-neutral-300 focus:outline-none focus:border-neutral-400 text-sm appearance-none bg-white"
+                className="w-full h-[42px] px-4 pr-10 rounded-[10px] border border-neutral-300 focus:outline-none focus:border-neutral-400 text-sm appearance-none bg-white"
               >
                 <option value="all">Alle Status</option>
                 <option value="open">Offen</option>
@@ -653,7 +653,7 @@ export function PilotInbox() {
                 </label>
               </div>
 
-              <div className={`flex items-end gap-3 p-3 rounded-xl border-2 transition-colors ${
+              <div className={`flex items-end gap-3 p-3 rounded-[10px] border-2 transition-colors ${
                 isPrivateNote ? "bg-amber-50 border-amber-200" : "bg-neutral-50 border-neutral-200"
               }`}>
                 {/* Attachment Button */}

@@ -47,7 +47,7 @@ function EventCard({ event, teamId }: { event: TeamEvent; teamId: string }) {
 
         <div className="flex-1 p-4 flex items-center gap-4">
           {/* Type icon */}
-          <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 text-lg`}>
+          <div className={`w-10 h-10 rounded-[10px] ${cfg.bg} flex items-center justify-center flex-shrink-0 text-lg`}>
             {cfg.emoji}
           </div>
 

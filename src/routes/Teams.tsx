@@ -188,7 +188,7 @@ export function Teams() {
             <div className="p-5">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-neutral-900 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-[10px] bg-neutral-900 flex items-center justify-center flex-shrink-0">
                     <span className="text-white font-bold text-lg">cb</span>
                   </div>
                   <div>

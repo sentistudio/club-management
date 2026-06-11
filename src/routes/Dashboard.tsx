@@ -89,7 +89,7 @@ function StatCard({ title, value, icon, trend, onClick }: StatCardProps) {
             </p>
           )}
         </div>
-        <div className="p-3 bg-teal-50 rounded-xl">
+        <div className="p-3 bg-teal-50 rounded-[10px]">
           <span className="text-teal-600">{icon}</span>
         </div>
       </div>
@@ -411,7 +411,7 @@ export function Dashboard() {
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-start justify-center pt-20">
           <div 
             ref={modalRef}
-            className="w-full max-w-md bg-white rounded-xl shadow-xl border border-neutral-200 overflow-hidden"
+            className="w-full max-w-md bg-white rounded-[10px] shadow-xl border border-neutral-200 overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-neutral-50">
@@ -764,7 +764,7 @@ export function Dashboard() {
             };
             
             return (
-              <div key={status} className={`p-4 rounded-xl ${config[status].bgLight}`}>
+              <div key={status} className={`p-4 rounded-[10px] ${config[status].bgLight}`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-neutral-600">{config[status].name}</span>
                   <span className="text-xl font-bold text-neutral-900">{count}</span>

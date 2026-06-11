@@ -154,7 +154,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
               <select
                 value={form.venueId}
                 onChange={e => set("venueId", e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
+                className="w-full px-3 py-2 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
               >
                 <option value="">{t("fields.selectVenue")}</option>
                 {activeVenues.map(v => (
@@ -173,7 +173,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
                 value={form.name}
                 onChange={e => set("name", e.target.value)}
                 placeholder={t("fields.namePlaceholder")}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004941]"
+                className="w-full px-3 py-2 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-[#004941]"
                 autoFocus
               />
             </div>
@@ -296,7 +296,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
             {/* Opening Hours */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">{t("fields.openingHours")}</label>
-              <div className="border border-neutral-200 rounded-xl overflow-hidden">
+              <div className="border border-neutral-200 rounded-[10px] overflow-hidden">
                 <table className="w-full text-sm">
                   <tbody>
                     {WEEKDAY_KEYS.map((day, idx) => {
@@ -365,7 +365,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
                 onChange={e => set("description", e.target.value)}
                 rows={2}
                 placeholder={t("fields.fieldDescriptionPlaceholder")}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004941] resize-none"
+                className="w-full px-3 py-2 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-[#004941] resize-none"
               />
             </div>
 
@@ -377,7 +377,7 @@ export function FieldFormDrawer({ field, onClose, onSave }: FieldFormDrawerProps
                 value={form.address}
                 onChange={e => set("address", e.target.value)}
                 placeholder={t("fields.addressPlaceholder")}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#004941]"
+                className="w-full px-3 py-2 border border-slate-200 rounded-[10px] text-sm focus:outline-none focus:ring-2 focus:ring-[#004941]"
               />
             </div>
 

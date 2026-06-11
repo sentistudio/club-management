@@ -57,7 +57,7 @@ export interface ClubEventFull {
   
   // RSVP
   rsvpRequired: boolean;
-  rsvpDeadline?: string; // ISO datetime
+  rsvpHoursBefore?: number; // hours before event start
   maxParticipants?: number;
   rsvpStats?: RSVPStats;
   

@@ -96,7 +96,7 @@ export function TeamEventDetailDrawer({ event, onClose }: Props) {
 
             {/* Match details */}
             {event.type === "match" && (
-              <div className="bg-emerald-50 rounded-xl p-4 space-y-2">
+              <div className="bg-emerald-50 rounded-[10px] p-4 space-y-2">
                 <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Spieldetails</p>
                 <div className="flex items-center gap-3 flex-wrap text-sm text-slate-700">
                   {event.matchType && (

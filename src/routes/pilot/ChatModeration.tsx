@@ -349,7 +349,7 @@ export function ChatModeration() {
     return (
       <div className="space-y-4">
         {/* Info Banner */}
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-[10px] flex items-start gap-3">
           <Settings className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-blue-800">Team-basierte Chat-Verwaltung</p>
@@ -376,7 +376,7 @@ export function ChatModeration() {
                   onClick={() => setExpandedTeam(isExpanded ? null : team.id)}
                   className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors"
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center ${
                     team.isYouthTeam ? 'bg-pink-100' : 'bg-emerald-100'
                   }`}>
                     {team.isYouthTeam ? (
@@ -621,7 +621,7 @@ export function ChatModeration() {
               {pendingReports.map(report => (
                 <Card key={report.id} className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-[10px] bg-orange-100 flex items-center justify-center flex-shrink-0">
                       <Flag className="w-5 h-5 text-orange-600" />
                     </div>
                     <div className="flex-1">
@@ -719,7 +719,7 @@ export function ChatModeration() {
               {mockSpecialChats.filter(c => c.type === "parent_only").map(chat => (
                 <Card key={chat.id} className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-[10px] bg-amber-100 flex items-center justify-center flex-shrink-0">
                       <Users className="w-5 h-5 text-amber-600" />
                     </div>
                     <div className="flex-1">
@@ -759,7 +759,7 @@ export function ChatModeration() {
               {mockSpecialChats.filter(c => c.type === "coaches_only").map(chat => (
                 <Card key={chat.id} className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-[10px] bg-blue-100 flex items-center justify-center flex-shrink-0">
                       <UserCog className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="flex-1">
@@ -798,7 +798,7 @@ export function ChatModeration() {
               {mockSpecialChats.filter(c => c.type === "custom").map(chat => (
                 <Card key={chat.id} className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-[10px] bg-purple-100 flex items-center justify-center flex-shrink-0">
                       {chat.chatType === "announcement" ? (
                         <Megaphone className="w-5 h-5 text-purple-600" />
                       ) : (
@@ -848,7 +848,7 @@ export function ChatModeration() {
     return (
       <div className="space-y-6">
         {/* Info */}
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-[10px] flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-amber-800">Datenschutz-Hinweis</p>
@@ -875,7 +875,7 @@ export function ChatModeration() {
               {pendingAudits.map(audit => (
                 <Card key={audit.id} className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-[10px] bg-amber-100 flex items-center justify-center flex-shrink-0">
                       <Clock className="w-5 h-5 text-amber-600" />
                     </div>
                     <div className="flex-1">
@@ -917,7 +917,7 @@ export function ChatModeration() {
               return (
                 <Card key={audit.id} className={`p-4 ${isExpired ? 'opacity-60' : ''}`}>
                   <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 ${
                       isExpired ? 'bg-slate-100' : 'bg-emerald-100'
                     }`}>
                       {isExpired ? (
@@ -1064,15 +1064,15 @@ export function ChatModeration() {
             <div>
               <label className="text-sm font-medium text-slate-700 mb-2 block">Art des Chats *</label>
               <div className="grid grid-cols-3 gap-2">
-                <button className="p-3 rounded-xl border-2 border-purple-500 bg-purple-50 text-center">
+                <button className="p-3 rounded-[10px] border-2 border-purple-500 bg-purple-50 text-center">
                   <Megaphone className="w-6 h-6 mx-auto text-purple-600" />
                   <p className="text-xs font-medium text-purple-800 mt-1">Ankündigung</p>
                 </button>
-                <button className="p-3 rounded-xl border border-slate-200 bg-white text-center hover:border-slate-300">
+                <button className="p-3 rounded-[10px] border border-slate-200 bg-white text-center hover:border-slate-300">
                   <Users className="w-6 h-6 mx-auto text-slate-400" />
                   <p className="text-xs font-medium text-slate-600 mt-1">Gruppe</p>
                 </button>
-                <button className="p-3 rounded-xl border border-slate-200 bg-white text-center hover:border-slate-300">
+                <button className="p-3 rounded-[10px] border border-slate-200 bg-white text-center hover:border-slate-300">
                   <MessageSquare className="w-6 h-6 mx-auto text-slate-400" />
                   <p className="text-xs font-medium text-slate-600 mt-1">DM</p>
                 </button>
@@ -1093,7 +1093,7 @@ export function ChatModeration() {
             <div>
               <label className="text-sm font-medium text-slate-700 mb-2 block">Vorlage (optional)</label>
               <div className="space-y-2">
-                <button className="w-full p-3 rounded-xl border border-slate-200 bg-white text-left hover:border-slate-300 flex items-center gap-3">
+                <button className="w-full p-3 rounded-[10px] border border-slate-200 bg-white text-left hover:border-slate-300 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                     <Users className="w-4 h-4 text-amber-600" />
                   </div>
@@ -1102,7 +1102,7 @@ export function ChatModeration() {
                     <p className="text-xs text-slate-500">Automatisch alle Eltern eines Teams</p>
                   </div>
                 </button>
-                <button className="w-full p-3 rounded-xl border border-slate-200 bg-white text-left hover:border-slate-300 flex items-center gap-3">
+                <button className="w-full p-3 rounded-[10px] border border-slate-200 bg-white text-left hover:border-slate-300 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                     <UserCog className="w-4 h-4 text-blue-600" />
                   </div>
@@ -1111,7 +1111,7 @@ export function ChatModeration() {
                     <p className="text-xs text-slate-500">Alle Trainer des Vereins</p>
                   </div>
                 </button>
-                <button className="w-full p-3 rounded-xl border border-slate-200 bg-white text-left hover:border-slate-300 flex items-center gap-3">
+                <button className="w-full p-3 rounded-[10px] border border-slate-200 bg-white text-left hover:border-slate-300 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                     <UserPlus className="w-4 h-4 text-slate-600" />
                   </div>
@@ -1173,7 +1173,7 @@ export function ChatModeration() {
 
       {/* Tabs */}
       <div className="flex-shrink-0 mb-4">
-        <div className="flex gap-1 p-1 bg-slate-100 rounded-xl">
+        <div className="flex gap-1 p-1 bg-slate-100 rounded-[10px]">
           <button
             onClick={() => setActiveTab("teams")}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${

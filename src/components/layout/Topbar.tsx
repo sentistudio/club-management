@@ -55,7 +55,7 @@ export function Topbar({ onMenuClick, actions }: TopbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center h-16 px-4 lg:px-6 bg-white border-b border-neutral-200">
+    <header className="sticky top-0 z-30 flex items-center h-16 px-4 lg:px-6 bg-white border-b border-gray-100">
       {/* Mobile menu button */}
       <button 
         onClick={onMenuClick}
@@ -74,7 +74,7 @@ export function Topbar({ onMenuClick, actions }: TopbarProps) {
         {actions}
 
         {/* Language Selector */}
-        <div className="flex items-center border border-neutral-200 rounded-lg overflow-hidden">
+        <div className="flex items-center border border-gray-100 rounded-lg overflow-hidden">
           <button
             onClick={() => setLang("de")}
             className={`px-2 py-1.5 text-xs font-medium transition-colors ${
@@ -109,9 +109,9 @@ export function Topbar({ onMenuClick, actions }: TopbarProps) {
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden z-50">
+            <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-[10px] shadow-lg border border-gray-100 overflow-hidden z-50">
               {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-neutral-50">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-neutral-50">
                 <h3 className="font-semibold text-neutral-900">Systemmeldungen</h3>
                 <button 
                   onClick={() => setShowNotifications(false)}
@@ -173,7 +173,7 @@ export function Topbar({ onMenuClick, actions }: TopbarProps) {
               </div>
 
               {/* Footer */}
-              <div className="px-4 py-3 border-t border-neutral-200 bg-neutral-50">
+              <div className="px-4 py-3 border-t border-gray-100 bg-neutral-50">
                 <button 
                   onClick={markAllAsRead}
                   className="w-full text-center text-sm font-medium text-teal-600 hover:text-teal-700"

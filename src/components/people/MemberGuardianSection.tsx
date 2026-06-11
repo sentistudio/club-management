@@ -87,7 +87,7 @@ export function MemberGuardianSection({ member, onRefresh }: MemberGuardianSecti
 
       {/* Guardian List */}
       {guardians.length === 0 ? (
-        <div className="text-center py-8 bg-slate-50 rounded-xl">
+        <div className="text-center py-8 bg-slate-50 rounded-[10px]">
           <UserPlus className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-600 font-medium">Keine Erziehungsberechtigten verknüpft</p>
           <p className="text-sm text-slate-500 mb-4">
@@ -107,7 +107,7 @@ export function MemberGuardianSection({ member, onRefresh }: MemberGuardianSecti
           {guardians.map(({ guardian, link }) => (
             <div 
               key={link.id}
-              className="p-4 bg-slate-50 rounded-xl"
+              className="p-4 bg-slate-50 rounded-[10px]"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -186,7 +186,7 @@ export function MemberGuardianSection({ member, onRefresh }: MemberGuardianSecti
           {/* Add More Button */}
           <button
             onClick={() => setShowInviteModal(true)}
-            className="w-full p-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 hover:border-teal-500 hover:text-teal-600 transition-colors flex items-center justify-center gap-2"
+            className="w-full p-3 border-2 border-dashed border-slate-200 rounded-[10px] text-slate-500 hover:border-teal-500 hover:text-teal-600 transition-colors flex items-center justify-center gap-2"
           >
             <Send className="w-4 h-4" />
             Weiteren Erziehungsberechtigten einladen
@@ -375,7 +375,7 @@ function AddGuardianModal({
           <div className="pt-4 border-t border-slate-200">
             <button
               onClick={onInvite}
-              className="w-full p-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 hover:border-teal-500 hover:text-teal-600 transition-colors flex items-center justify-center gap-2"
+              className="w-full p-3 border-2 border-dashed border-slate-200 rounded-[10px] text-slate-500 hover:border-teal-500 hover:text-teal-600 transition-colors flex items-center justify-center gap-2"
             >
               <Send className="w-4 h-4" />
               Einladung per E-Mail senden

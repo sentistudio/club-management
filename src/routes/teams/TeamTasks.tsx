@@ -170,7 +170,7 @@ export function TeamTasks() {
 
       {/* Visibility disclaimer */}
       {isCoachOrAdmin && !vis.aufgabenVisible && (
-        <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+        <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-[10px] text-sm text-amber-800">
           <EyeOff className="w-4 h-4 text-amber-500 flex-shrink-0" />
           <span>Dieser Bereich ist für Spieler <strong>nicht sichtbar</strong>. <Link to="../settings" className="underline font-medium hover:text-amber-900">In Einstellungen aktivieren →</Link></span>
         </div>

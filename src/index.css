@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'DFBSansPro';
+  src: url('/src/assets/fonts/DFB-Sans-Pro.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DFBSansPro';
+  src: url('/src/assets/fonts/DFB-Sans-Pro-Italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 @theme {
   /* DFB Brand Colors */
   /* Primary: DFB Dunkelgrün #004941 */
@@ -29,12 +45,12 @@
   --color-neutral-900: #171717;
 
   /* Font family */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'DFBSansPro', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   
   /* Border radius */
   --radius-sm: 6px;
   --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-lg: 10px;
   --radius-xl: 16px;
   --radius-2xl: 20px;
   --radius-full: 9999px;

@@ -112,7 +112,7 @@ export function FieldDetailModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
+            <div className="w-10 h-10 rounded-[10px] overflow-hidden flex-shrink-0">
               <img src={getFieldTypeImage(field)} alt="" className="w-full h-full object-cover" />
             </div>
             <div>
@@ -193,7 +193,7 @@ export function FieldDetailModal({
               {field.openingHours && (
                 <div>
                   <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">{t("fields.openingHours")}</p>
-                  <div className="border border-neutral-200 rounded-xl overflow-hidden">
+                  <div className="border border-neutral-200 rounded-[10px] overflow-hidden">
                     <table className="w-full text-sm">
                       <tbody>
                         {WEEKDAY_KEYS.map((day, idx) => {
@@ -252,7 +252,7 @@ export function FieldDetailModal({
                     return (
                       <div
                         key={evt.id}
-                        className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 transition-colors"
+                        className="flex items-center gap-3 p-3 rounded-[10px] ring-1 ring-gray-100 shadow-xs bg-white hover:bg-neutral-50 transition-colors"
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
@@ -281,7 +281,7 @@ export function FieldDetailModal({
                     return (
                       <div
                         key={block.id}
-                        className="flex items-center gap-3 p-3 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors"
+                        className="flex items-center gap-3 p-3 rounded-[10px] border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors"
                       >
                         <Wrench className="w-4 h-4 text-amber-600 flex-shrink-0" />
                         <div className="flex-1 min-w-0">

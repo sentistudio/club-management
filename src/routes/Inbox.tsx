@@ -322,7 +322,7 @@ export function Inbox() {
         {/* Templates Content */}
         <div className="flex-1 flex gap-6 min-h-0">
           {/* Templates List */}
-          <div className="flex-1 bg-white rounded-xl border border-neutral-200 overflow-hidden flex flex-col">
+          <div className="flex-1 bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden flex flex-col">
             <div className="p-4 border-b border-neutral-200 bg-neutral-50">
               <SearchInput
                 placeholder="Vorlagen durchsuchen..."
@@ -337,7 +337,7 @@ export function Inbox() {
                 .map((template) => (
                   <div
                     key={template.id}
-                    className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                    className={`p-4 rounded-[10px] border transition-all cursor-pointer ${
                       editingTemplate?.id === template.id 
                         ? "border-teal-400 bg-teal-50" 
                         : "border-neutral-200 hover:border-neutral-300 bg-white"
@@ -382,7 +382,7 @@ export function Inbox() {
           </div>
 
           {/* Template Editor */}
-          <div className="w-[500px] flex-shrink-0 bg-white rounded-xl border border-neutral-200 overflow-hidden flex flex-col">
+          <div className="w-[500px] flex-shrink-0 bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden flex flex-col">
             {editingTemplate ? (
               <>
                 <div className="p-4 border-b border-neutral-200 bg-neutral-50">
@@ -552,7 +552,7 @@ export function Inbox() {
       <div className="grid grid-cols-4 gap-4 mb-5">
         <button 
           onClick={() => setStatusFilter("")}
-          className={`p-4 rounded-xl border transition-all ${
+          className={`p-4 rounded-[10px] border transition-all ${
             !statusFilter ? "bg-teal-50 border-teal-200" : "bg-white border-neutral-200 hover:border-neutral-300"
           }`}
         >
@@ -568,7 +568,7 @@ export function Inbox() {
         </button>
         <button 
           onClick={() => setStatusFilter("open")}
-          className={`p-4 rounded-xl border transition-all ${
+          className={`p-4 rounded-[10px] border transition-all ${
             statusFilter === "open" ? "bg-blue-50 border-blue-200" : "bg-white border-neutral-200 hover:border-neutral-300"
           }`}
         >
@@ -584,7 +584,7 @@ export function Inbox() {
         </button>
         <button 
           onClick={() => setStatusFilter("pending")}
-          className={`p-4 rounded-xl border transition-all ${
+          className={`p-4 rounded-[10px] border transition-all ${
             statusFilter === "pending" ? "bg-amber-50 border-amber-200" : "bg-white border-neutral-200 hover:border-neutral-300"
           }`}
         >
@@ -600,7 +600,7 @@ export function Inbox() {
         </button>
         <button 
           onClick={() => setStatusFilter("resolved")}
-          className={`p-4 rounded-xl border transition-all ${
+          className={`p-4 rounded-[10px] border transition-all ${
             statusFilter === "resolved" ? "bg-green-50 border-green-200" : "bg-white border-neutral-200 hover:border-neutral-300"
           }`}
         >
@@ -619,7 +619,7 @@ export function Inbox() {
       {/* Main Content */}
       <div className="flex-1 flex gap-5 min-h-0">
         {/* Ticket List */}
-        <div className={`flex flex-col bg-white rounded-xl border border-neutral-200 overflow-hidden ${
+        <div className={`flex flex-col bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden ${
           selectedTicket ? "w-96 flex-shrink-0" : "flex-1"
         }`}>
           {/* Search & Filters */}
@@ -797,7 +797,7 @@ export function Inbox() {
 
         {/* Ticket Detail */}
         {selectedTicket && !isExpanded && (
-          <div className="flex-1 flex flex-col bg-white rounded-xl border border-neutral-200 overflow-hidden">
+          <div className="flex-1 flex flex-col bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden">
             {/* Compact Ticket Header */}
             <div className={`px-4 py-3 border-b border-neutral-200 ${selectedTicket.isBulkMessage ? "bg-purple-50" : "bg-neutral-50"}`}>
               {/* Row 1: Title + Actions */}
@@ -960,7 +960,7 @@ export function Inbox() {
                       )}
                       <span className="text-xs text-neutral-500">{formatFullDate(message.createdAt)}</span>
                     </div>
-                    <div className={`p-4 rounded-xl ${
+                    <div className={`p-4 rounded-[10px] ${
                       message.senderType === "member" 
                         ? "bg-neutral-100" 
                         : message.isInternal 
@@ -1003,7 +1003,7 @@ export function Inbox() {
                 </button>
                 
                 {showTemplateDropdown && (
-                  <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-lg border border-neutral-200 z-20 max-h-80 overflow-y-auto">
+                  <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded-[10px] shadow-lg border border-neutral-200 z-20 max-h-80 overflow-y-auto">
                     <div className="p-2 border-b border-neutral-100">
                       <button
                         onClick={() => {
@@ -1292,7 +1292,7 @@ export function Inbox() {
                       )}
                       <span className="text-xs text-neutral-500">{formatFullDate(message.createdAt)}</span>
                     </div>
-                    <div className={`p-4 rounded-xl ${
+                    <div className={`p-4 rounded-[10px] ${
                       message.senderType === "member" 
                         ? "bg-white border border-neutral-200" 
                         : message.isInternal 
@@ -1337,7 +1337,7 @@ export function Inbox() {
                 </button>
                 
                 {showTemplateDropdown && (
-                  <div className="absolute left-0 bottom-full mb-1 w-80 bg-white rounded-xl shadow-lg border border-neutral-200 z-20 max-h-80 overflow-y-auto">
+                  <div className="absolute left-0 bottom-full mb-1 w-80 bg-white rounded-[10px] shadow-lg border border-neutral-200 z-20 max-h-80 overflow-y-auto">
                     <div className="p-2 border-b border-neutral-100">
                       <button
                         onClick={() => {
@@ -1406,7 +1406,7 @@ export function Inbox() {
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Antwort schreiben... (Markdown unterstützt: **fett**, *kursiv*, - Listen)"
-                    className="w-full p-4 text-sm border border-neutral-300 rounded-xl resize-none focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 font-mono"
+                    className="w-full p-4 text-sm border border-neutral-300 rounded-[10px] resize-none focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 font-mono"
                     rows={4}
                   />
                 </div>
@@ -1563,7 +1563,7 @@ export function Inbox() {
           
           {/* Edit/Create Form */}
           {editingTemplate && (
-            <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-4">
+            <div className="p-4 bg-neutral-50 rounded-[10px] ring-1 ring-gray-100 shadow-xs space-y-4">
               <h3 className="font-medium text-neutral-900">
                 {editingTemplate.id ? "Vorlage bearbeiten" : "Neue Vorlage"}
               </h3>
@@ -1640,7 +1640,7 @@ export function Inbox() {
                 templates.map((template) => (
                   <div
                     key={template.id}
-                    className="p-4 bg-white border border-neutral-200 rounded-xl hover:shadow-sm transition-shadow"
+                    className="p-4 bg-white border border-neutral-200 rounded-[10px] hover:shadow-sm transition-shadow"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -1992,7 +1992,7 @@ export function Inbox() {
                 </button>
                 
                 {newMsgTemplateDropdown && (
-                  <div className="absolute right-0 top-full mt-1 w-72 bg-white rounded-xl shadow-lg border border-neutral-200 z-20 max-h-64 overflow-y-auto">
+                  <div className="absolute right-0 top-full mt-1 w-72 bg-white rounded-[10px] shadow-lg border border-neutral-200 z-20 max-h-64 overflow-y-auto">
                     <div className="p-2">
                       {templates.map((template) => (
                         <button

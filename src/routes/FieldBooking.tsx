@@ -445,7 +445,7 @@ export function FieldBooking() {
       {tab === "belegung" && (
         <div className="space-y-4">
           {/* Date navigation */}
-          <div className="bg-white border border-neutral-200 rounded-xl p-3">
+          <div className="bg-white border border-neutral-200 rounded-[10px] p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1">
                 <button
@@ -595,7 +595,7 @@ export function FieldBooking() {
             <div className="flex-1 min-w-0 space-y-3">
 
               {/* Timetable grid */}
-              <div className="bg-white border-2 border-neutral-200 rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-white border-2 border-neutral-200 rounded-[10px] overflow-hidden shadow-sm">
                 {/* Column header + hour ruler */}
                 <div className="flex border-b-2 border-neutral-200 select-none bg-neutral-50">
                   {/* Field column header with drag-resize handle */}
@@ -833,7 +833,7 @@ export function FieldBooking() {
           </div>
 
           {/* ── Upcoming / selected-day events list (below timetable) ────── */}
-          <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
+          <div className="bg-white border border-neutral-200 rounded-[10px] overflow-hidden">
             <div className="px-3 py-2.5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-xs font-semibold text-neutral-600">
@@ -1041,7 +1041,7 @@ export function FieldBooking() {
 
       {/* ── FELDER TAB ──────────────────────────────────────────────────── */}
       {tab === "felder" && (
-        <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
+        <div className="bg-white border border-neutral-200 rounded-[10px] overflow-hidden">
           {mockVenues.map((venue, venueIdx) => {
             const venueFields = fields.filter(f => f.venueId === venue.id);
             if (venueFields.length === 0) return null;

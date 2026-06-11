@@ -22,8 +22,6 @@ const DEFAULTS: TeamVisibilitySettings = {
   positionSchema: "auto",
 };
 
-type SettingValue = boolean | PositionSchema;
-
 interface TeamVisibilityContextValue {
   settings: TeamVisibilitySettings;
   updateSetting: <K extends keyof TeamVisibilitySettings>(key: K, value: TeamVisibilitySettings[K]) => void;

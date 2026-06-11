@@ -60,7 +60,7 @@ export function RecurrenceEditor({
   return (
     <div className="space-y-4">
       {/* Enable Toggle */}
-      <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
+      <div className="flex items-center justify-between p-4 border border-slate-200 rounded-[10px]">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-slate-100 rounded-lg">
             <RefreshCw className="w-5 h-5 text-slate-600" />
@@ -89,7 +89,7 @@ export function RecurrenceEditor({
             <select
               value={frequency}
               onChange={(e) => onFrequencyChange(e.target.value as RecurrenceFrequency)}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#004941] bg-white"
             >
               <option value="daily">Täglich</option>
               <option value="weekly">Wöchentlich</option>
@@ -132,7 +132,7 @@ export function RecurrenceEditor({
               value={until}
               onChange={(e) => onUntilChange(e.target.value)}
               min={startDate}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#004941]"
             />
             <p className="text-xs text-slate-500 mt-1">
               Leer lassen für unbegrenzte Wiederholung
@@ -141,7 +141,7 @@ export function RecurrenceEditor({
 
           {/* Occurrence Preview */}
           {occurrencePreview.length > 0 && (
-            <div className="p-4 bg-slate-50 rounded-xl">
+            <div className="p-4 bg-slate-50 rounded-[10px]">
               <div className="flex items-center gap-2 mb-3">
                 <Calendar className="w-4 h-4 text-slate-500" />
                 <p className="text-sm font-medium text-slate-700">Nächste Termine</p>

@@ -76,7 +76,7 @@ export function DepartmentDetail() {
 
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${cfg.color}`}>
+            <div className={`w-12 h-12 rounded-[10px] flex items-center justify-center ${cfg.color}`}>
               <Shield className="w-6 h-6" />
             </div>
             <div>
@@ -147,7 +147,7 @@ export function DepartmentDetail() {
                     <div className="p-5">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center flex-shrink-0">
+                          <div className="w-10 h-10 rounded-[10px] bg-neutral-900 flex items-center justify-center flex-shrink-0">
                             <span className="text-white font-bold text-sm">cb</span>
                           </div>
                           <h3 className="text-sm font-semibold text-neutral-900 leading-snug">{team.name}</h3>

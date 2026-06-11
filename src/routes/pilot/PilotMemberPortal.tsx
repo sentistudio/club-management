@@ -2798,7 +2798,7 @@ export function PilotMemberPortal() {
           <div className="px-5 py-4 space-y-4">
             {/* Reported message preview */}
             <div 
-              className="p-3 rounded-xl"
+              className="p-3 rounded-[10px]"
               style={{ backgroundColor: "#FEF3C7", border: "1px solid #F59E0B" }}
             >
               <p className="text-xs font-semibold mb-1" style={{ color: "#92400E" }}>
@@ -2822,7 +2822,7 @@ export function PilotMemberPortal() {
                   <button
                     key={cat.value}
                     onClick={() => setReportCategory(cat.value)}
-                    className={`p-3 rounded-xl text-left transition-all ${
+                    className={`p-3 rounded-[10px] text-left transition-all ${
                       reportCategory === cat.value ? "ring-2 ring-orange-500" : ""
                     }`}
                     style={{ 
@@ -2850,7 +2850,7 @@ export function PilotMemberPortal() {
                 value={reportDescription}
                 onChange={(e) => setReportDescription(e.target.value)}
                 placeholder="Beschreiben Sie den Vorfall genauer..."
-                className="w-full px-4 py-3 rounded-xl text-sm resize-none"
+                className="w-full px-4 py-3 rounded-[10px] text-sm resize-none"
                 style={{ 
                   backgroundColor: theme.cardBg,
                   border: `1px solid ${theme.cardBorder}`,
@@ -2862,7 +2862,7 @@ export function PilotMemberPortal() {
 
             {/* Privacy notice */}
             <div 
-              className="p-3 rounded-xl flex items-start gap-2"
+              className="p-3 rounded-[10px] flex items-start gap-2"
               style={{ backgroundColor: "#EFF6FF", border: "1px solid #3B82F6" }}
             >
               <Shield className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -2880,7 +2880,7 @@ export function PilotMemberPortal() {
             <button
               onClick={handleSubmitReport}
               disabled={!reportCategory || !reportDescription.trim()}
-              className={`w-full py-3 rounded-xl font-semibold text-white transition-all ${
+              className={`w-full py-3 rounded-[10px] font-semibold text-white transition-all ${
                 reportCategory && reportDescription.trim() 
                   ? "bg-orange-500 hover:bg-orange-600" 
                   : "bg-neutral-300 cursor-not-allowed"
@@ -3092,7 +3092,7 @@ export function PilotMemberPortal() {
           {/* Alert Banner */}
           {mergedStats.offeneRechnungen > 0 && (
             <div
-              className="rounded-xl px-4 py-3 mb-4 flex items-center gap-3"
+              className="rounded-[10px] px-4 py-3 mb-4 flex items-center gap-3"
               style={{ backgroundColor: theme.alertBg }}
             >
               <div
@@ -3893,7 +3893,7 @@ export function PilotMemberPortal() {
           style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
         >
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+            className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 mt-0.5"
             style={{ backgroundColor: "#F3E8FF" }}
           >
             <File className="w-5 h-5" style={{ color: "#7C3AED" }} />
@@ -3964,7 +3964,7 @@ export function PilotMemberPortal() {
           <div className="px-4 pt-4 pb-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${theme.cardBorder}` }}>
             <button
               onClick={() => { setChatView("main"); setSearchQuery(""); }}
-              className="p-2 -ml-1 rounded-xl flex-shrink-0"
+              className="p-2 -ml-1 rounded-[10px] flex-shrink-0"
               style={{ color: theme.textSecondary }}
             >
               <ArrowLeft className="w-5 h-5" />
@@ -3977,7 +3977,7 @@ export function PilotMemberPortal() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Chats und Anfragen durchsuchen…"
-                className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
+                className="w-full pl-9 pr-8 py-2.5 rounded-[10px] text-sm focus:outline-none focus:ring-2"
                 style={{ backgroundColor: theme.inputBg, borderColor: theme.inputBorder, borderWidth: 1, color: theme.textPrimary, ["--tw-ring-color" as string]: theme.accent }}
               />
               {searchQuery && (
@@ -4100,7 +4100,7 @@ export function PilotMemberPortal() {
                     className="w-full flex items-center gap-3 px-5 py-3.5 transition-colors active:bg-black/5"
                     style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
                   >
-                    <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: "#F3E8FF" }}>
+                    <div className="w-10 h-10 rounded-[10px] flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: "#F3E8FF" }}>
                       <File className="w-4 h-4" style={{ color: "#7C3AED" }} />
                     </div>
                     <div className="flex-1 min-w-0 text-left">
@@ -4151,7 +4151,7 @@ export function PilotMemberPortal() {
                 <button
                   key={sec}
                   onClick={() => { setChatSection(sec); setChatView("main"); }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold transition-all"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-sm font-semibold transition-all"
                   style={{
                     backgroundColor: isActive ? theme.cardBg : "transparent",
                     color: isActive ? theme.textPrimary : theme.textMuted,
@@ -4183,7 +4183,7 @@ export function PilotMemberPortal() {
 
         {/* ── Warning banners ── */}
         {isMinorWithoutGuardian && (
-          <div className="mx-5 mb-4 px-4 py-3 rounded-xl flex items-start gap-3" style={{ backgroundColor: "#FEF3C7", border: "2px solid #F59E0B" }}>
+          <div className="mx-5 mb-4 px-4 py-3 rounded-[10px] flex items-start gap-3" style={{ backgroundColor: "#FEF3C7", border: "2px solid #F59E0B" }}>
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#B45309" }} />
             <div>
               <p className="text-sm font-bold" style={{ color: "#92400E" }}>⚠️ Kein Erziehungsberechtigter verknüpft</p>
@@ -4192,7 +4192,7 @@ export function PilotMemberPortal() {
           </div>
         )}
         {isKidDirectView && activeProfile.parentId && (
-          <div className="mx-5 mb-4 px-4 py-3 rounded-xl flex items-center gap-3" style={{ backgroundColor: "#FEE2E2" }}>
+          <div className="mx-5 mb-4 px-4 py-3 rounded-[10px] flex items-center gap-3" style={{ backgroundColor: "#FEE2E2" }}>
             <Shield className="w-5 h-5" style={{ color: "#DC2626" }} />
             <div>
               <p className="text-sm font-medium" style={{ color: "#991B1B" }}>Kinderansicht – DMs über Elternteil</p>
@@ -4264,7 +4264,7 @@ export function PilotMemberPortal() {
         {chatSection === "requests" && (
           <>
             {/* Intro banner */}
-            <div className="mx-5 mb-4 px-4 py-3 rounded-xl flex items-start gap-3" style={{ backgroundColor: "#F3E8FF" }}>
+            <div className="mx-5 mb-4 px-4 py-3 rounded-[10px] flex items-start gap-3" style={{ backgroundColor: "#F3E8FF" }}>
               <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#7C3AED" }} />
               <div>
                 <p className="text-sm font-semibold" style={{ color: "#4C1D95" }}>Anfragen an den Verein</p>
@@ -4318,7 +4318,7 @@ export function PilotMemberPortal() {
           <input
             type="text"
             placeholder={t.search}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
+            className="w-full pl-10 pr-4 py-2.5 rounded-[10px] text-sm focus:outline-none focus:ring-2"
             style={{ 
               backgroundColor: theme.inputBg,
               borderColor: theme.inputBorder,
@@ -4468,7 +4468,7 @@ export function PilotMemberPortal() {
                   {profile.memberships.map(m => (
                     <span
                       key={m.departmentId}
-                      className="flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-xl"
+                      className="flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-[10px]"
                       style={{ backgroundColor: personColor.bg, color: personColor.text }}
                     >
                       <span>{m.icon}</span>
@@ -4531,7 +4531,7 @@ export function PilotMemberPortal() {
             <div className="flex gap-2">
               <button
                 onClick={() => setThemeMode("light")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-[10px] transition-all ${
                   themeMode === "light" ? "ring-2" : ""
                 }`}
                 style={{ 
@@ -4545,7 +4545,7 @@ export function PilotMemberPortal() {
               </button>
               <button
                 onClick={() => setThemeMode("dfb")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-[10px] transition-all ${
                   themeMode === "dfb" ? "ring-2" : ""
                 }`}
                 style={{ 
@@ -4578,7 +4578,7 @@ export function PilotMemberPortal() {
             <div className="flex gap-2">
               <button
                 onClick={() => setLanguage("de")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-[10px] transition-all ${
                   language === "de" ? "ring-2" : ""
                 }`}
                 style={{ 
@@ -4592,7 +4592,7 @@ export function PilotMemberPortal() {
               </button>
               <button
                 onClick={() => setLanguage("en")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-[10px] transition-all ${
                   language === "en" ? "ring-2" : ""
                 }`}
                 style={{ 
@@ -4907,7 +4907,7 @@ export function PilotMemberPortal() {
           <div className="flex items-center gap-3">
             <button 
               onClick={goBack} 
-              className="p-2 -ml-2 rounded-xl transition-colors"
+              className="p-2 -ml-2 rounded-[10px] transition-colors"
               style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.1)" : "rgba(0,0,0,0.05)" }}
             >
               <ArrowLeft className="w-5 h-5" style={{ color: theme.textPrimary }} />
@@ -5088,7 +5088,7 @@ export function PilotMemberPortal() {
                             <button
                               key={emoji}
                               onClick={() => !disabled && toggleReaction(msg.id, emoji, msg.reactions)}
-                              className="w-9 h-9 text-xl flex items-center justify-center rounded-xl transition-transform active:scale-90"
+                              className="w-9 h-9 text-xl flex items-center justify-center rounded-[10px] transition-transform active:scale-90"
                               style={{
                                 backgroundColor: isMine ? (theme.buttonPrimaryBg + "30") : "transparent",
                                 opacity: disabled ? 0.3 : 1,
@@ -5232,13 +5232,13 @@ export function PilotMemberPortal() {
               )}
               <div className="flex items-end gap-2">
                 <button 
-                  className="p-2 rounded-xl transition-colors"
+                  className="p-2 rounded-[10px] transition-colors"
                   style={{ color: theme.textMuted }}
                 >
                   <Paperclip className="w-5 h-5" />
                 </button>
                 <div 
-                  className="flex-1 rounded-xl px-3 py-2"
+                  className="flex-1 rounded-[10px] px-3 py-2"
                   style={{ backgroundColor: theme.mode === "dfb" ? "rgba(0,73,65,0.05)" : "rgba(0,0,0,0.05)" }}
                 >
                   <textarea
@@ -5256,7 +5256,7 @@ export function PilotMemberPortal() {
                     console.log("Send chat message:", replyText);
                     setReplyText("");
                   }}
-                  className="p-2.5 rounded-xl disabled:opacity-50 transition-all"
+                  className="p-2.5 rounded-[10px] disabled:opacity-50 transition-all"
                   style={{ backgroundColor: theme.buttonPrimaryBg, color: theme.buttonPrimaryText }}
                 >
                   <Send className="w-4 h-4" />
@@ -5288,9 +5288,9 @@ export function PilotMemberPortal() {
             <button
               key={form.id}
               onClick={() => openForm(form)}
-              className="w-full bg-white rounded-xl p-4 shadow-sm border border-neutral-200 text-left hover:shadow-md transition-shadow flex items-center gap-4"
+              className="w-full bg-white rounded-[10px] p-4 shadow-sm border border-neutral-200 text-left hover:shadow-md transition-shadow flex items-center gap-4"
             >
-              <div className="w-12 h-12 rounded-xl bg-neutral-100 flex items-center justify-center text-2xl">
+              <div className="w-12 h-12 rounded-[10px] bg-neutral-100 flex items-center justify-center text-2xl">
                 {categoryConfig[form.category]?.emoji || "📝"}
               </div>
               <div className="flex-1">
@@ -5330,7 +5330,7 @@ export function PilotMemberPortal() {
               <input
                 type="text"
                 placeholder="Kurze Beschreibung Ihrer Anfrage"
-                className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2"
+                className="w-full px-4 py-3 border border-neutral-300 rounded-[10px] focus:outline-none focus:ring-2"
                 style={{ ["--tw-ring-color" as string]: COLORS.primary }}
               />
             </div>
@@ -5343,7 +5343,7 @@ export function PilotMemberPortal() {
               <textarea
                 rows={6}
                 placeholder="Beschreiben Sie Ihr Anliegen..."
-                className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 resize-none"
+                className="w-full px-4 py-3 border border-neutral-300 rounded-[10px] focus:outline-none focus:ring-2 resize-none"
                 style={{ ["--tw-ring-color" as string]: COLORS.primary }}
               />
             </div>
@@ -5364,7 +5364,7 @@ export function PilotMemberPortal() {
 
             {/* Submit */}
             <button 
-              className="w-full mt-4 text-white py-3 rounded-xl font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              className="w-full mt-4 text-white py-3 rounded-[10px] font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               style={{ backgroundColor: COLORS.primary }}
             >
               <Send className="w-4 h-4" />
@@ -5463,7 +5463,7 @@ export function PilotMemberPortal() {
           >
             <div className="flex items-center gap-3">
               <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-10 h-10 rounded-[10px] flex items-center justify-center"
                 style={{ backgroundColor: theme.accentLight }}
               >
                 <Calendar className="w-5 h-5" style={{ color: theme.accent }} />
@@ -5489,7 +5489,7 @@ export function PilotMemberPortal() {
           >
             <div className="flex items-center gap-3">
               <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-10 h-10 rounded-[10px] flex items-center justify-center"
                 style={{ backgroundColor: theme.accentLight }}
               >
                 <MapPin className="w-5 h-5" style={{ color: theme.accent }} />
@@ -5536,15 +5536,15 @@ export function PilotMemberPortal() {
             >
               <p className="text-xs uppercase tracking-wider mb-3" style={{ color: theme.textMuted }}>{t.participants}</p>
               <div className="grid grid-cols-3 gap-3">
-                <div className="text-center p-3 rounded-xl" style={{ backgroundColor: "#10B98115" }}>
+                <div className="text-center p-3 rounded-[10px]" style={{ backgroundColor: "#10B98115" }}>
                   <p className="text-2xl font-bold" style={{ color: "#10B981" }}>{selectedEvent.participants.confirmed}</p>
                   <p className="text-xs" style={{ color: "#10B981" }}>{t.rsvpConfirmed}</p>
                 </div>
-                <div className="text-center p-3 rounded-xl" style={{ backgroundColor: "#F59E0B15" }}>
+                <div className="text-center p-3 rounded-[10px]" style={{ backgroundColor: "#F59E0B15" }}>
                   <p className="text-2xl font-bold" style={{ color: "#F59E0B" }}>{selectedEvent.participants.pending}</p>
                   <p className="text-xs" style={{ color: "#F59E0B" }}>{t.rsvpPending}</p>
                 </div>
-                <div className="text-center p-3 rounded-xl" style={{ backgroundColor: "#EF444415" }}>
+                <div className="text-center p-3 rounded-[10px]" style={{ backgroundColor: "#EF444415" }}>
                   <p className="text-2xl font-bold" style={{ color: "#EF4444" }}>{selectedEvent.participants.declined}</p>
                   <p className="text-xs" style={{ color: "#EF4444" }}>{t.rsvpDeclined}</p>
                 </div>
@@ -5610,7 +5610,7 @@ export function PilotMemberPortal() {
               <p className="text-xs uppercase tracking-wider mb-3" style={{ color: theme.textMuted }}>{t.rsvp}</p>
               <div className="grid grid-cols-3 gap-3">
                 <button 
-                  className={`py-3 rounded-xl font-medium text-sm transition-all ${selectedEvent.myRsvp === "confirmed" ? "ring-2" : ""}`}
+                  className={`py-3 rounded-[10px] font-medium text-sm transition-all ${selectedEvent.myRsvp === "confirmed" ? "ring-2" : ""}`}
                   style={{ 
                     backgroundColor: selectedEvent.myRsvp === "confirmed" ? "#10B981" : "#10B98120",
                     color: selectedEvent.myRsvp === "confirmed" ? "white" : "#10B981",
@@ -5621,7 +5621,7 @@ export function PilotMemberPortal() {
                   {t.confirmAttendance}
                 </button>
                 <button 
-                  className={`py-3 rounded-xl font-medium text-sm transition-all ${selectedEvent.myRsvp === "pending" ? "ring-2" : ""}`}
+                  className={`py-3 rounded-[10px] font-medium text-sm transition-all ${selectedEvent.myRsvp === "pending" ? "ring-2" : ""}`}
                   style={{ 
                     backgroundColor: selectedEvent.myRsvp === "pending" ? "#F59E0B" : "#F59E0B20",
                     color: selectedEvent.myRsvp === "pending" ? "white" : "#F59E0B",
@@ -5632,7 +5632,7 @@ export function PilotMemberPortal() {
                   {t.maybeAttendance}
                 </button>
                 <button 
-                  className={`py-3 rounded-xl font-medium text-sm transition-all ${selectedEvent.myRsvp === "declined" ? "ring-2" : ""}`}
+                  className={`py-3 rounded-[10px] font-medium text-sm transition-all ${selectedEvent.myRsvp === "declined" ? "ring-2" : ""}`}
                   style={{ 
                     backgroundColor: selectedEvent.myRsvp === "declined" ? "#EF4444" : "#EF444420",
                     color: selectedEvent.myRsvp === "declined" ? "white" : "#EF4444",

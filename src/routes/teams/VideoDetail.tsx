@@ -52,7 +52,7 @@ export function VideoDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Video + info */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="aspect-video bg-neutral-900 rounded-xl overflow-hidden">
+          <div className="aspect-video bg-neutral-900 rounded-[10px] overflow-hidden">
             <video
               ref={videoRef}
               src={video.videoUrl}

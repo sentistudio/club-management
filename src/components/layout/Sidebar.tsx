@@ -14,6 +14,7 @@ import {
   FolderOpen,
   MessageSquare,
   ChevronRight,
+  ChevronLeft,
   User,
   Newspaper,
   Home,
@@ -51,6 +52,7 @@ const myOpenTickets = mockTickets.filter(
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, activeRole, setActiveRole, canSwitchRoles, selectedPersons, togglePerson } = useRole();
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -146,7 +148,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const isCoachMode = activeRole === "coach";
   const isMemberMode = activeRole === "member";
 
-  // Build coach nav: one entry per assigned team
   const coachNavSections: NavSection[] = useMemo(() => {
     const teamIds = user.coachTeamIds ?? [];
     const teamItems = teamIds.map(id => {
@@ -180,7 +181,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     onClose();
   };
 
-  // Subtitle: list selected person names
   const memberSubtitle = selectedPersons.map(p => {
     if (p === "me") return user.firstName;
     return user.linkedChildren?.find(c => c.id === p)?.firstName ?? "";
@@ -197,54 +197,79 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
 
       <aside className={`
+        relative
         fixed lg:static inset-y-0 left-0 z-50
-        flex flex-col w-64 h-full
-        bg-white border-r border-neutral-200
-        transform transition-transform duration-200 ease-in-out
+        flex flex-col h-full
+        bg-white border-r border-gray-100
+        transform transition-all duration-200 ease-in-out
+        ${isCollapsed ? "w-16" : "w-64"}
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
+
+        {/* Collapse toggle — desktop only */}
+        <button
+          onClick={() => setIsCollapsed(c => !c)}
+          className="hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md ring-1 ring-gray-200 hover:bg-gray-50 transition-colors z-10 items-center justify-center"
+        >
+          <ChevronLeft className={`w-4 h-4 text-neutral-500 transition-transform duration-200 ${isCollapsed ? "rotate-180" : ""}`} />
+        </button>
+
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-neutral-200 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">cb</span>
+        <div className={`flex items-center h-16 border-b border-gray-100 flex-shrink-0 ${isCollapsed ? "justify-center px-2" : "justify-between px-4"}`}>
+          {isCollapsed ? (
+            <div className="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center">
+              <span className="text-white font-bold text-xs">cb</span>
             </div>
-          </div>
-          <button onClick={onClose} className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors">
-            <X className="w-5 h-5 text-neutral-500" />
-          </button>
-        </div>
-
-        {/* Club identity */}
-        <div className="px-4 py-3 border-b border-neutral-200 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            {mockClub.logoUrl ? (
-              <img
-                src={mockClub.logoUrl}
-                alt={mockClub.shortName}
-                className="w-10 h-10 object-contain flex-shrink-0"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold">{mockClub.shortName?.slice(0, 3)}</span>
+          ) : (
+            <>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-[10px] bg-neutral-900 flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">cb</span>
+                </div>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-neutral-900 text-sm truncate">{mockClub.shortName}</p>
-              <p className="text-xs text-neutral-400">
-                {isMemberMode
-                  ? `${memberSubtitle} · ${t("sidebar.memberSubtitle")}`
-                  : isCoachMode
-                  ? "Trainer-Ansicht"
-                  : t("sidebar.clubAdminSubtitle")}
-              </p>
-            </div>
-          </div>
+              <button onClick={onClose} className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors">
+                <X className="w-5 h-5 text-neutral-500" />
+              </button>
+            </>
+          )}
         </div>
 
-        {/* ── Verein / Ich toggle (admin+member users only) ── */}
-        {canSwitchRoles && (
-          <div className="px-3 py-3 border-b border-neutral-200 flex-shrink-0">
+        {/* Club identity card */}
+        <div className={`border-b border-gray-100 flex-shrink-0 ${isCollapsed ? "px-2 py-3 flex justify-center" : "px-3 py-3"}`}>
+          {isCollapsed ? (
+            mockClub.logoUrl ? (
+              <img src={mockClub.logoUrl} alt={mockClub.shortName} className="w-8 h-8 object-contain" />
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">{mockClub.shortName?.slice(0, 2)}</span>
+              </div>
+            )
+          ) : (
+            <div className="flex items-center gap-3 rounded-[10px] p-3 shadow-xs ring-1 ring-gray-100 hover:shadow-md transition-shadow">
+              {mockClub.logoUrl ? (
+                <img src={mockClub.logoUrl} alt={mockClub.shortName} className="w-10 h-10 object-contain flex-shrink-0" />
+              ) : (
+                <div className="w-10 h-10 rounded-[10px] bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold">{mockClub.shortName?.slice(0, 3)}</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-neutral-900 text-sm truncate">{mockClub.shortName}</p>
+                <p className="text-xs text-neutral-400">
+                  {isMemberMode
+                    ? `${memberSubtitle} · ${t("sidebar.memberSubtitle")}`
+                    : isCoachMode
+                    ? "Trainer-Ansicht"
+                    : t("sidebar.clubAdminSubtitle")}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Role switcher */}
+        {!isCollapsed && canSwitchRoles && (
+          <div className="px-3 py-3 border-b border-gray-100 flex-shrink-0">
             <div className="flex bg-neutral-100 rounded-lg p-0.5 gap-0.5">
               <button
                 onClick={switchToAdmin}
@@ -272,12 +297,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
         )}
 
-        {/* ── Person selector (member mode + has linked children) ── */}
-        {isMemberMode && (user.linkedChildren?.length ?? 0) > 0 && (
-          <div className="px-3 py-3 border-b border-neutral-100 flex-shrink-0">
+        {/* Person selector */}
+        {!isCollapsed && isMemberMode && (user.linkedChildren?.length ?? 0) > 0 && (
+          <div className="px-3 py-3 border-b border-gray-100 flex-shrink-0">
             <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">{t("sidebar.viewFor")}</p>
             <div className="flex flex-wrap gap-1.5">
-              {/* Self */}
               <button
                 onClick={() => togglePerson("me")}
                 className={`flex items-center gap-1.5 pl-0.5 pr-2.5 py-0.5 rounded-full text-xs font-medium transition-all border ${
@@ -289,7 +313,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <img src={user.avatar} alt={user.firstName} className="w-5 h-5 rounded-full object-cover" />
                 {user.firstName}
               </button>
-              {/* Children */}
               {user.linkedChildren?.map(child => (
                 <button
                   key={child.id}
@@ -312,10 +335,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-3 overflow-y-auto">
+        <nav className="flex-1 px-2 py-3 overflow-y-auto">
           {navSections.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="mb-1">
-              {section.title && (
+            <div key={sectionIndex} className="mb-4">
+              {!isCollapsed && section.title && (
                 <p className="px-3 mb-1.5 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
                   {section.title}
                 </p>
@@ -324,75 +347,118 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 {section.items.map((item) => (
                   <div key={item.to || item.label}>
                     {item.children ? (
-                      <>
-                        <button
-                          onClick={() => toggleExpand(item.label)}
-                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                      isCollapsed ? (
+                        item.to ? (
+                          <NavLink
+                            to={item.to}
+                            onClick={onClose}
+                            title={item.label}
+                            className={({ isActive }) => `
+                              flex items-center justify-center p-2.5 rounded-lg text-sm transition-all
+                              ${isActive ? "bg-teal-50 text-teal-600" : "text-neutral-600 hover:bg-neutral-100"}
+                            `}
+                          >
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                          </NavLink>
+                        ) : (
+                          <button
+                            title={item.label}
+                            className="w-full flex items-center justify-center p-2.5 rounded-lg text-neutral-600 hover:bg-neutral-100 transition-all"
+                          >
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                          </button>
+                        )
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => toggleExpand(item.label)}
+                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                          >
+                            <div className="flex items-center gap-3">
+                              <item.icon className="w-5 h-5 flex-shrink-0" />
+                              <span>{item.label}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {item.badge && item.badge > 0 && (
+                                <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center">
+                                  {item.badge}
+                                </span>
+                              )}
+                              <ChevronRight className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${
+                                expandedItems.includes(item.label) ? "rotate-90" : ""
+                              }`} />
+                            </div>
+                          </button>
+                          {expandedItems.includes(item.label) && (
+                            <div className="relative mt-0.5 ml-5 pl-4">
+                              {/* Vertical tree line */}
+                              <span className="absolute left-0 top-0 bottom-2 border-l border-gray-200" />
+                              {item.children.map((child) => (
+                                <div key={child.to} className="relative">
+                                  {/* Horizontal connector */}
+                                  <span className="absolute left-0 top-1/2 w-4 border-b border-gray-200" />
+                                  <NavLink
+                                    to={child.to}
+                                    onClick={onClose}
+                                    className={({ isActive }) => `
+                                      flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all
+                                      ${isActive
+                                        ? "text-teal-600 bg-teal-50 font-medium"
+                                        : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
+                                      }
+                                    `}
+                                  >
+                                    <span>{child.label}</span>
+                                    {child.badge && child.badge > 0 && (
+                                      <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center">
+                                        {child.badge}
+                                      </span>
+                                    )}
+                                  </NavLink>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )
+                    ) : item.to ? (
+                      isCollapsed ? (
+                        <NavLink
+                          to={item.to}
+                          onClick={onClose}
+                          end={item.to === "/member"}
+                          title={item.label}
+                          className={({ isActive }) => `
+                            flex items-center justify-center p-2.5 rounded-lg text-sm transition-all
+                            ${isActive ? "bg-teal-50 text-teal-600" : "text-neutral-600 hover:bg-neutral-100"}
+                          `}
+                        >
+                          <item.icon className="w-5 h-5 flex-shrink-0" />
+                        </NavLink>
+                      ) : (
+                        <NavLink
+                          to={item.to}
+                          onClick={onClose}
+                          end={item.to === "/member"}
+                          className={({ isActive }) => `
+                            flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all
+                            ${isActive
+                              ? "bg-teal-50 text-teal-600"
+                              : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                            }
+                          `}
                         >
                           <div className="flex items-center gap-3">
-                            <item.icon className="w-5 h-5" />
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
                             <span>{item.label}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            {item.badge && item.badge > 0 && (
-                              <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center">
-                                {item.badge}
-                              </span>
-                            )}
-                            <ChevronRight className={`w-4 h-4 text-neutral-400 transition-transform ${
-                              expandedItems.includes(item.label) ? "rotate-90" : ""
-                            }`} />
-                          </div>
-                        </button>
-                        {expandedItems.includes(item.label) && (
-                          <div className="ml-8 mt-0.5 space-y-0.5">
-                            {item.children.map((child) => (
-                              <NavLink
-                                key={child.to}
-                                to={child.to}
-                                onClick={onClose}
-                                className={({ isActive }) => `
-                                  flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all
-                                  ${isActive
-                                    ? "text-teal-600 bg-teal-50 font-medium"
-                                    : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
-                                  }
-                                `}
-                              >
-                                <span>{child.label}</span>
-                                {child.badge && child.badge > 0 && (
-                                  <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center">
-                                    {child.badge}
-                                  </span>
-                                )}
-                              </NavLink>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    ) : item.to ? (
-                      <NavLink
-                        to={item.to}
-                        onClick={onClose}
-                        end={item.to === "/member"}
-                        className={({ isActive }) => `
-                          flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all
-                          ${isActive
-                            ? "bg-teal-50 text-teal-600"
-                            : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
-                          }
-                        `}
-                      >
-                        <div className="flex items-center gap-3">
-                          <item.icon className="w-5 h-5" />
-                          <span>{item.label}</span>
-                        </div>
-                        {item.badge && item.badge > 0 && (
-                          <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center">
-                            {item.badge}
-                          </span>
-                        )}
-                      </NavLink>
+                          {item.badge && item.badge > 0 && (
+                            <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center">
+                              {item.badge}
+                            </span>
+                          )}
+                        </NavLink>
+                      )
                     ) : null}
                   </div>
                 ))}
@@ -402,9 +468,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* User Profile */}
-        <div className="p-4 border-t border-neutral-200 flex-shrink-0">
-          <UserSwitcher onClose={onClose} />
-        </div>
+        {!isCollapsed && (
+          <div className="p-4 border-t border-gray-100 flex-shrink-0">
+            <UserSwitcher onClose={onClose} />
+          </div>
+        )}
       </aside>
     </>
   );

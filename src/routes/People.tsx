@@ -671,7 +671,7 @@ function AddPersonModal({
                         key={role}
                         type="button"
                         onClick={() => toggleRole(role)}
-                        className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                        className={`flex items-center gap-3 p-3 rounded-[10px] border-2 transition-all text-left ${
                           isSelected 
                             ? "border-teal-500 bg-teal-50" 
                             : "border-slate-200 hover:border-slate-300"
@@ -705,7 +705,7 @@ function AddPersonModal({
                         key={role}
                         type="button"
                         onClick={() => toggleRole(role)}
-                        className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                        className={`flex items-center gap-3 p-3 rounded-[10px] border-2 transition-all text-left ${
                           isSelected 
                             ? "border-teal-500 bg-teal-50" 
                             : "border-slate-200 hover:border-slate-300"

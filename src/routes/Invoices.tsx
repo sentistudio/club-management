@@ -93,7 +93,7 @@ export function Invoices() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-100">
+            <div className="p-2.5 rounded-[10px] bg-slate-100">
               <FileText className="w-5 h-5 text-slate-600" />
             </div>
             <div>
@@ -104,7 +104,7 @@ export function Invoices() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-100">
+            <div className="p-2.5 rounded-[10px] bg-amber-100">
               <FileText className="w-5 h-5 text-amber-600" />
             </div>
             <div>
@@ -115,7 +115,7 @@ export function Invoices() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-100">
+            <div className="p-2.5 rounded-[10px] bg-emerald-100">
               <FileText className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
@@ -126,7 +126,7 @@ export function Invoices() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-100">
+            <div className="p-2.5 rounded-[10px] bg-amber-100">
               <FileText className="w-5 h-5 text-amber-600" />
             </div>
             <div>
@@ -137,7 +137,7 @@ export function Invoices() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-100">
+            <div className="p-2.5 rounded-[10px] bg-emerald-100">
               <FileText className="w-5 h-5 text-emerald-600" />
             </div>
             <div>

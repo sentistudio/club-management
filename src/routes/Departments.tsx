@@ -152,7 +152,7 @@ export function Departments() {
         ].map(({ icon: Icon, bg, iconCls, valueCls, value, label }) => (
           <Card key={label}>
             <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl ${bg}`}>
+              <div className={`p-2.5 rounded-[10px] ${bg}`}>
                 <Icon className={`w-5 h-5 ${iconCls}`} />
               </div>
               <div>

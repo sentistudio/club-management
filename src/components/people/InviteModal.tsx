@@ -200,7 +200,7 @@ export function InviteModal({
               <div className="grid gap-3">
                 <button
                   onClick={() => setMode("existing")}
-                  className={`p-4 border-2 rounded-xl text-left flex items-center gap-3 ${
+                  className={`p-4 border-2 rounded-[10px] text-left flex items-center gap-3 ${
                     mode === "existing" ? "border-teal-500 bg-teal-50" : "border-slate-200"
                   }`}
                 >
@@ -212,7 +212,7 @@ export function InviteModal({
                 </button>
                 <button
                   onClick={() => setMode("email")}
-                  className={`p-4 border-2 rounded-xl text-left flex items-center gap-3 ${
+                  className={`p-4 border-2 rounded-[10px] text-left flex items-center gap-3 ${
                     mode === "email" ? "border-teal-500 bg-teal-50" : "border-slate-200"
                   }`}
                 >
@@ -224,7 +224,7 @@ export function InviteModal({
                 </button>
                 <button
                   onClick={() => setMode("guardian")}
-                  className={`p-4 border-2 rounded-xl text-left flex items-center gap-3 ${
+                  className={`p-4 border-2 rounded-[10px] text-left flex items-center gap-3 ${
                     mode === "guardian" ? "border-teal-500 bg-teal-50" : "border-slate-200"
                   }`}
                 >
@@ -278,7 +278,7 @@ export function InviteModal({
 
               {/* Selected Person */}
               {selectedPerson && (
-                <div className="p-4 bg-slate-50 rounded-xl">
+                <div className="p-4 bg-slate-50 rounded-[10px]">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
                       <span className="text-teal-700 font-medium">

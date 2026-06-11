@@ -109,7 +109,7 @@ export function Subscriptions() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-100">
+            <div className="p-2.5 rounded-[10px] bg-emerald-100">
               <Repeat className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
@@ -120,7 +120,7 @@ export function Subscriptions() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-rose-100">
+            <div className="p-2.5 rounded-[10px] bg-rose-100">
               <AlertCircle className="w-5 h-5 text-rose-600" />
             </div>
             <div>
@@ -131,7 +131,7 @@ export function Subscriptions() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-100">
+            <div className="p-2.5 rounded-[10px] bg-slate-100">
               <Calendar className="w-5 h-5 text-slate-600" />
             </div>
             <div>
@@ -142,7 +142,7 @@ export function Subscriptions() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-sky-100">
+            <div className="p-2.5 rounded-[10px] bg-sky-100">
               <Repeat className="w-5 h-5 text-sky-600" />
             </div>
             <div>

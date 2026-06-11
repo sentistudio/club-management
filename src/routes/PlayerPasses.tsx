@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Plus, RefreshCw, Loader2, Code2, Table2, X,
   ArrowRight, ExternalLink, ChevronRight, Search,
-  CheckCircle2, AlertCircle, Circle, MinusCircle,
+  CheckCircle2, MinusCircle,
   AlertTriangle, FileText, ChevronDown, ChevronUp, Lock
 } from "lucide-react";
-import { Card, Badge } from "../components/ui";
+import { Card } from "../components/ui";
 import { BVB_DFB_MEMBERS_JSON, mockPassabgleichData } from "../data/mockDfbnet";
 import type { PassabgleichEntry, PassabgleichStatus } from "../data/mockDfbnet";
 import { MOCK_PERSONS, MOCK_MEMBERSHIPS, MOCK_TEAMS_PEOPLE } from "../data/mockPeople";
@@ -416,14 +416,14 @@ export function PlayerPasses() {
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => setNewPassOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-slate-200 text-slate-700 rounded-[10px] hover:bg-slate-50 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Neuen Pass beantragen
           </button>
           <button
             onClick={() => setAbgleichModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition-colors shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-[10px] transition-colors shadow-sm"
           >
             <RefreshCw className="w-4 h-4" />
             DFB Passabgleich
@@ -464,7 +464,7 @@ export function PlayerPasses() {
               className={`text-left rounded-2xl border p-4 transition-all ${statusFilter === "linked" ? "ring-2 ring-emerald-500 border-emerald-200 bg-emerald-50" : "border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/40"}`}
             >
               <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl ${statusFilter === "linked" ? "bg-emerald-200" : "bg-emerald-100"}`}>
+                <div className={`p-2.5 rounded-[10px] ${statusFilter === "linked" ? "bg-emerald-200" : "bg-emerald-100"}`}>
                   <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
@@ -480,7 +480,7 @@ export function PlayerPasses() {
               className={`text-left rounded-2xl border p-4 transition-all ${statusFilter === "without_pass" ? "ring-2 ring-slate-400 border-slate-300 bg-slate-50" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"}`}
             >
               <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl ${statusFilter === "without_pass" ? "bg-slate-200" : "bg-slate-100"}`}>
+                <div className={`p-2.5 rounded-[10px] ${statusFilter === "without_pass" ? "bg-slate-200" : "bg-slate-100"}`}>
                   <MinusCircle className="w-5 h-5 text-slate-500" />
                 </div>
                 <div>
@@ -496,7 +496,7 @@ export function PlayerPasses() {
               className={`text-left rounded-2xl border p-4 transition-all ${statusFilter === "expired" ? "ring-2 ring-red-400 border-red-200 bg-red-50" : "border-slate-200 bg-white hover:border-red-200 hover:bg-red-50/40"}`}
             >
               <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl ${statusFilter === "expired" ? "bg-red-200" : "bg-red-100"}`}>
+                <div className={`p-2.5 rounded-[10px] ${statusFilter === "expired" ? "bg-red-200" : "bg-red-100"}`}>
                   <AlertTriangle className="w-5 h-5 text-red-500" />
                 </div>
                 <div>
@@ -512,7 +512,7 @@ export function PlayerPasses() {
               className="text-left rounded-2xl border border-slate-200 bg-white hover:border-teal-200 hover:bg-teal-50/40 p-4 transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-teal-100">
+                <div className="p-2.5 rounded-[10px] bg-teal-100">
                   <RefreshCw className={`w-5 h-5 text-teal-600 ${abgleichState === "loading" ? "animate-spin" : ""}`} />
                 </div>
                 <div className="min-w-0">
@@ -554,7 +554,7 @@ export function PlayerPasses() {
             <input
               type="text" placeholder="Name suchen…" value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
             />
           </div>
 
@@ -858,11 +858,11 @@ export function PlayerPasses() {
                         <span className="text-xs text-slate-400">{footballMembers.length} DVH · {BVB_DFB_MEMBERS_JSON.members.length} DFBnet</span>
                       </div>
                     </div>
-                    <div className="rounded-xl border border-slate-200 p-4 space-y-3">
+                    <div className="rounded-[10px] border border-slate-200 p-4 space-y-3">
                       <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Authentifizierungsablauf</p>
                       <div className="overflow-x-auto">
                         <div className="flex items-center min-w-[480px]">
-                          <div className="rounded-xl border-2 border-teal-600 bg-teal-50 px-4 py-2.5 text-center w-28 flex-shrink-0">
+                          <div className="rounded-[10px] border-2 border-teal-600 bg-teal-50 px-4 py-2.5 text-center w-28 flex-shrink-0">
                             <p className="text-xs font-bold text-teal-800">DVH</p>
                             <p className="text-[10px] text-teal-600">Club Mgmt</p>
                           </div>
@@ -870,7 +870,7 @@ export function PlayerPasses() {
                             <p className="text-[10px] text-slate-400 font-mono">CDC Token</p>
                             <div className="w-full flex items-center"><div className="flex-1 h-px bg-slate-300" /><ArrowRight className="w-3 h-3 text-slate-400 -ml-px" /></div>
                           </div>
-                          <div className="rounded-xl border-2 border-slate-400 bg-slate-50 px-4 py-2.5 text-center w-28 flex-shrink-0">
+                          <div className="rounded-[10px] border-2 border-slate-400 bg-slate-50 px-4 py-2.5 text-center w-28 flex-shrink-0">
                             <p className="text-xs font-bold text-slate-700">Auth-Proxy</p>
                             <p className="text-[10px] text-slate-500">OAuth2/PKCE</p>
                           </div>
@@ -878,7 +878,7 @@ export function PlayerPasses() {
                             <p className="text-[10px] text-slate-400 font-mono">Redirect</p>
                             <div className="w-full flex items-center"><div className="flex-1 h-px bg-slate-300" /><ArrowRight className="w-3 h-3 text-slate-400 -ml-px" /></div>
                           </div>
-                          <div className="rounded-xl border-2 border-amber-400 bg-amber-50 px-4 py-2.5 text-center w-28 flex-shrink-0">
+                          <div className="rounded-[10px] border-2 border-amber-400 bg-amber-50 px-4 py-2.5 text-center w-28 flex-shrink-0">
                             <p className="text-xs font-bold text-amber-800">DFBnet</p>
                             <p className="text-[10px] text-amber-600">Login / API</p>
                           </div>
@@ -890,7 +890,7 @@ export function PlayerPasses() {
                         <p className="text-[10px] text-emerald-600 font-mono pl-32 mt-0.5 min-w-[480px]">Bearer Token → GET /club/{"{id}"}/members</p>
                       </div>
                     </div>
-                    <button onClick={startAbgleich} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+                    <button onClick={startAbgleich} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-[10px] transition-colors shadow-sm">
                       Abgleich starten <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -1005,7 +1005,7 @@ export function PlayerPasses() {
                 {modalStep === "confirm" && (
                   <div className="px-6 py-5 space-y-5">
                     {/* Warning banner */}
-                    <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-[10px]">
                       <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="text-sm font-semibold text-amber-900">Änderungen werden angewendet</p>
@@ -1022,7 +1022,7 @@ export function PlayerPasses() {
                         <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3">DVH-Daten werden überschrieben</p>
                         <div className="space-y-3">
                           {confirmYellowEntries.map(entry => (
-                            <div key={entry.id} className="border border-amber-200 rounded-xl overflow-hidden">
+                            <div key={entry.id} className="border border-amber-200 rounded-[10px] overflow-hidden">
                               <div className="px-4 py-2 bg-amber-50 border-b border-amber-100">
                                 <p className="text-xs font-semibold text-amber-800">
                                   {entry.dvhPerson!.firstName} {entry.dvhPerson!.lastName}
@@ -1058,7 +1058,7 @@ export function PlayerPasses() {
                         <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3">Werden ins DVH importiert</p>
                         <div className="space-y-2">
                           {confirmRedEntries.map(entry => (
-                            <div key={entry.id} className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl bg-slate-50">
+                            <div key={entry.id} className="flex items-center gap-3 p-3 border border-slate-200 rounded-[10px] bg-slate-50">
                               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                                 {initials(`${entry.dfbMember!.firstName} ${entry.dfbMember!.lastName}`)}
                               </div>
@@ -1083,7 +1083,7 @@ export function PlayerPasses() {
                       <button onClick={closeModal} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">Schließen</button>
                       <button
                         onClick={handleUebernehmen}
-                        className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors"
+                        className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-teal-600 text-white rounded-[10px] hover:bg-teal-700 transition-colors"
                       >
                         Übernehmen &amp; Schließen
                         {pendingCount > 0 && (
@@ -1096,7 +1096,7 @@ export function PlayerPasses() {
                       <button onClick={() => setModalStep("browse")} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1.5">
                         <ArrowRight className="w-3.5 h-3.5 rotate-180" /> Zurück
                       </button>
-                      <button onClick={applyAndClose} className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors">
+                      <button onClick={applyAndClose} className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-teal-600 text-white rounded-[10px] hover:bg-teal-700 transition-colors">
                         Bestätigen &amp; Schließen
                       </button>
                     </>
@@ -1183,7 +1183,7 @@ export function PlayerPasses() {
               {newPassStep === "review" && newPassSelected && (
                 <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
                   {newPassSelected.hasPass && (
-                    <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-[10px]">
                       <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                       <p className="text-xs text-amber-700">Laut DFBnet-Abgleich hat diese Person bereits einen aktiven Pass. Eine Erstausstellung ist nur für passlose Spieler möglich.</p>
                     </div>
@@ -1191,7 +1191,7 @@ export function PlayerPasses() {
 
                   <div>
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Personendaten</p>
-                    <div className="bg-slate-50 rounded-xl px-4 py-3 space-y-1.5 text-sm">
+                    <div className="bg-slate-50 rounded-[10px] px-4 py-3 space-y-1.5 text-sm">
                       <div className="flex justify-between">
                         <span className="text-slate-500">Name</span>
                         <span className="font-medium">{newPassSelected.firstName} {newPassSelected.lastName}</span>
@@ -1211,13 +1211,13 @@ export function PlayerPasses() {
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">DFBnet-Zielmodul</p>
                     <p className="text-sm font-medium text-slate-700 mb-1">DFBnet Pass – Antragstellung / Erstausstellung</p>
                     <p className="text-xs text-slate-500 mb-3">{ACTION_DESC.erstausstellung}</p>
-                    <div className="bg-slate-900 rounded-xl overflow-hidden">
+                    <div className="bg-slate-900 rounded-[10px] overflow-hidden">
                       <div className="flex items-center justify-between px-3 py-2 bg-slate-800 border-b border-slate-700">
                         <span className="text-xs text-slate-400 font-mono">URL-Template</span>
                         <span className="text-xs text-amber-400">Deep Link</span>
                       </div>
                       <pre className="px-3 py-3 text-xs text-slate-200 font-mono leading-relaxed whitespace-pre-wrap break-all">
-                        {buildUrl("erstausstellung", { firstName: newPassSelected.firstName, lastName: newPassSelected.lastName, dateOfBirth: newPassSelected.dateOfBirth }, mockClub.dfbId)}
+                        {buildUrl("erstausstellung", { firstName: newPassSelected.firstName, lastName: newPassSelected.lastName, dateOfBirth: newPassSelected.dateOfBirth }, mockClub.dfbId ?? "")}
                       </pre>
                     </div>
                   </div>
@@ -1239,7 +1239,7 @@ export function PlayerPasses() {
                       <ArrowRight className="w-3.5 h-3.5 rotate-180" /> Zurück
                     </button>
                     <div className="relative group">
-                      <button disabled className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-teal-400 rounded-xl cursor-not-allowed opacity-70">
+                      <button disabled className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-teal-400 rounded-[10px] cursor-not-allowed opacity-70">
                         In DFBnet öffnen <ExternalLink className="w-3.5 h-3.5" />
                       </button>
                       <div className="absolute bottom-full right-0 mb-2 w-56 px-3 py-2 bg-slate-800 text-xs text-slate-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -1267,7 +1267,7 @@ export function PlayerPasses() {
               <div className="overflow-y-auto px-6 py-5 space-y-5">
                 <div>
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Personendaten</p>
-                  <div className="bg-slate-50 rounded-xl px-4 py-3 space-y-1.5 text-sm">
+                  <div className="bg-slate-50 rounded-[10px] px-4 py-3 space-y-1.5 text-sm">
                     <div className="flex justify-between"><span className="text-slate-500">Name</span><span className="font-medium">{deepLink.person.firstName} {deepLink.person.lastName}</span></div>
                     <div className="flex justify-between"><span className="text-slate-500">Geburtsdatum</span><span className="font-medium">{fmtDate(deepLink.person.dateOfBirth)}</span></div>
                     <div className="flex justify-between"><span className="text-slate-500">Verein-ID</span><span className="font-mono text-xs text-slate-600">{mockClub.dfbId}</span></div>
@@ -1278,13 +1278,13 @@ export function PlayerPasses() {
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">DFBnet-Zielmodul</p>
                   <p className="text-sm font-medium text-slate-700 mb-1">{ACTION_MODULE[deepLink.action]}</p>
                   <p className="text-xs text-slate-500 mb-3">{ACTION_DESC[deepLink.action]}</p>
-                  <div className="bg-slate-900 rounded-xl overflow-hidden">
+                  <div className="bg-slate-900 rounded-[10px] overflow-hidden">
                     <div className="flex items-center justify-between px-3 py-2 bg-slate-800 border-b border-slate-700">
                       <span className="text-xs text-slate-400 font-mono">URL-Template</span>
                       <span className="text-xs text-amber-400">Deep Link</span>
                     </div>
                     <pre className="px-3 py-3 text-xs text-slate-200 font-mono leading-relaxed whitespace-pre-wrap break-all">
-                      {buildUrl(deepLink.action, deepLink.person, mockClub.dfbId)}
+                      {buildUrl(deepLink.action, deepLink.person, mockClub.dfbId ?? "")}
                     </pre>
                   </div>
                 </div>
@@ -1296,7 +1296,7 @@ export function PlayerPasses() {
               <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                 <button onClick={() => setDeepLink(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Schließen</button>
                 <div className="relative group">
-                  <button disabled className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-teal-400 rounded-xl cursor-not-allowed opacity-70">
+                  <button disabled className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-teal-400 rounded-[10px] cursor-not-allowed opacity-70">
                     In DFBnet öffnen <ExternalLink className="w-3.5 h-3.5" />
                   </button>
                   <div className="absolute bottom-full right-0 mb-2 w-56 px-3 py-2 bg-slate-800 text-xs text-slate-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">

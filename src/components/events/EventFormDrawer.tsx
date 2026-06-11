@@ -10,6 +10,7 @@ import {
 import type { ClubEvent, ClubEventFormData } from "../../types/events";
 import { DEFAULT_BANNERS } from "../../types/events";
 import { AudienceSelector } from "./AudienceSelector";
+import { TeamAudienceSelector } from "./TeamAudienceSelector";
 import { RecurrenceEditor } from "./RecurrenceEditor";
 import { RSVPSection } from "./RSVPSection";
 import { ResourcePickerPanel } from "../fields/ResourcePickerPanel";
@@ -48,7 +49,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
     memberIds: [],
     visibility: "private",
     rsvpRequired: true,
-    rsvpDeadline: "",
+    rsvpHoursBefore: 24,
     maxParticipants: "",
     recurrenceEnabled: false,
     recurrenceFrequency: "weekly",
@@ -69,7 +70,10 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
     isHome: boolean;
     matchType: MatchType;
     visibility: TeamEventVisibility;
-  }>({ teamId: "", type: "training", opponent: "", isHome: true, matchType: "league", visibility: "club_visible" });
+    audienceTeamIds: string[];
+    audienceGroupIds: string[];
+    audienceMemberIds: string[];
+  }>({ teamId: "", type: "training", opponent: "", isHome: true, matchType: "league", visibility: "team_only", audienceTeamIds: [], audienceGroupIds: [], audienceMemberIds: [] });
 
   const TEAM_SEASON: Record<string, string> = {
     team_u12: "s2024_u12", team1: "s2024_team1",
@@ -95,7 +99,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
         memberIds: event.audience.memberIds || [],
         visibility: event.visibility,
         rsvpRequired: event.rsvpRequired,
-        rsvpDeadline: event.rsvpDeadline || "",
+        rsvpHoursBefore: event.rsvpHoursBefore ?? 24,
         maxParticipants: event.maxParticipants?.toString() || "",
         recurrenceEnabled: event.recurrence?.enabled || false,
         recurrenceFrequency: event.recurrence?.frequency || "weekly",
@@ -176,7 +180,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
       resolvedMemberCount: resolvedCount,
       visibility: formData.visibility,
       rsvpRequired: formData.rsvpRequired,
-      rsvpDeadline: formData.rsvpRequired && formData.rsvpDeadline ? formData.rsvpDeadline : undefined,
+      rsvpHoursBefore: formData.rsvpRequired ? formData.rsvpHoursBefore : undefined,
       maxParticipants: formData.rsvpRequired && formData.maxParticipants ? parseInt(formData.maxParticipants) : undefined,
       rsvpStats: event?.rsvpStats || {
         invited: resolvedCount,
@@ -222,6 +226,18 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
       opponent: teamForm.type === "match" ? teamForm.opponent : undefined,
       isHome: teamForm.type === "match" ? teamForm.isHome : undefined,
       matchType: teamForm.type === "match" ? teamForm.matchType : undefined,
+      audienceTeamIds: teamForm.audienceTeamIds.length ? teamForm.audienceTeamIds : undefined,
+      audienceGroupIds: teamForm.audienceGroupIds.length ? teamForm.audienceGroupIds : undefined,
+      audienceMemberIds: teamForm.audienceMemberIds.length ? teamForm.audienceMemberIds : undefined,
+      recurrence: formData.recurrenceEnabled ? {
+        frequency: formData.recurrenceFrequency === "biweekly" ? "biweekly" : "weekly",
+        weekdays: formData.recurrenceWeekdays,
+        until: formData.recurrenceUntil || "",
+      } : undefined,
+      isRecurring: formData.recurrenceEnabled,
+      rsvpRequired: formData.rsvpRequired || undefined,
+      rsvpHoursBefore: formData.rsvpRequired ? formData.rsvpHoursBefore : undefined,
+      maxParticipants: formData.rsvpRequired && formData.maxParticipants ? parseInt(formData.maxParticipants) : undefined,
       attendanceList: [],
       status: "scheduled",
       createdBy: ADMIN_USER.id,
@@ -275,8 +291,8 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
           {/* Form Content */}
           <div className="flex-1 overflow-y-auto">
 
-          {/* Banner Image - At top like final display */}
-          {eventScope === "club" && (formData.bannerImage ? (
+          {/* Banner Image - shown for both scopes */}
+          {(formData.bannerImage ? (
             <div className="relative h-36 overflow-hidden">
               <img
                 src={formData.bannerImage}
@@ -312,22 +328,34 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
           
           <div className="p-6 space-y-6">
 
-            {/* Team event fields */}
+            {/* Title - always first */}
+            {(eventScope === "club" || teamForm.type !== "match") && (
+            <div>
+              <input
+                ref={titleRef}
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Titel hinzufügen"
+                className="w-full text-2xl font-semibold text-slate-800 placeholder-slate-400 border-0 border-b-2 border-transparent focus:border-[#004941] focus:outline-none pb-2 transition-colors"
+              />
+            </div>
+            )}
+
+            {/* Team event fields: Mannschaft + Terminart + Match details */}
             {eventScope === "team" && (
               <div className="space-y-4">
-                {/* Team picker */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Mannschaft</label>
                   <select
                     value={teamForm.teamId}
                     onChange={e => setTeamForm(p => ({ ...p, teamId: e.target.value }))}
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm bg-white"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm bg-white"
                   >
                     <option value="">Mannschaft auswählen…</option>
                     {mockTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>
-                {/* Event type toggle */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Terminart</label>
                   <div className="flex rounded-lg border border-slate-200 overflow-hidden text-sm">
@@ -340,16 +368,15 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                     ))}
                   </div>
                 </div>
-                {/* Match details */}
                 {teamForm.type === "match" && (
-                  <div className="space-y-3 p-4 bg-emerald-50 rounded-xl">
+                  <div className="space-y-3 p-4 bg-emerald-50 rounded-[10px]">
                     <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Spieldetails</p>
                     <input
                       type="text"
                       placeholder="Gegner (z.B. TV Lich U12)"
                       value={teamForm.opponent}
                       onChange={e => setTeamForm(p => ({ ...p, opponent: e.target.value }))}
-                      className="w-full px-3 py-2.5 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm bg-white"
+                      className="w-full px-3 py-2.5 border border-emerald-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm bg-white"
                     />
                     <div className="flex gap-2">
                       <div className="flex rounded-lg border border-emerald-200 overflow-hidden text-sm flex-1">
@@ -361,7 +388,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                       <select
                         value={teamForm.matchType}
                         onChange={e => setTeamForm(p => ({ ...p, matchType: e.target.value as MatchType }))}
-                        className="flex-1 px-3 py-2 border border-emerald-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        className="flex-1 px-3 py-2 border border-emerald-200 rounded-[10px] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
                       >
                         <option value="league">Liga</option>
                         <option value="cup">Pokal</option>
@@ -372,20 +399,6 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Title - Primary Focus */}
-            {(eventScope === "club" || teamForm.type !== "match") && (
-            <div>
-              <input
-                ref={titleRef}
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Titel hinzufügen"
-                className="w-full text-2xl font-semibold text-slate-800 placeholder-slate-400 border-0 border-b-2 border-transparent focus:border-[#004941] focus:outline-none pb-2 transition-colors"
-              />
-            </div>
             )}
 
             {/* Date & Time – iOS Calendar style */}
@@ -409,7 +422,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                           endDate: prev.endDate && prev.endDate >= d ? prev.endDate : "",
                         }));
                       }}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
                     />
                   </div>
                   {!formData.isAllDay && (
@@ -419,7 +432,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                         type="time"
                         value={formData.startTime}
                         onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
                       />
                     </div>
                   )}
@@ -434,7 +447,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                       value={formData.endDate || formData.date}
                       min={formData.date}
                       onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
                     />
                   </div>
                   {!formData.isAllDay && (
@@ -444,7 +457,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                         type="time"
                         value={formData.endTime}
                         onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                        className="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
+                        className="w-full px-3 py-2.5 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#004941] text-sm"
                       />
                     </div>
                   )}
@@ -472,8 +485,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                   </div>
                 )}
                 
-                {/* Recurrence - Right after date/time for better context */}
-                {eventScope === "club" && (
+                {/* Recurrence */}
                 <RecurrenceEditor
                   enabled={formData.recurrenceEnabled}
                   frequency={formData.recurrenceFrequency}
@@ -487,7 +499,6 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                   onWeekdaysChange={(val) => setFormData({ ...formData, recurrenceWeekdays: val })}
                   onUntilChange={(val) => setFormData({ ...formData, recurrenceUntil: val })}
                 />
-                )}
               </div>
             </div>
 
@@ -504,12 +515,12 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     placeholder="Ort hinzufügen"
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941]"
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#004941]"
                   />
                 )}
 
                 {/* Venue resource toggle */}
-                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-xl">
+                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-[10px]">
                   <div>
                     <p className="font-medium text-slate-800">Vereinsplatz</p>
                     <p className="text-xs text-slate-500">Ressource aus dem Verein buchen</p>
@@ -585,11 +596,10 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Beschreibung hinzufügen"
                 rows={4}
-                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#004941] resize-none"
+                className="flex-1 px-4 py-3 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[#004941] resize-none"
               />
             </div>
 
-            {eventScope === "club" && (<>
             {/* Divider */}
             <hr className="border-slate-200" />
 
@@ -598,18 +608,29 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
               <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wide mb-4">
                 Teilnehmer
               </h3>
-              <AudienceSelector
-                isClubWide={formData.isClubWide}
-                departmentIds={formData.departmentIds}
-                groupIds={formData.groupIds}
-                memberIds={formData.memberIds}
-                onIsClubWideChange={(val) => setFormData({ ...formData, isClubWide: val })}
-                onDepartmentIdsChange={(ids) => setFormData({ ...formData, departmentIds: ids })}
-                onGroupIdsChange={(ids) => setFormData({ ...formData, groupIds: ids })}
-                onMemberIdsChange={(ids) => setFormData({ ...formData, memberIds: ids })}
-              />
+              {eventScope === "club" ? (
+                <AudienceSelector
+                  isClubWide={formData.isClubWide}
+                  departmentIds={formData.departmentIds}
+                  groupIds={formData.groupIds}
+                  memberIds={formData.memberIds}
+                  onIsClubWideChange={(val) => setFormData({ ...formData, isClubWide: val })}
+                  onDepartmentIdsChange={(ids) => setFormData({ ...formData, departmentIds: ids })}
+                  onGroupIdsChange={(ids) => setFormData({ ...formData, groupIds: ids })}
+                  onMemberIdsChange={(ids) => setFormData({ ...formData, memberIds: ids })}
+                />
+              ) : (
+                <TeamAudienceSelector
+                  teamIds={teamForm.audienceTeamIds}
+                  groupIds={teamForm.audienceGroupIds}
+                  memberIds={teamForm.audienceMemberIds}
+                  primaryTeamId={teamForm.teamId}
+                  onTeamIdsChange={(ids) => setTeamForm(p => ({ ...p, audienceTeamIds: ids }))}
+                  onGroupIdsChange={(ids) => setTeamForm(p => ({ ...p, audienceGroupIds: ids }))}
+                  onMemberIdsChange={(ids) => setTeamForm(p => ({ ...p, audienceMemberIds: ids }))}
+                />
+              )}
             </div>
-            </>)}
 
             {/* Divider */}
             <hr className="border-slate-200" />
@@ -624,7 +645,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, visibility: "private" })}
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
+                  className={`flex items-center gap-3 p-4 rounded-[10px] border-2 text-left transition-all ${
                     formData.visibility === "private"
                       ? "border-[#004941] bg-[#C8F2E0]/30"
                       : "border-slate-200 hover:border-slate-300"
@@ -641,7 +662,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, visibility: "public" })}
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
+                  className={`flex items-center gap-3 p-4 rounded-[10px] border-2 text-left transition-all ${
                     formData.visibility === "public"
                       ? "border-[#004941] bg-[#C8F2E0]/30"
                       : "border-slate-200 hover:border-slate-300"
@@ -657,31 +678,41 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                 </button>
               </div>
               ) : (
-              <div className="space-y-2">
-                {([
-                  { v: "team_only", label: "Nur Team", desc: "Nur Teammitglieder sehen diesen Termin" },
-                  { v: "club_visible", label: "Verein sichtbar", desc: "Clubadmin sieht diesen Termin in der Übersicht" },
-                  { v: "public", label: "Öffentlich", desc: "Erscheint im Kalender aller Mitglieder" },
-                ] as { v: TeamEventVisibility; label: string; desc: string }[]).map(opt => (
-                  <button key={opt.v} type="button"
-                    onClick={() => setTeamForm(p => ({ ...p, visibility: opt.v }))}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
-                      teamForm.visibility === opt.v ? "border-[#004941] bg-[#C8F2E0]/30" : "border-slate-200 hover:border-slate-300"
-                    }`}>
-                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
-                      teamForm.visibility === opt.v ? "border-[#004941] bg-[#004941]" : "border-slate-300"
-                    }`} />
-                    <div>
-                      <p className={`text-sm font-medium ${teamForm.visibility === opt.v ? "text-[#004941]" : "text-slate-800"}`}>{opt.label}</p>
-                      <p className="text-xs text-slate-500">{opt.desc}</p>
-                    </div>
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setTeamForm(p => ({ ...p, visibility: "team_only" }))}
+                  className={`flex items-center gap-3 p-4 rounded-[10px] border-2 text-left transition-all ${
+                    teamForm.visibility === "team_only"
+                      ? "border-[#004941] bg-[#C8F2E0]/30"
+                      : "border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <Lock className={`w-5 h-5 ${teamForm.visibility === "team_only" ? "text-[#004941]" : "text-slate-400"}`} />
+                  <div>
+                    <p className={`font-medium ${teamForm.visibility === "team_only" ? "text-[#004941]" : "text-slate-800"}`}>Nur Team</p>
+                    <p className="text-xs text-slate-500">Team + Vereinsadmins</p>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTeamForm(p => ({ ...p, visibility: "public" }))}
+                  className={`flex items-center gap-3 p-4 rounded-[10px] border-2 text-left transition-all ${
+                    teamForm.visibility === "public"
+                      ? "border-[#004941] bg-[#C8F2E0]/30"
+                      : "border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <Globe className={`w-5 h-5 ${teamForm.visibility === "public" ? "text-[#004941]" : "text-slate-400"}`} />
+                  <div>
+                    <p className={`font-medium ${teamForm.visibility === "public" ? "text-[#004941]" : "text-slate-800"}`}>Öffentlich</p>
+                    <p className="text-xs text-slate-500">Im Vereinskalender</p>
+                  </div>
+                </button>
               </div>
               )}
             </div>
 
-            {eventScope === "club" && (<>
             {/* Divider */}
             <hr className="border-slate-200" />
 
@@ -692,15 +723,13 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
               </h3>
               <RSVPSection
                 required={formData.rsvpRequired}
-                deadline={formData.rsvpDeadline}
+                hoursBefore={formData.rsvpHoursBefore}
                 maxParticipants={formData.maxParticipants}
                 onRequiredChange={(val) => setFormData({ ...formData, rsvpRequired: val })}
-                onDeadlineChange={(val) => setFormData({ ...formData, rsvpDeadline: val })}
+                onHoursBeforeChange={(val) => setFormData({ ...formData, rsvpHoursBefore: val })}
                 onMaxParticipantsChange={(val) => setFormData({ ...formData, maxParticipants: val })}
-                eventDate={formData.date}
               />
             </div>
-            </>)}
 
                       </div>
         </div>
@@ -766,7 +795,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
               {/* Upload Custom */}
               <div className="mb-6">
                 <p className="text-sm font-medium text-slate-700 mb-3">Eigenes Bild hochladen</p>
-                <label className="flex items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 hover:border-[#004941] hover:text-[#004941] cursor-pointer transition-colors">
+                <label className="flex items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-slate-300 rounded-[10px] text-slate-600 hover:border-[#004941] hover:text-[#004941] cursor-pointer transition-colors">
                   <Upload className="w-5 h-5" />
                   <span>Bild auswählen (JPG, PNG)</span>
                   <input 
@@ -800,7 +829,7 @@ export function EventFormDrawer({ event, initialDate, onClose, onSave, onSaveTea
                         setFormData({ ...formData, bannerImage: banner.url });
                         setShowBannerPicker(false);
                       }}
-                      className={`relative rounded-xl overflow-hidden h-24 group ${
+                      className={`relative rounded-[10px] overflow-hidden h-24 group ${
                         formData.bannerImage === banner.url ? "ring-2 ring-[#004941]" : ""
                       }`}
                     >

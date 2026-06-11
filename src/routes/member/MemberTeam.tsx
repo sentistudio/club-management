@@ -99,7 +99,7 @@ export function MemberTeam() {
               <button
                 key={entry.teamId}
                 onClick={() => { setSelectedTeamId(entry.teamId); setTab("overview"); }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm font-medium ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-[10px] border-2 transition-all text-sm font-medium ${
                   entry.teamId === selectedTeamId
                     ? "border-teal-500 bg-teal-50 text-teal-700"
                     : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"

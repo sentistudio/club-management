@@ -67,7 +67,7 @@ export function TeamSettings() {
           <h3 className="text-sm font-semibold text-neutral-900">Saisonmodus</h3>
         </div>
 
-        <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-xl border border-neutral-100 mb-4">
+        <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-[10px] border border-neutral-100 mb-4">
           <div>
             <p className="text-sm font-medium text-neutral-800">Saisonverwaltung aktiviert</p>
             <p className="text-xs text-neutral-500">
@@ -216,7 +216,7 @@ export function TeamSettings() {
         {/* Chat type toggles */}
         <div className="space-y-2 mb-5">
           {/* Announcement */}
-          <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-xl border border-neutral-100">
+          <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-[10px] border border-neutral-100">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                 <Megaphone className="w-4 h-4 text-amber-600" />
@@ -236,7 +236,7 @@ export function TeamSettings() {
           </div>
 
           {/* Group */}
-          <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-xl border border-neutral-100">
+          <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-[10px] border border-neutral-100">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
                 <Users className="w-4 h-4 text-emerald-600" />
@@ -256,7 +256,7 @@ export function TeamSettings() {
           </div>
 
           {/* Direct messages */}
-          <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-xl border border-neutral-100">
+          <div className="flex items-center justify-between p-3 bg-neutral-50 rounded-[10px] border border-neutral-100">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                 <MessageSquare className="w-4 h-4 text-blue-600" />
@@ -277,7 +277,7 @@ export function TeamSettings() {
 
           {/* Youth protection — shown when DMs are off for teams with minors */}
           {!directEnabled && (
-            <div className="flex items-center gap-3 p-3 bg-pink-50 border border-pink-200 rounded-xl">
+            <div className="flex items-center gap-3 p-3 bg-pink-50 border border-pink-200 rounded-[10px]">
               <Lock className="w-4 h-4 text-pink-500 flex-shrink-0" />
               <p className="text-xs text-pink-700">
                 Direktnachrichten deaktiviert — empfohlen für Jugendteams. DMs zwischen Trainer und Minderjährigen nur mit Eltern-CC.
@@ -302,7 +302,7 @@ export function TeamSettings() {
 
           {/* Picker */}
           {showSpecialChatPicker && (
-            <div className="mb-3 p-3 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2">
+            <div className="mb-3 p-3 bg-neutral-50 rounded-[10px] ring-1 ring-gray-100 shadow-xs space-y-2">
               {[
                 { type: "parent_only" as const, label: "Elterngruppe", desc: "Automatisch alle Eltern des Teams", icon: Users, color: "bg-amber-100 text-amber-600" },
                 { type: "coaches_only" as const, label: "Trainer-Gruppe", desc: "Nur Trainer & Betreuer", icon: UserCog, color: "bg-blue-100 text-blue-600" },
@@ -375,7 +375,7 @@ export function TeamSettings() {
             { key: "aufgabenVisible",   label: "Aufgaben sichtbar",      sub: "Spieler sehen ihnen zugewiesene Aufgaben" },
             { key: "aufstellungVisible",label: "Aufstellung sichtbar",   sub: "Spieler können die geplante Aufstellung einsehen" },
           ] as const).map(({ key, label, sub }) => (
-            <div key={key} className="flex items-center justify-between p-3 bg-neutral-50 rounded-xl border border-neutral-100">
+            <div key={key} className="flex items-center justify-between p-3 bg-neutral-50 rounded-[10px] border border-neutral-100">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center">
                   {vis[key] ? <Eye className="w-4 h-4 text-teal-500" /> : <EyeOff className="w-4 h-4 text-neutral-400" />}
@@ -421,7 +421,7 @@ export function TeamSettings() {
                 key={opt.value}
                 disabled={!isAdmin}
                 onClick={() => updateSetting("positionSchema", opt.value)}
-                className={`text-left p-3 rounded-xl border-2 transition-all disabled:opacity-50 ${
+                className={`text-left p-3 rounded-[10px] border-2 transition-all disabled:opacity-50 ${
                   isSelected
                     ? "border-teal-500 bg-teal-50"
                     : "border-neutral-200 bg-white hover:border-neutral-300"

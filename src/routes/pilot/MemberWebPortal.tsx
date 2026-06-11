@@ -704,7 +704,7 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages, curren
     <aside className="w-64 h-screen flex flex-col bg-white border-r border-neutral-200 sticky top-0">
       {/* Logo */}
       <div className="flex items-center gap-3 h-16 px-4 border-b border-neutral-200">
-        <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-[10px] bg-neutral-900 flex items-center justify-center">
           <span className="text-white font-bold text-lg">cb</span>
         </div>
         <div>
@@ -823,7 +823,7 @@ function MemberSidebar({ activeView, onNavigate, profile, unreadMessages, curren
               className="fixed inset-0 z-40" 
               onClick={() => setShowProfileSwitcher(false)} 
             />
-            <div className="absolute bottom-full left-4 right-4 mb-2 bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden z-50">
+            <div className="absolute bottom-full left-4 right-4 mb-2 bg-white rounded-[10px] shadow-lg border border-neutral-200 overflow-hidden z-50">
               <div className="p-2">
                 <p className="px-3 py-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wide">
                   Demo: Profil wechseln
@@ -972,7 +972,7 @@ export function MemberWebPortal() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-4 border border-neutral-200">
+        <div className="bg-white rounded-[10px] p-4 border border-neutral-200">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
               <Calendar className="w-5 h-5 text-teal-600" />
@@ -983,7 +983,7 @@ export function MemberWebPortal() {
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-4 border border-neutral-200">
+        <div className="bg-white rounded-[10px] p-4 border border-neutral-200">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
               <MessageSquare className="w-5 h-5 text-blue-600" />
@@ -994,7 +994,7 @@ export function MemberWebPortal() {
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-4 border border-neutral-200">
+        <div className="bg-white rounded-[10px] p-4 border border-neutral-200">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
               <CreditCard className="w-5 h-5 text-amber-600" />
@@ -1008,7 +1008,7 @@ export function MemberWebPortal() {
       </div>
 
       {/* Memberships */}
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+      <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden">
         <div className="p-4 border-b border-neutral-200">
           <h2 className="font-semibold text-neutral-900">Meine Mitgliedschaften</h2>
         </div>
@@ -1031,7 +1031,7 @@ export function MemberWebPortal() {
       </div>
 
       {/* Upcoming Events */}
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+      <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden">
         <div className="p-4 border-b border-neutral-200 flex items-center justify-between">
           <h2 className="font-semibold text-neutral-900">{t("memberPortal.upcomingEvents")}</h2>
           <button 
@@ -1049,7 +1049,7 @@ export function MemberWebPortal() {
                 setSelectedEvent(event);
                 setView("event-detail");
               }}
-              className="bg-neutral-50 rounded-xl overflow-hidden hover:bg-neutral-100 transition-colors cursor-pointer group border border-neutral-100"
+              className="bg-neutral-50 rounded-[10px] overflow-hidden hover:bg-neutral-100 transition-colors cursor-pointer group border border-neutral-100"
             >
               {/* Mini Banner */}
               {event.bannerImage && (
@@ -1099,7 +1099,7 @@ export function MemberWebPortal() {
       </div>
 
       {/* Recent News */}
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+      <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden">
         <div className="p-4 border-b border-neutral-200 flex items-center justify-between">
           <h2 className="font-semibold text-neutral-900">Aktuelle News</h2>
           <button 
@@ -1249,7 +1249,7 @@ export function MemberWebPortal() {
 
         {/* LIST VIEW - Clean Design */}
         {calendarViewMode === "list" && (
-          <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden flex-1 flex flex-col">
+          <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden flex-1 flex flex-col">
             {/* Integrated Week Navigator */}
             <div className="border-b border-neutral-200 p-3 bg-neutral-50">
               <div className="flex items-center justify-between mb-2">
@@ -1448,7 +1448,7 @@ export function MemberWebPortal() {
         
         {/* CALENDAR VIEW */}
         {calendarViewMode === "calendar" && (
-          <div className="bg-white rounded-xl border border-neutral-200 p-4">
+          <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs p-4">
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-4">
               <button
@@ -1537,7 +1537,7 @@ export function MemberWebPortal() {
           <span>{t("memberPortal.backToCalendar")}</span>
         </button>
 
-        <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden">
           {/* Banner Image */}
           {selectedEvent.bannerImage && (
             <div className="h-48 w-full overflow-hidden">
@@ -1552,7 +1552,7 @@ export function MemberWebPortal() {
           {/* Header */}
           <div className={`p-6 border-b border-neutral-200 ${selectedEvent.bannerImage ? "-mt-12 relative z-10 bg-white mx-6 rounded-t-xl shadow-lg" : ""}`}>
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-xl bg-neutral-100 flex items-center justify-center text-3xl">
+              <div className="w-16 h-16 rounded-[10px] bg-neutral-100 flex items-center justify-center text-3xl">
                 {selectedEvent.teamIcon || "📅"}
               </div>
               <div className="flex-1">
@@ -1707,12 +1707,12 @@ export function MemberWebPortal() {
           placeholder="Chats durchsuchen..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:border-teal-500"
+          className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-200 rounded-[10px] focus:outline-none focus:border-teal-500"
         />
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 p-1 bg-neutral-100 rounded-xl">
+      <div className="flex gap-2 p-1 bg-neutral-100 rounded-[10px]">
         {[
           { id: "announcements", label: t("memberPortal.announcements") },
           { id: "team", label: t("memberPortal.teamChats") },
@@ -1734,7 +1734,7 @@ export function MemberWebPortal() {
       </div>
 
       {/* Chat List */}
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+      <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden">
         {chatTab === "requests" ? (
           <div className="p-8 text-center">
             <MessageSquare className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
@@ -1895,10 +1895,10 @@ export function MemberWebPortal() {
                 placeholder="Nachricht schreiben..."
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                className="flex-1 px-4 py-2.5 bg-neutral-100 rounded-xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-teal-500"
+                className="flex-1 px-4 py-2.5 bg-neutral-100 rounded-[10px] focus:outline-none focus:bg-white focus:ring-2 focus:ring-teal-500"
               />
               <button 
-                className="p-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50"
+                className="p-2.5 bg-teal-600 text-white rounded-[10px] hover:bg-teal-700 transition-colors disabled:opacity-50"
                 disabled={!replyText.trim()}
               >
                 <Send className="w-5 h-5" />
@@ -1936,7 +1936,7 @@ export function MemberWebPortal() {
               <button
                 key={form.id}
                 onClick={() => setSelectedForm(form)}
-                className="bg-white rounded-xl border border-neutral-200 p-6 text-left hover:border-teal-300 hover:bg-teal-50/30 transition-colors"
+                className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs p-6 text-left hover:border-teal-300 hover:bg-teal-50/30 transition-colors"
               >
                 <span className="text-3xl mb-3 block">{form.icon || "📝"}</span>
                 <p className="font-medium text-neutral-900">{form.name}</p>
@@ -1964,7 +1964,7 @@ export function MemberWebPortal() {
           <p className="text-neutral-500">{selectedForm.description}</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-neutral-200 p-6 space-y-4">
+        <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs p-6 space-y-4">
           {selectedForm.fields.map((field, idx) => (
             <div key={idx}>
               <label className="block text-sm font-medium text-neutral-700 mb-1">
@@ -1973,11 +1973,11 @@ export function MemberWebPortal() {
               {field.type === "textarea" ? (
                 <textarea
                   placeholder={field.placeholder}
-                  className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:border-teal-500 resize-none"
+                  className="w-full px-4 py-3 border border-neutral-200 rounded-[10px] focus:outline-none focus:border-teal-500 resize-none"
                   rows={4}
                 />
               ) : field.type === "select" ? (
-                <select className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:border-teal-500 bg-white">
+                <select className="w-full px-4 py-3 border border-neutral-200 rounded-[10px] focus:outline-none focus:border-teal-500 bg-white">
                   <option value="">Bitte wählen...</option>
                   {field.options?.map((opt, i) => (
                     <option key={i} value={opt}>{opt}</option>
@@ -1987,14 +1987,14 @@ export function MemberWebPortal() {
                 <input
                   type={field.type}
                   placeholder={field.placeholder}
-                  className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:border-teal-500"
+                  className="w-full px-4 py-3 border border-neutral-200 rounded-[10px] focus:outline-none focus:border-teal-500"
                 />
               )}
             </div>
           ))}
 
           <div className="pt-4">
-            <button className="w-full py-3 bg-teal-600 text-white rounded-xl font-medium hover:bg-teal-700 transition-colors">
+            <button className="w-full py-3 bg-teal-600 text-white rounded-[10px] font-medium hover:bg-teal-700 transition-colors">
               Anfrage absenden
             </button>
           </div>
@@ -2012,7 +2012,7 @@ export function MemberWebPortal() {
 
       <div className="space-y-4">
         {MOCK_CLUB_NEWS.map((news) => (
-          <div key={news.id} className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+          <div key={news.id} className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden">
             {news.image && (
               <img 
                 src={news.image} 
@@ -2056,7 +2056,7 @@ export function MemberWebPortal() {
       <h1 className="text-2xl font-bold text-neutral-900">Mein Profil</h1>
 
       {/* Profile Header */}
-      <div className="bg-white rounded-xl border border-neutral-200 p-6">
+      <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs p-6">
         <div className="flex items-center gap-6">
           <img 
             src={profile.avatar} 
@@ -2078,7 +2078,7 @@ export function MemberWebPortal() {
       </div>
 
       {/* Memberships */}
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+      <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden">
         <div className="p-4 border-b border-neutral-200">
           <h3 className="font-semibold text-neutral-900">Mitgliedschaften</h3>
         </div>
@@ -2114,21 +2114,21 @@ export function MemberWebPortal() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
-        <button className="bg-white rounded-xl border border-neutral-200 p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
+        <button className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
           <CreditCard className="w-5 h-5 text-neutral-400" />
           <span className="font-medium text-neutral-900">Zahlungen</span>
         </button>
-        <button className="bg-white rounded-xl border border-neutral-200 p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
+        <button className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
           <File className="w-5 h-5 text-neutral-400" />
           <span className="font-medium text-neutral-900">Dokumente</span>
         </button>
-        <button className="bg-white rounded-xl border border-neutral-200 p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
+        <button className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors">
           <QrCode className="w-5 h-5 text-neutral-400" />
           <span className="font-medium text-neutral-900">Mitgliedsausweis</span>
         </button>
         <button 
           onClick={() => setView("settings")}
-          className="bg-white rounded-xl border border-neutral-200 p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
+          className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs p-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
         >
           <Settings className="w-5 h-5 text-neutral-400" />
           <span className="font-medium text-neutral-900">Einstellungen</span>
@@ -2146,7 +2146,7 @@ export function MemberWebPortal() {
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold text-neutral-900">{t("nav.settings")}</h1>
 
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+      <div className="bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs overflow-hidden">
         <div className="divide-y divide-neutral-100">
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -2208,7 +2208,7 @@ export function MemberWebPortal() {
         </div>
       </div>
 
-      <button className="w-full p-4 bg-red-50 text-red-600 rounded-xl font-medium hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
+      <button className="w-full p-4 bg-red-50 text-red-600 rounded-[10px] font-medium hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
         <LogOut className="w-5 h-5" />
         Abmelden
       </button>

@@ -80,7 +80,7 @@ export function LineupEditor() {
                 Position <strong>{slots.find(s => s.slot === selectedSlot)?.label}</strong> ausgewählt — Spieler aus der Liste zuweisen
               </div>
             )}
-            <div className="relative w-full aspect-[2/3] bg-emerald-700 rounded-xl overflow-hidden">
+            <div className="relative w-full aspect-[2/3] bg-emerald-700 rounded-[10px] overflow-hidden">
               {/* Pitch markings */}
               <div className="absolute inset-0">
                 <div className="absolute top-1/2 left-0 right-0 border-t border-emerald-500/40" />

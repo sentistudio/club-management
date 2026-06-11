@@ -146,7 +146,7 @@ export function TeamDashboard() {
                 return (
                   <Link key={event.id} to={`/teams/${teamId}/events/${event.id}`}>
                     <Card padding="none" hover className="flex items-center gap-4 p-4">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg ${
+                      <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 text-lg ${
                         isMatch ? "bg-emerald-100" : "bg-blue-100"
                       }`}>
                         {isMatch ? "⚽" : "🏃"}
@@ -193,7 +193,7 @@ export function TeamDashboard() {
                   return (
                     <Link key={match.id} to={`/teams/${teamId}/events/${match.id}`}>
                       <Card padding="none" hover className="flex items-center gap-4 p-4">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm ${
+                        <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 font-bold text-sm ${
                           isDraw ? "bg-neutral-100 text-neutral-600" :
                           isWin ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
                         }`}>

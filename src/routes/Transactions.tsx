@@ -145,7 +145,7 @@ export function Transactions() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-100">
+            <div className="p-2.5 rounded-[10px] bg-emerald-100">
               <CheckCircle className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
@@ -156,7 +156,7 @@ export function Transactions() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-100">
+            <div className="p-2.5 rounded-[10px] bg-amber-100">
               <Clock className="w-5 h-5 text-amber-600" />
             </div>
             <div>
@@ -167,7 +167,7 @@ export function Transactions() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-rose-100">
+            <div className="p-2.5 rounded-[10px] bg-rose-100">
               <XCircle className="w-5 h-5 text-rose-600" />
             </div>
             <div>
@@ -178,7 +178,7 @@ export function Transactions() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-100">
+            <div className="p-2.5 rounded-[10px] bg-slate-100">
               <RefreshCw className="w-5 h-5 text-slate-600" />
             </div>
             <div>
@@ -193,28 +193,28 @@ export function Transactions() {
       <Card>
         <CardHeader title="Nach Zahlungsmethode" subtitle="Erfolgreiche Zahlungen" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-slate-50 rounded-xl">
+          <div className="p-4 bg-slate-50 rounded-[10px]">
             <div className="flex items-center gap-2 mb-2">
               <CreditCard className="w-4 h-4 text-sky-600" />
               <span className="text-sm font-medium text-slate-600">Karte</span>
             </div>
             <p className="text-xl font-bold text-slate-800">{formatCurrency(stats.byMethod.card)}</p>
           </div>
-          <div className="p-4 bg-slate-50 rounded-xl">
+          <div className="p-4 bg-slate-50 rounded-[10px]">
             <div className="flex items-center gap-2 mb-2">
               <Building className="w-4 h-4 text-violet-600" />
               <span className="text-sm font-medium text-slate-600">LSV/SEPA</span>
             </div>
             <p className="text-xl font-bold text-slate-800">{formatCurrency(stats.byMethod.sepa_debit)}</p>
           </div>
-          <div className="p-4 bg-slate-50 rounded-xl">
+          <div className="p-4 bg-slate-50 rounded-[10px]">
             <div className="flex items-center gap-2 mb-2">
               <Wallet className="w-4 h-4 text-slate-600" />
               <span className="text-sm font-medium text-slate-600">Überweisung</span>
             </div>
             <p className="text-xl font-bold text-slate-800">{formatCurrency(stats.byMethod.bank_transfer)}</p>
           </div>
-          <div className="p-4 bg-slate-50 rounded-xl">
+          <div className="p-4 bg-slate-50 rounded-[10px]">
             <div className="flex items-center gap-2 mb-2">
               <Banknote className="w-4 h-4 text-amber-600" />
               <span className="text-sm font-medium text-slate-600">Bar</span>

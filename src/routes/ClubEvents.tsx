@@ -422,7 +422,7 @@ export function ClubEvents() {
 
       {/* ── Personal / child events view ── */}
       {isPersonalView && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-[10px] border border-slate-200 overflow-hidden">
           <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-2">
               {(viewContext === "me" ? user.avatar : user.linkedChildren?.find(c => c.id === viewContext)?.avatar) && (
@@ -610,7 +610,7 @@ export function ClubEvents() {
 
       {/* LIST VIEW */}
       {viewMode === "list" && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-[10px] border border-slate-200 overflow-hidden">
           {/* Integrated Week Navigator */}
           <div className="border-b border-slate-200 p-3 bg-slate-50">
             <div className="flex items-center justify-between mb-2">

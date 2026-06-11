@@ -22,8 +22,8 @@ export function Card({
     lg: "p-6"
   };
 
-  const baseClasses = "bg-white rounded-xl border border-neutral-200 shadow-card";
-  const hoverClasses = hover || onClick ? "hover:shadow-card-hover hover:border-neutral-300 transition-all duration-200 cursor-pointer" : "";
+  const baseClasses = "bg-white rounded-[10px] ring-1 ring-gray-100 shadow-xs";
+  const hoverClasses = hover || onClick ? "hover:shadow-md transition-shadow duration-200 cursor-pointer" : "";
   const clickClasses = onClick ? "cursor-pointer" : "";
 
   return (

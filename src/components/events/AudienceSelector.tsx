@@ -78,7 +78,7 @@ export function AudienceSelector({
   return (
     <div className="space-y-3">
       {/* Club-wide toggle */}
-      <div className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+      <div className={`flex items-center justify-between p-4 rounded-[10px] border-2 transition-all ${
         isClubWide ? "border-[#004941] bg-[#C8F2E0]/20" : "border-slate-200"
       }`}>
         <div className="flex items-center gap-3">
@@ -105,7 +105,7 @@ export function AudienceSelector({
 
       {/* Per-source sections */}
       {!isClubWide && (
-        <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-200">
+        <div className="border border-slate-200 rounded-[10px] overflow-hidden divide-y divide-slate-200">
 
           {/* Departments */}
           <div>
@@ -292,7 +292,7 @@ export function AudienceSelector({
       )}
 
       {/* Combined resolved count — expandable list */}
-      <div className="border border-slate-200 rounded-xl overflow-hidden">
+      <div className="border border-slate-200 rounded-[10px] overflow-hidden">
         <button
           type="button"
           onClick={() => setShowInviteList(v => !v)}

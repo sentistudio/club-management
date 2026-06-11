@@ -30,7 +30,7 @@ function TeamLayoutContent({ team }: { team: Team }) {
             </button>
             <div className="w-px h-5 bg-neutral-200" />
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-[10px] bg-teal-100 flex items-center justify-center flex-shrink-0">
                 <span className="text-teal-700 font-bold text-sm">
                   {team.name.slice(0, 2).toUpperCase()}
                 </span>

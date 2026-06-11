@@ -177,7 +177,7 @@ export function EventDetailDrawer({
 
               {/* Location / Field – unified */}
               {(event.location || field) && (
-                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl">
+                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-[10px]">
                   <MapPin className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     {field ? (
@@ -266,7 +266,7 @@ export function EventDetailDrawer({
               )}
 
               {/* Audience Summary */}
-              <div className="p-4 border border-slate-200 rounded-xl">
+              <div className="p-4 border border-slate-200 rounded-[10px]">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-slate-400" />
@@ -279,7 +279,7 @@ export function EventDetailDrawer({
 
               {/* RSVP Stats */}
               {event.rsvpRequired && event.rsvpStats && (
-                <div className="p-4 border border-slate-200 rounded-xl">
+                <div className="p-4 border border-slate-200 rounded-[10px]">
                   <p className="font-medium text-slate-800 mb-4">Anmeldestatus</p>
                   <div className="grid grid-cols-4 gap-3">
                     <div className="text-center p-3 bg-emerald-50 rounded-lg">
@@ -299,9 +299,12 @@ export function EventDetailDrawer({
                       <p className="text-xs text-slate-600">Warteliste</p>
                     </div>
                   </div>
-                  {event.rsvpDeadline && (
+                  {event.rsvpHoursBefore != null && (
                     <p className="text-xs text-slate-500 mt-3">
-                      Anmeldefrist: {new Date(event.rsvpDeadline).toLocaleString("de-DE")}
+                      Anmeldefrist: {event.rsvpHoursBefore >= 24 && event.rsvpHoursBefore % 24 === 0
+                        ? `${event.rsvpHoursBefore / 24} Tag${event.rsvpHoursBefore / 24 !== 1 ? "e" : ""}`
+                        : `${event.rsvpHoursBefore} Stunde${event.rsvpHoursBefore !== 1 ? "n" : ""}`
+                      } vor Terminbeginn
                     </p>
                   )}
                   {event.maxParticipants && (
@@ -314,7 +317,7 @@ export function EventDetailDrawer({
 
               {/* Recurrence */}
               {event.recurrence?.enabled && (
-                <div className="flex items-center gap-3 p-4 bg-[#C8F2E0]/30 rounded-xl">
+                <div className="flex items-center gap-3 p-4 bg-[#C8F2E0]/30 rounded-[10px]">
                   <RefreshCw className="w-5 h-5 text-[#004941]" />
                   <div>
                     <p className="font-medium text-[#004941]">Wiederkehrender Termin</p>
@@ -340,7 +343,7 @@ export function EventDetailDrawer({
           {activeTab === "audience" && (
             <div className="space-y-4">
               {/* Audience Mode Info */}
-              <div className="p-4 bg-slate-50 rounded-xl">
+              <div className="p-4 bg-slate-50 rounded-[10px]">
                 <div className="flex items-center gap-2 mb-2">
                   {event.audience.mode === "all" && <Users className="w-5 h-5 text-slate-600" />}
                   {event.audience.mode === "departments" && <Building2 className="w-5 h-5 text-slate-600" />}
@@ -384,7 +387,7 @@ export function EventDetailDrawer({
                 <p className="text-sm font-medium text-slate-700 mb-2">
                   Eingeladene Personen ({audience.length})
                 </p>
-                <div className="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-96 overflow-y-auto">
+                <div className="border border-slate-200 rounded-[10px] divide-y divide-slate-100 max-h-96 overflow-y-auto">
                   {audience.map(member => (
                     <div key={member.id} className="flex items-center gap-3 px-4 py-3">
                       {member.avatar ? (
@@ -419,7 +422,7 @@ export function EventDetailDrawer({
                     return (
                       <div key={i} className="relative flex gap-4 pl-10">
                         <div className={`absolute left-2.5 w-3 h-3 rounded-full ${colors.bg} border-2 border-white`} />
-                        <div className="flex-1 bg-slate-50 rounded-xl p-4">
+                        <div className="flex-1 bg-slate-50 rounded-[10px] p-4">
                           <div className="flex items-center justify-between mb-1">
                             <span className={`text-sm font-medium ${colors.text}`}>
                               {getStatusLabel(entry.status)}
@@ -528,7 +531,7 @@ export function EventDetailDrawer({
                   onChange={(e) => setCancelReason(e.target.value)}
                   placeholder="z.B. Wetterbedingungen, Krankheit, ..."
                   rows={3}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
                 />
               </div>
 

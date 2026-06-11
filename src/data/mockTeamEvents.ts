@@ -36,9 +36,18 @@ export interface TeamEvent {
   // Linked content
   linkedLineupId?: string;
   linkedTrainingPackageId?: string;
-  // Recurrence (informational — individual instances are listed)
+  // Recurrence
+  recurrence?: TeamEventRecurrence;
   isRecurring?: boolean;
   recurrenceGroupId?: string;
+  // Audience (beyond the primary team)
+  audienceTeamIds?: string[];
+  audienceGroupIds?: string[];
+  audienceMemberIds?: string[];
+  // RSVP / Teilnahmebestätigung
+  rsvpRequired?: boolean;
+  rsvpHoursBefore?: number;
+  maxParticipants?: number;
   // Attendance
   attendanceList: AttendanceEntry[];
   status: TeamEventStatus;

@@ -100,11 +100,12 @@ export function ClubSeasons() {
     const sportTeams = mockTeams.filter(t => t.isActive);
     const byDept: Record<string, TeamWithSeasons[]> = {};
     sportTeams.forEach(t => {
-      if (!byDept[t.departmentId]) byDept[t.departmentId] = [];
-      byDept[t.departmentId].push({
+      const deptId = t.departmentId ?? "unknown";
+      if (!byDept[deptId]) byDept[deptId] = [];
+      byDept[deptId].push({
         teamId: t.id,
         teamName: t.name,
-        departmentId: t.departmentId,
+        departmentId: t.departmentId ?? "unknown",
         seasons: teamSeasonMap[t.id] ?? [],
       });
     });

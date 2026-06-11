@@ -152,7 +152,7 @@ export function TeamEventDetail() {
       {/* Header */}
       <Card padding="md">
         <div className="flex items-start gap-4">
-          <div className={`w-12 h-12 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 text-2xl`}>
+          <div className={`w-12 h-12 rounded-[10px] ${cfg.bg} flex items-center justify-center flex-shrink-0 text-2xl`}>
             {cfg.emoji}
           </div>
           <div className="flex-1 min-w-0">
